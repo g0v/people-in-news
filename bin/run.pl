@@ -8,7 +8,7 @@ use Try::Tiny;
 use MCE::Loop;
 use Mojo::UserAgent;
 use HTML::ExtractContent;
-use Encode qw(encode_utf8 decode_utf8);
+use Encode qw(encode_utf8 decode);
 use List::Util qw(uniqstr);
 use JSON::PP qw(encode_json);
 use FindBin '$Bin';
@@ -47,14 +47,33 @@ sub extract_info {
     my $res = $tx->result;
     return unless $res->is_success;
 
-    my $title = $res->dom->find("title");
+    my $dom = $res->dom;
+    my $charset;
+    my $content_type = $res->headers->content_type;
+
+    return if ( $content_type && $content_type !~ /html/);
+
+    if ( $content_type && $content_type =~ m!charset=(.+)[;\s]?!) {
+        $charset = $1;
+    }
+
+    if (!$charset) {
+        if (my $meta_el = $dom->find("meta[http-equiv=Content-Type]")->first) {
+            ($charset) = $meta_el->{content} =~ m{charset=([^\s;]+)};
+            $charset = lc($charset) if defined($charset);
+        }
+    }
+    $charset = 'utf-8-strict' if !$charset || $charset =~ /utf-?8/i;
+
+    my $title = $dom->find("title");
     return unless $title->[0];
 
     $info{title} = $title->[0]->text."";
+    $info{title} = decode($charset, $info{title}) unless Encode::is_utf8($info{title});
 
     my $extractor = HTML::ExtractContent->new;
-    my $html = $res->body;
-    $html = decode_utf8($html) unless Encode::is_utf8($html);
+    my $html = decode($charset, $res->body);
+
     my $text = $extractor->extract($html)->as_text;
     $text =~ s/\t/ /g;
     $text =~ s/\r\n/\n/g;
