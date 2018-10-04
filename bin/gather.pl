@@ -155,9 +155,17 @@ die "-o <DIR> is needed" unless $opts{o} && -d $opts{o};
 chdir($Bin . '/../');
 
 my @known_names = do {
-    open my $fh, '<', 'etc/people.txt';
-    map { chomp; decode('utf-8-strict', $_) } <$fh>;
+    my @people_input = glob('etc/people*.txt');
+    my @ret;
+    for my $fn (@people_input) {
+        open my $fh, '<', $fn;
+        push @ret, map { chomp; decode('utf-8-strict', $_) } <$fh>;        
+    }
+    @ret;
 };
+
+say 0+ @known_names;
+exit;
 
 my @t = localtime();
 my $timestamp = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], $t[1], $t[0]);
