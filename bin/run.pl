@@ -103,6 +103,7 @@ sub process {
     my @links = gather_links($url);
     for my $url (@links) {
         my $info = extract_info($url, $known_names) or next;
+        next unless @{$info->{names}};
 
         my $info_tsv = join(
             "\t",
@@ -124,7 +125,7 @@ chdir($Bin . '/../');
 
 my @known_names = do {
     open my $fh, '<', 'etc/people.txt';
-    map { chomp; $_ } <$fh>;
+    map { chomp; decode('utf-8-strict', $_) } <$fh>;
 };
 
 my @t = localtime();
