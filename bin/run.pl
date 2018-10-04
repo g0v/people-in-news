@@ -103,12 +103,11 @@ sub process {
     my @links = gather_links($url);
     for my $url (@links) {
         my $info = extract_info($url, $known_names) or next;
-        next unless @{$info->{names}};
 
         my $info_tsv = join(
             "\t",
-            $info->{url},,
             encode_json($info->{names}),
+            $info->{url},
             encode_json({
 
                 title => $info->{title},
