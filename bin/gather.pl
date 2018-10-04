@@ -16,6 +16,10 @@ use List::Util qw(uniqstr);
 use JSON::PP qw(encode_json);
 use FindBin '$Bin';
 
+sub err {
+    say STDERR @_;
+}
+
 sub gather_links {
     my ($url) = @_;
     state %seen;
@@ -27,7 +31,7 @@ sub gather_links {
     my $tx = try {
         $ua->get($url);
     } catch {
-        warn "SRCERR: $url\n";
+        err "SRCERR: $url";
         undef;
     };
     return unless $tx && $tx->res->is_success;
@@ -51,9 +55,22 @@ sub extract_info {
     my %info;
 
     my $ua = Mojo::UserAgent->new;
-    my $tx = $ua->get($url);
-    my $res = $tx->result;
-    return unless $res->is_success;
+
+    my $tx = try {
+        $ua->get($url);
+    } catch {
+        err "FAIL TO EXTRACT: $url";
+        undef;
+    };
+    return unless $tx;
+
+    if($tx->error) {
+        err "FAIL TO EXTRACT: $url " . encode_json($tx->error);
+        return undef;
+    }
+
+    my $res = $tx->res;
+    return unless $res->body;
 
     my $dom = $res->dom;
     my $charset;
@@ -66,7 +83,7 @@ sub extract_info {
     }
 
     if (!$charset) {
-        if (my $meta_el = $dom->find("Vmeta[http-equiv=Content-Type]")->first) {
+        if (my $meta_el = $dom->find("meta[http-equiv=Content-Type]")->first) {
             ($charset) = $meta_el->{content} =~ m{charset=([^\s;]+)};
             $charset = lc($charset) if defined($charset);
         }
