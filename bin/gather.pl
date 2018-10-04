@@ -10,6 +10,7 @@ use Mojo::UserAgent;
 use HTML::ExtractContent;
 use Encode qw(encode_utf8 decode);
 use Encode::Guess;
+use Getopt::Long qw(GetOptions);
 
 use List::Util qw(uniqstr);
 use JSON::PP qw(encode_json);
@@ -107,22 +108,25 @@ sub process {
     for my $url (@links) {
         my $info = extract_info($url, $known_names) or next;
 
-        my $info_tsv = join(
-            "\t",
-            encode_json($info->{names}),
-            $info->{url},
-            encode_json({
+        my $line = encode_json({
+            names        => $info->{names},
+            url          => "".$info->{url},
+            title        => $info->{title},
+            content_text => $info->{content_text},
+        }) . "\n";
 
-                title => $info->{title},
-                content_text => $info->{content_text},
-            }),
-        )."\n";
-
-        MCE->sendto("file:$out", $info_tsv);
+        MCE->sendto("file:$out", $line);
     }
 }
 
 # main
+my %opts;
+GetOptions(
+    \%opts,
+    "o=s"
+);
+die "-o <DIR> is needed" unless -d $opts{o};
+
 chdir($Bin . '/../');
 
 my @known_names = do {
@@ -132,7 +136,9 @@ my @known_names = do {
 
 my @t = localtime();
 my $timestamp = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], $t[1], $t[0]);
-my $output = "out/people-news-${timestamp}.tsv";
+
+# jsonl => http://jsonlines.org/
+my $output = $opts{o} . "/people-in-news-${timestamp}.jsonl";
 MCE::Loop::init { chunk_size => 1, max_workers => 16 };
 mce_loop_f {
     chomp;
