@@ -85,6 +85,9 @@ sub extract_info {
 
     $info{title} = $title->[0]->text."";
     $info{title} = decode($charset, $info{title}) unless Encode::is_utf8($info{title});
+    $info{title} =~ s/\r\n/\n/g;
+    $info{title} =~ s/\A\s+//;
+    $info{title} =~ s/\s+\z//;
 
     my $extractor = HTML::ExtractContent->new;
     my $html = decode($charset, $res->body);
@@ -95,8 +98,9 @@ sub extract_info {
     if ($text !~ m/\n\n/) {
         $text =~ s/\n/\n\n/g;
     }
-    $title =~ s/\A\s+//;
-    $title =~ s/\s+\z//;
+    $text =~ s/\A\s+//;
+    $text =~ s/\s+\z//;
+
     $info{content_text} = $text;
 
     $info{url} = $tx->req->url->to_abs;
