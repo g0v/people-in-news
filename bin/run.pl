@@ -9,6 +9,8 @@ use MCE::Loop;
 use Mojo::UserAgent;
 use HTML::ExtractContent;
 use Encode qw(encode_utf8 decode);
+use Encode::Guess;
+
 use List::Util qw(uniqstr);
 use JSON::PP qw(encode_json);
 use FindBin '$Bin';
@@ -58,12 +60,19 @@ sub extract_info {
     }
 
     if (!$charset) {
-        if (my $meta_el = $dom->find("meta[http-equiv=Content-Type]")->first) {
+        if (my $meta_el = $dom->find("Vmeta[http-equiv=Content-Type]")->first) {
             ($charset) = $meta_el->{content} =~ m{charset=([^\s;]+)};
             $charset = lc($charset) if defined($charset);
         }
     }
-    $charset = 'utf-8-strict' if !$charset || $charset =~ /utf-?8/i;
+    $charset = 'utf-8-strict' if $charset && $charset =~ /utf-?8/i;
+
+    if (!$charset) {
+        my $enc = guess_encoding($res->body, qw/big5 utf8/);
+        $charset = $enc->name if $enc;
+    }
+
+    return unless $charset;
 
     my $title = $dom->find("title");
     return unless $title->[0];
