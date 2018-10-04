@@ -93,6 +93,8 @@ sub extract_info {
     if ($text !~ m/\n\n/) {
         $text =~ s/\n/\n\n/g;
     }
+    $title =~ s/\A\s+//;
+    $title =~ s/\s+\z//;
     $info{content_text} = $text;
 
     $info{url} = $tx->req->url->to_abs;
