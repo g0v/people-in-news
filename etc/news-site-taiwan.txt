@@ -19,7 +19,7 @@ http://www.twtimes.com.tw/
 https://musou.tw/
 https://newcongress.tw/
 https://news.cnyes.com/
-https://news.ltn.com.tw/
+https://www.ltn.com.tw/
 https://news.now.com/
 https://news.pts.org.tw/
 https://newtalk.tw/
@@ -49,3 +49,4 @@ https://www.tvbs.com.tw/
 https://www.twnewsdaily.com/
 https://www.ustv.com.tw/
 https://yam.taiwanhot.net/
+https://udn.com/news/index
