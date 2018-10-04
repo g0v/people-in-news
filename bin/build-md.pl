@@ -6,6 +6,21 @@ use Encode qw(encode_utf8 decode_utf8);
 use Getopt::Long qw(GetOptions);
 use JSON qw(decode_json);
 
+sub uniq_by(&@) {
+    my $cb = shift;
+    my %seen;
+    my @items;
+    for my $item (@_) {
+        local $_ = $item;
+        my $k = $cb->($item);
+        unless ($seen{$k}) {
+            $seen{$k} = 1;
+            push @items, $item;
+        }
+    }
+    return @items;
+}
+
 ## main
 my %opts;
 GetOptions(
@@ -33,7 +48,7 @@ for my $file (@input) {
 my $md = "";
 for my $h (sort { length($a) <=> length($b) || $a cmp $b } keys %page) {
     $md .= "## $h\n\n";
-    for my $d (@{$page{$h}}) {
+    for my $d (uniq_by { $_->{url} } @{$page{$h}}) {
         $d->{title} =~ s/\A\s+//;
         $d->{title} =~ s/\s+\z//;
         $md .= "- [$d->{title}]($d->{url})\n";
@@ -41,4 +56,9 @@ for my $h (sort { length($a) <=> length($b) || $a cmp $b } keys %page) {
     $md .= "\n";
 }
 
-say encode_utf8($md);
+my @t = localtime();
+my $timestamp = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], $t[1], $t[0]);
+
+my $output = $opts{o} . "/people-in-news-${timestamp}.md";
+open my $fh, '>', $output;
+say $fh encode_utf8($md);
