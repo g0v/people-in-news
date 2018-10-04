@@ -150,7 +150,7 @@ GetOptions(
     \%opts,
     "o=s"
 );
-die "-o <DIR> is needed" unless -d $opts{o};
+die "-o <DIR> is needed" unless $opts{o} && -d $opts{o};
 
 chdir($Bin . '/../');
 
@@ -164,8 +164,18 @@ my $timestamp = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], 
 
 # jsonl => http://jsonlines.org/
 my $output = $opts{o} . "/people-in-news-${timestamp}.jsonl";
+my $partial_output = $output . '.partial';
+
 MCE::Loop::init { chunk_size => 1, max_workers => 16 };
-mce_loop_f {
-    chomp;
-    process($_, \@known_names, $output) if $_;
-} 'etc/news-site-taiwan.txt';
+if (@ARGV) {
+    mce_loop {
+        process($_, \@known_names, $partial_output);
+    } @ARGV;
+} else {
+    mce_loop_f {
+        chomp;
+        process($_, \@known_names, $partial_output) if $_;
+    } 'etc/news-site-taiwan.txt';
+}
+
+rename $partial_output, $output;
