@@ -24,20 +24,22 @@ sub gather_links {
     my @links;
 
     my $ua = Mojo::UserAgent->new;
-    my $res = try {
-        $ua->get($url)->result;        
+    my $tx = try {
+        $ua->get($url);
     } catch {
         warn "SRCERR: $url\n";
         undef;
     };
-    return unless $res && $res->is_success;
+    return unless $tx && $tx->res->is_success;
+
+    $seen{$tx->req->url->to_abs . ""} = 1;
 
     my $uri = URI->new($url);
-    for my $e ($res->dom->find('a[href]')->each) {
+    for my $e ($tx->res->dom->find('a[href]')->each) {
         my $href = $e->attr("href");
         my $u = URI->new_abs("$href", $uri);
-        if ($u->scheme =~ /^http/ && !$seen{$u} && $u->host !~ /(youtube|google|facebook|twitter)\.com\z/ ) {
-            $seen{$u} = 1;
+        if (!$seen{$u}  && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)\.com\z/ ) {
+            $seen{"$u"} = 1;
             push @links, "$u";
         }
     }
