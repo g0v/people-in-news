@@ -17,6 +17,9 @@ use FindBin '$Bin';
 
 sub gather_links {
     my ($url) = @_;
+    state %seen;
+    $seen{$url} = 1;
+
     my @links;
 
     my $ua = Mojo::UserAgent->new;
@@ -32,11 +35,11 @@ sub gather_links {
     for my $e ($res->dom->find('a[href]')->each) {
         my $href = $e->attr("href");
         my $u = URI->new_abs("$href", $uri);
-        if ($u->scheme =~ /^http/) {
+        if ($u->scheme =~ /^http/ && !$seen{$u}) {
+            $seen{$u} = 1;
             push @links, "$u";
         }
     }
-    @links = uniqstr(@links);
     return @links;
 }
 
