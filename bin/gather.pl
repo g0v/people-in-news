@@ -164,9 +164,6 @@ my @known_names = do {
     @ret;
 };
 
-say 0+ @known_names;
-exit;
-
 my @t = localtime();
 my $timestamp = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], $t[1], $t[0]);
 
