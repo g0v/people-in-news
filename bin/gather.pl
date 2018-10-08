@@ -172,11 +172,15 @@ my @known_names = do {
 };
 
 my @t = localtime();
-my $timestamp = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], $t[1], $t[0]);
+my $hourstamp = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], 0, 0);
 
 # jsonl => http://jsonlines.org/
-my $output = $opts{o} . "/people-in-news-${timestamp}.jsonl";
+my $output = $opts{o} . "/people-in-news-${hourstamp}.jsonl";
 my $partial_output = $output . '.partial';
+
+if (-f $output) {
+    die "Output exist already: $output";
+}
 
 my $url_seen_filter;
 my $url_seen_f = $opts{o} . "/people-in-news-url-seen.bloomfilter";

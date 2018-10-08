@@ -2,6 +2,7 @@
 use v5.26;
 use strict;
 use warnings;
+use File::Basename qw(basename);
 use Encode qw(encode_utf8 decode_utf8);
 use Getopt::Long qw(GetOptions);
 use JSON qw(decode_json);
@@ -26,6 +27,25 @@ sub uniq_by(&@) {
     return @items;
 }
 
+sub build_md {
+    my ($page, $output) = @_;
+
+    my $md = "";
+    for my $h (sort { length($a) <=> length($b) || $a cmp $b } keys %$page) {
+        $md .= "## $h\n\n";
+        for my $d (sort_by { -1 * length($_->{title}) } uniq_by { $_->{url} } @{$page->{$h}}) {
+            $d->{title} =~ s/\A\s+//;
+            $d->{title} =~ s/\s+\z//;
+            $md .= "- [$d->{title}]($d->{url})\n";
+        }
+        $md .= "\n";
+    }
+
+    open my $fh, '>', $output;
+    say $fh encode_utf8($md);
+    close($fh);
+}
+
 ## main
 my %opts;
 GetOptions(
@@ -36,9 +56,10 @@ GetOptions(
 die "-i <DIR> is needed" unless -d $opts{i};
 die "-o <DIR> is needed" unless -d $opts{o};
 
-my %page;
 my @input = glob "$opts{i}/*.jsonl";
 for my $file (@input) {
+    my %page;
+
     open my $fh, '<', $file;
     while (<$fh>) {
         chomp;
@@ -48,22 +69,7 @@ for my $file (@input) {
         push @{$page{$header}}, $d;
     }
     close($fh);
+
+    my $output = $opts{o} . ( basename($input) =~ s/\.jsonl$/.md/r );
+    build_md(\%page, $output);
 }
-
-my $md = "";
-for my $h (sort { length($a) <=> length($b) || $a cmp $b } keys %page) {
-    $md .= "## $h\n\n";
-    for my $d (sort_by { -1 * length($_->{title}) } uniq_by { $_->{url} } @{$page{$h}}) {
-        $d->{title} =~ s/\A\s+//;
-        $d->{title} =~ s/\s+\z//;
-        $md .= "- [$d->{title}]($d->{url})\n";
-    }
-    $md .= "\n";
-}
-
-my @t = localtime();
-my $timestamp = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], $t[1], $t[0]);
-
-my $output = $opts{o} . "/people-in-news-${timestamp}.md";
-open my $fh, '>', $output;
-say $fh encode_utf8($md);
