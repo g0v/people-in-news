@@ -58,6 +58,9 @@ die "-o <DIR> is needed" unless -d $opts{o};
 
 my @input = glob "$opts{i}/*.jsonl";
 for my $file (@input) {
+    my $output = $opts{o} . '/' . ( basename($file) =~ s/\.jsonl$/.md/r );
+    next if -f $output;
+
     my %page;
 
     open my $fh, '<', $file;
@@ -70,6 +73,5 @@ for my $file (@input) {
     }
     close($fh);
 
-    my $output = $opts{o} . ( basename($file) =~ s/\.jsonl$/.md/r );
     build_md(\%page, $output);
 }
