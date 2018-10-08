@@ -6,7 +6,7 @@ http://tc.news.tnn.tw/
 http://www.5ch.com.tw/
 http://www.allnews.tw/
 http://www.bcc.com.tw/
-http://www.cna.com.tw/
+https://www.cna.com.tw/
 http://www.ctitv.com.tw/
 http://www.ctv.com.tw/
 http://www.mdnkids.com/
@@ -50,3 +50,7 @@ https://www.twnewsdaily.com/
 https://www.ustv.com.tw/
 https://yam.taiwanhot.net/
 https://udn.com/news/index
+https://udn.com/vote2018/index
+http://news.ltn.com.tw/list/breakingnews/politics
+http://pnn.pts.org.tw/
+https://www.mirrormedia.mg/
