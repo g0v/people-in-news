@@ -53,7 +53,7 @@ for my $file (@input) {
 my $md = "";
 for my $h (sort { length($a) <=> length($b) || $a cmp $b } keys %page) {
     $md .= "## $h\n\n";
-    for my $d (sort_by { -1 * length($d->{title}) } uniq_by { $_->{url} } @{$page{$h}}) {
+    for my $d (sort_by { -1 * length($_->{title}) } uniq_by { $_->{url} } @{$page{$h}}) {
         $d->{title} =~ s/\A\s+//;
         $d->{title} =~ s/\s+\z//;
         $md .= "- [$d->{title}]($d->{url})\n";
