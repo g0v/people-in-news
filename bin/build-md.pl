@@ -70,6 +70,6 @@ for my $file (@input) {
     }
     close($fh);
 
-    my $output = $opts{o} . ( basename($input) =~ s/\.jsonl$/.md/r );
+    my $output = $opts{o} . ( basename($file) =~ s/\.jsonl$/.md/r );
     build_md(\%page, $output);
 }
