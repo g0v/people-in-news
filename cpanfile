@@ -6,3 +6,4 @@ requires 'Try::Tiny', '0';
 requires 'URI', '0';
 requires 'JSON', '0';
 requires 'Regexp::Trie', '0';
+requires 'Algorithm::BloomFilter', '0.02';

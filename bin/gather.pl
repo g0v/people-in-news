@@ -11,6 +11,7 @@ use HTML::ExtractContent;
 use Encode qw(encode_utf8 decode);
 use Encode::Guess;
 use Getopt::Long qw(GetOptions);
+use Algorithm::BloomFilter;
 
 use List::Util qw(uniqstr);
 use JSON::PP qw(encode_json);
@@ -128,9 +129,14 @@ sub extract_info {
 }
 
 sub process {
-    my ($url, $known_names, $out) = @_;
-    my @links = gather_links($url);
-    for my $url (@links) {
+    my ($url, $known_names, $url_seen_filter, $out) = @_;
+
+    for my $url (gather_links($url)) {
+        if ($url_seen_filter->test($url)) {
+            say STDERR "NEXT: $url";
+            next;
+        }
+
         my $info = extract_info($url, $known_names) or next;
 
         my $line = encode_json({
@@ -141,6 +147,7 @@ sub process {
         }) . "\n";
 
         MCE->sendto("file:$out", $line);
+        MCE->gather($url);
     }
 }
 
@@ -171,16 +178,35 @@ my $timestamp = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], 
 my $output = $opts{o} . "/people-in-news-${timestamp}.jsonl";
 my $partial_output = $output . '.partial';
 
-MCE::Loop::init { chunk_size => 1, max_workers => 16 };
+my $url_seen_filter;
+my $url_seen_f = $opts{o} . "/people-in-news-url-seen.bloomfilter";
+
+if (-f $url_seen_f) {
+    open my $fh, '<', $url_seen_f;
+    my $x = do { local $/; <$fh> };
+    close($fh);
+    $url_seen_filter = Algorithm::BloomFilter->deserialize($x);
+} else {
+    $url_seen_filter = Algorithm::BloomFilter->new(50000000, 10);
+}
+
+my @new_links;
+MCE::Loop::init { chunk_size => 1 };
 if (@ARGV) {
-    mce_loop {
-        process($_, \@known_names, $partial_output);
+    @new_links = mce_loop {
+        process($_, \@known_names, $url_seen_filter, $partial_output);
     } @ARGV;
 } else {
-    mce_loop_f {
+    @new_links = mce_loop_f {
         chomp;
-        process($_, \@known_names, $partial_output) if $_;
+        process($_, \@known_names, $url_seen_filter, $partial_output) if $_;
     } 'etc/news-site-taiwan.txt';
 }
+
+$url_seen_filter->add(@new_links);
+my $x = $url_seen_filter->serialize;
+open my $fh, '>', $url_seen_f;
+print $fh $x;
+close($fh);
 
 rename $partial_output, $output;
