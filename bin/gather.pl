@@ -133,7 +133,6 @@ sub process {
 
     for my $url (gather_links($url)) {
         if ($url_seen_filter->test($url)) {
-            say STDERR "NEXT: $url";
             next;
         }
 
