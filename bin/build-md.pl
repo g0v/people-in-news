@@ -6,6 +6,7 @@ use File::Basename qw(basename);
 use Encode qw(encode_utf8 decode_utf8);
 use Getopt::Long qw(GetOptions);
 use JSON qw(decode_json);
+use List::Util qw(maxstr);
 
 sub sort_by(&@) {
     my $cb = shift;
@@ -75,3 +76,7 @@ for my $file (@input) {
 
     build_md(\%page, $output);
 }
+
+my $new_index = maxstr( glob "$opts{o}/people-in-news-*.md" );
+unlink("$opts{o}/Home.md");
+link($new_index, "$opts{o}/Home.md");
