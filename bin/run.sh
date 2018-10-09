@@ -1,5 +1,6 @@
 #!/bin/sh
 
+prog=$0
 cd $(dirname $0)/../
 
 ts_begin=$(date +%s)
@@ -13,6 +14,7 @@ git add '*.md'
 git commit -m build
 git pull --no-edit
 git push
+cd -
 
 ts_end=$(date +%s)
 
