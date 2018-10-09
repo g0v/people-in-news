@@ -26,10 +26,12 @@ sub gather_links {
     state $ua = Mojo::UserAgent->new;
 
     my ($url, $url_seen_filter, $_level) = @_;
-    $seen{$url} = 1;
     $_level //= 0;
+    return if $_level == 3;
 
-    return if $_level == 2;
+    if ($_level > 2) {
+        $seen{$url} = 1;
+    }
 
     my @links;
 
@@ -49,7 +51,6 @@ sub gather_links {
         my $u = URI->new_abs("$href", $uri);
         if (!$seen{$u}  && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)\.com\z/ ) {
             unless ($url_seen_filter->test("$u")) {
-                $seen{"$u"} = 1;
                 gather_links("$u", $url_seen_filter, $_level+1);
             }
         }
