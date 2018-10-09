@@ -13,7 +13,7 @@ use Encode::Guess;
 use Getopt::Long qw(GetOptions);
 use Algorithm::BloomFilter;
 
-use List::Util qw(uniqstr);
+use List::Util qw(uniqstr max);
 use JSON::PP qw(encode_json);
 use FindBin '$Bin';
 
@@ -120,6 +120,12 @@ sub extract_info {
     $text =~ s/\s+\z//;
 
     $info{content_text} = $text;
+
+    my @paragraphs = split /\n\n/, $text;
+    return unless @paragraphs > 1;
+
+    my $maxl = max( map { length($_) } @paragraphs );
+    return if $maxl < 60;
 
     $info{url} = $tx->req->url->to_abs;
 
