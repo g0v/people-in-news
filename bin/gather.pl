@@ -27,7 +27,7 @@ sub gather_links {
 
     my ($url, $url_seen_filter, $_level) = @_;
     $_level //= 0;
-    return if $_level == 3 || ( (keys %seen) > 300);
+    return if $_level == 3 || ( (keys %seen) > 100);
 
     if ($_level > 2) {
         $seen{$url} = 1;
