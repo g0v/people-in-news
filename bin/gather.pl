@@ -22,13 +22,17 @@ sub err {
 }
 
 sub gather_links {
-    my ($url) = @_;
     state %seen;
+    state $ua = Mojo::UserAgent->new;
+
+    my ($url, $url_seen_filter, $_level) = @_;
     $seen{$url} = 1;
+    $_level //= 0;
+
+    return if $_level == 2;
 
     my @links;
 
-    my $ua = Mojo::UserAgent->new;
     my $tx = try {
         $ua->get($url);
     } catch {
@@ -45,7 +49,10 @@ sub gather_links {
         my $u = URI->new_abs("$href", $uri);
         if (!$seen{$u}  && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)\.com\z/ ) {
             $seen{"$u"} = 1;
-            push @links, "$u";
+            unless ($url_seen_filter->test("$u")) {
+                push @links, "$u";
+            }
+            push @links, gather_links("$u", $url_seen_filter, $_level+1);
         }
     }
     return @links;
@@ -60,13 +67,13 @@ sub extract_info {
     my $tx = try {
         $ua->get($url);
     } catch {
-        err "FAIL TO EXTRACT: $url";
+        err "FAIL TO FETCH: $url";
         undef;
     };
     return unless $tx;
 
     if($tx->error) {
-        err "FAIL TO EXTRACT: $url " . encode_json($tx->error);
+        err "FAIL TO FETCH: $url " . encode_json($tx->error);
         return undef;
     }
 
@@ -137,11 +144,9 @@ sub extract_info {
 sub process {
     my ($url, $known_names, $url_seen_filter, $out) = @_;
 
-    for my $url (gather_links($url)) {
-        if ($url_seen_filter->test($url)) {
-            next;
-        }
-
+    my @links = gather_links($url, $url_seen_filter);
+    say 'TODO: ' . (0 + @links) . ' links from ' . $url;
+    for my $url (@links) {
         my $info = extract_info($url, $known_names) or next;
 
         my $line = encode_json({
@@ -151,6 +156,7 @@ sub process {
             content_text => $info->{content_text},
         }) . "\n";
 
+        say "DONE: $url";
         MCE->sendto("file:$out", $line);
         MCE->gather($url);
     }
