@@ -23,7 +23,7 @@ sub err {
 
 sub gather_links {
     state %seen;
-    state $ua = Mojo::UserAgent->new;
+    my $ua = Mojo::UserAgent->new;
 
     my ($url, $url_seen_filter, $_level) = @_;
     $_level //= 0;
@@ -55,6 +55,7 @@ sub gather_links {
             }
         }
     }
+
     if ($_level == 0) {
         my @links = keys %seen;
         if (@links > 100) {
@@ -212,18 +213,21 @@ if (-f $url_seen_f) {
     $url_seen_filter = Algorithm::BloomFilter->new(50000000, 10);
 }
 
-my @new_links;
-MCE::Loop::init { chunk_size => 1 };
+my @initial_urls;
+
 if (@ARGV) {
-    @new_links = mce_loop {
-        process($_, \@known_names, $url_seen_filter, $partial_output);
-    } @ARGV;
+    @initial_urls = @ARGV;
 } else {
-    @new_links = mce_loop_f {
-        chomp;
-        process($_, \@known_names, $url_seen_filter, $partial_output) if $_;
-    } 'etc/news-site-taiwan.txt';
+    open my $fh, '<', 'etc/news-site-taiwan.txt';
+    @initial_urls = map { chomp; $_ } <$fh>;
+    close $fh;
 }
+
+MCE::Loop::init { chunk_size => 1 };
+
+my @new_links = mce_loop {
+    process($_, \@known_names, $url_seen_filter, $partial_output)
+} @initial_urls;
 
 $url_seen_filter->add(@new_links);
 my $x = $url_seen_filter->serialize;
