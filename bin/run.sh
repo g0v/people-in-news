@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 prog=$0
 cd $(dirname $0)/../
