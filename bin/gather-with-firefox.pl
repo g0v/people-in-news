@@ -45,14 +45,19 @@ sub gather_links {
         my $href = $e->attr("href");
         my $u = URI->new_abs("$href", $uri);
         if (!$seen{$u}  && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)\.com\z/ ) {
-            $seen{$u} = 1;
-            # unless ($url_seen_filter->test("$u")) {
+            unless ($url_seen_filter->test("$u")) {
+                $seen{$u} = 1;
             #     gather_links("$u", $url_seen_filter, $_level+1);
-            # }
+            }
         }
+        last if (100 < keys %seen);
     }
     if ($_level == 0) {
-        return keys %seen;
+        my @links = keys %seen;
+        if (@links > 100) {
+            @links = @links[0..99];
+        }
+        return @links;
     }
     return;
 }
