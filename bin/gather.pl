@@ -17,17 +17,19 @@ use List::Util qw(uniqstr max);
 use JSON::PP qw(encode_json);
 use FindBin '$Bin';
 
+use Sn::Seen;
+
 sub err {
     say STDERR @_;
 }
 
 sub gather_links {
     state %seen;
-    my $ua = Mojo::UserAgent->new;
 
-    my ($url, $url_seen_filter, $_level) = @_;
+    my ($url, $url_seen, $_level) = @_;
     $_level //= 0;
-    return if $_level == 3 || ( (keys %seen) > 100);
+    return if $_level == 3 || ( (keys %seen) > 100) || $seen{$url};
+    $seen{$url} = 1;
 
     if ($_level > 2) {
         $seen{$url} = 1;
@@ -36,6 +38,7 @@ sub gather_links {
     my @links;
 
     my $tx = try {
+        my $ua = Mojo::UserAgent->new()->max_redirects(1);
         $ua->get($url);
     } catch {
         err "SRCERR: $url";
@@ -45,13 +48,14 @@ sub gather_links {
 
     $seen{$tx->req->url->to_abs . ""} = 1;
 
+    say "GATHER: $url => " . $tx->req->url->to_abs;
     my $uri = URI->new($url);
     for my $e ($tx->res->dom->find('a[href]')->each) {
         my $href = $e->attr("href");
         my $u = URI->new_abs("$href", $uri);
         if (!$seen{$u}  && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)\.com\z/ ) {
-            unless ($url_seen_filter->test("$u")) {
-                gather_links("$u", $url_seen_filter, $_level+1);
+            unless ($url_seen->test("$u")) {
+                gather_links("$u", $url_seen, $_level+1);
             }
         }
     }
@@ -150,9 +154,9 @@ sub extract_info {
 }
 
 sub process {
-    my ($url, $known_names, $url_seen_filter, $out) = @_;
+    my ($url, $known_names, $url_seen, $out) = @_;
 
-    my @links = gather_links($url, $url_seen_filter);
+    my @links = gather_links($url, $url_seen);
     say 'TODO: ' . (0 + @links) . ' links from ' . $url;
     for my $url (@links) {
         my $info = extract_info($url, $known_names) or next;
@@ -201,17 +205,9 @@ if (-f $output) {
     die "Output exist already: $output";
 }
 
-my $url_seen_filter;
 my $url_seen_f = $opts{o} . "/people-in-news-url-seen.bloomfilter";
 
-if (-f $url_seen_f) {
-    open my $fh, '<', $url_seen_f;
-    my $x = do { local $/; <$fh> };
-    close($fh);
-    $url_seen_filter = Algorithm::BloomFilter->deserialize($x);
-} else {
-    $url_seen_filter = Algorithm::BloomFilter->new(50000000, 10);
-}
+my $url_seen = Sn::Seen->new( store => $url_seen_f );
 
 my @initial_urls;
 
@@ -226,13 +222,9 @@ if (@ARGV) {
 MCE::Loop::init { chunk_size => 1 };
 
 my @new_links = mce_loop {
-    process($_, \@known_names, $url_seen_filter, $partial_output)
+    process($_, \@known_names, $url_seen, $partial_output)
 } @initial_urls;
 
-$url_seen_filter->add(@new_links);
-my $x = $url_seen_filter->serialize;
-open my $fh, '>', $url_seen_f;
-print $fh $x;
-close($fh);
+$url_seen->add(@new_links)->save;
 
 rename $partial_output, $output;

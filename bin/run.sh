@@ -6,8 +6,8 @@ cd $(dirname $0)/../
 ts_begin=$(date +%s)
 
 export MOJO_CONNECT_TIMEOUT=15
-perl bin/gather.pl -o var/people-in-news
-perl bin/build-md.pl -i var/people-in-news -o var/people-in-news.wiki
+perl -Ilib bin/gather.pl -o var/people-in-news
+perl -Ilib bin/build-md.pl -i var/people-in-news -o var/people-in-news.wiki
 
 cd var/people-in-news.wiki
 git add '*.md'
