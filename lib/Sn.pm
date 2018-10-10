@@ -11,7 +11,7 @@ use Sn::TX;
 
 sub fetch {
     my ($url) = @_;
-    state $firefox = Firefox::Marionette->new( visible => 1 );
+    state $firefox = Firefox::Marionette->new();
     $firefox->go($url);
     my $sleeps = 0;
     sleep 1 while ($sleeps++ < 10 && (! $firefox->interactive()));
