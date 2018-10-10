@@ -56,7 +56,11 @@ sub gather_links {
         }
     }
     if ($_level == 0) {
-        return keys %seen;
+        my @links = keys %seen;
+        if (@links > 100) {
+            @links = @links[0..99];
+        }
+        return @links;
     }
     return;
 }
