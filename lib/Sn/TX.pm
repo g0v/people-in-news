@@ -22,6 +22,11 @@ package Sn::TX {
         isa => InstanceOf['Mojo::DOM'],
         required => 1
     );
+
+    sub no_content {
+        my ($self) = @_;
+        return $self->dom->find('html')->first->text eq "";
+    }
 };
 
 1;
