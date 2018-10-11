@@ -32,9 +32,9 @@ sub build_md {
     my ($page, $output) = @_;
 
     my $md = "";
-    for my $h (sort { (@{$page->{$b}} <=> @{$page->{$a}}) || (length($a) <=> length($b)) } keys %$page) {
+    for my $h (sort { $a cmp $b } keys %$page) {
         $md .= "## $h\n\n";
-        for my $d (sort_by { -1 * length($_->{title}) } uniq_by { $_->{content_text} } sort_by { length($_->{url}) } @{$page->{$h}}) {
+        for my $d (uniq_by { $_->{content_text} } @{$page->{$h}}) {
             $d->{title} =~ s/\A\s+//;
             $d->{title} =~ s/\s+\z//;
             $md .= "- [$d->{title}]($d->{url})\n";
