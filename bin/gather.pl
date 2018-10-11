@@ -13,7 +13,7 @@ use Encode::Guess;
 use Getopt::Long qw(GetOptions);
 use Algorithm::BloomFilter;
 
-use List::Util qw(uniqstr max);
+use List::Util qw(uniqstr max shuffle);
 use JSON::PP qw(encode_json);
 use FindBin '$Bin';
 
@@ -223,7 +223,7 @@ MCE::Loop::init { chunk_size => 1 };
 
 my @new_links = mce_loop {
     process($_, \@known_names, $url_seen, $partial_output)
-} @initial_urls;
+} shuffle(@initial_urls);
 
 $url_seen->add(@new_links)->save;
 
