@@ -166,10 +166,16 @@ sub process {
 
         say "DONE: $url";
         MCE->sendto("file:$out", $line);
-        MCE->gather($url);
+        MCE->do('add_to_url_seen', $url);
 
         last if $extracted_count++ > 100;
     }
+}
+
+my $url_seen;
+sub add_to_url_seen {
+    my ($url) = @_;
+    $url_seen->add($url);
 }
 
 # main
@@ -193,10 +199,10 @@ my @known_names = do {
 };
 
 my @t = localtime();
-my $hourstamp = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], 0, 0);
+my $ts = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], $t[1], 0);
 
 # jsonl => http://jsonlines.org/
-my $output = $opts{o} . "/people-in-news-${hourstamp}.jsonl";
+my $output = $opts{o} . "/people-in-news-${ts}.jsonl";
 my $partial_output = $output . '.partial';
 
 if (-f $output) {
@@ -204,8 +210,7 @@ if (-f $output) {
 }
 
 my $url_seen_f = $opts{o} . "/people-in-news-url-seen.bloomfilter";
-
-my $url_seen = Sn::Seen->new( store => $url_seen_f );
+$url_seen = Sn::Seen->new( store => $url_seen_f );
 
 my @initial_urls;
 
@@ -219,10 +224,10 @@ if (@ARGV) {
 
 MCE::Loop::init { chunk_size => 1 };
 
-my @new_links = mce_loop {
+mce_loop {
     process($_, \@known_names, $url_seen, $partial_output)
 } shuffle(@initial_urls);
 
-$url_seen->add(@new_links)->save;
+$url_seen->save;
 
 rename $partial_output, $output;
