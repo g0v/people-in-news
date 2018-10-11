@@ -61,10 +61,7 @@ sub gather_links {
     }
 
     if ($_level == 0) {
-        my @links = keys %seen;
-        if (@links > 100) {
-            @links = @links[0..99];
-        }
+        return keys %seen;
         return @links;
     }
     return;
@@ -158,6 +155,7 @@ sub process {
 
     my @links = gather_links($url, $url_seen);
     say 'TODO: ' . (0 + @links) . ' links from ' . $url;
+    my $extracted_count = 0;
     for my $url (@links) {
         my $info = extract_info($url, $known_names) or next;
 
@@ -171,6 +169,8 @@ sub process {
         say "DONE: $url";
         MCE->sendto("file:$out", $line);
         MCE->gather($url);
+
+        last if $extracted_count++ > 100;
     }
 }
 
