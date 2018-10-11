@@ -19,10 +19,7 @@ cd -
 ts_end=$(date +%s)
 
 echo "DONE:" $(( $ts_end - $ts_begin )) 'seconds'
-t=$(( 3601 - $ts_end + $ts_begin ))
 
-if [[ $t -gt 0 ]]; then
-   sleep $t
-fi
+sleep 600;
 
 exec $0
