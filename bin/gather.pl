@@ -38,7 +38,7 @@ sub gather_links {
     my @links;
 
     my $tx = try {
-        my $ua = Mojo::UserAgent->new()->max_redirects(1);
+        my $ua = Mojo::UserAgent->new()->max_redirects(3);
         $ua->get($url);
     } catch {
         err "SRCERR: $url";
@@ -164,7 +164,6 @@ sub process {
             content_text => $info->{content_text},
         }) . "\n";
 
-        say "DONE: $url";
         MCE->sendto("file:$out", $line);
         MCE->do('add_to_url_seen', $url);
 
