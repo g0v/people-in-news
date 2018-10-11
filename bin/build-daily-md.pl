@@ -32,7 +32,7 @@ sub build_md {
     my ($page, $output) = @_;
 
     my $md = "";
-    for my $h (sort { length($a) <=> length($b) || $a cmp $b } keys %$page) {
+    for my $h (sort { (@{$page->{$b}} <=> @{$page->{$a}}) || (length($a) <=> length($b)) } keys %$page) {
         $md .= "## $h\n\n";
         for my $d (sort_by { -1 * length($_->{title}) } uniq_by { $_->{content_text} } sort_by { length($_->{url}) } @{$page->{$h}}) {
             $d->{title} =~ s/\A\s+//;
@@ -41,6 +41,8 @@ sub build_md {
         }
         $md .= "\n";
     }
+
+    $md =~ s/[^[:print:]\s]//g;
 
     open my $fh, '>', $output;
     say $fh encode_utf8($md);
@@ -51,6 +53,7 @@ sub build_md {
 my %opts;
 GetOptions(
     \%opts,
+    "force|f",
     "o=s",
     "i=s",
 );
@@ -70,7 +73,7 @@ my $daily_today = $opts{o} . "/daily-$today.md";
 for my $yyyymmdd (keys %buckets) {
     my @input = @{$buckets{$yyyymmdd}};
     my $output = $opts{o} . "/daily-$yyyymmdd.md";
-    next if (($output lt $daily_today) && (-f $output));
+    next if !$opts{force} && (($output lt $daily_today) && (-f $output));
 
     my %page;
 
