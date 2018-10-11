@@ -43,14 +43,8 @@ sub gather_links {
 
     my ($url, $url_seen, $_level) = @_;
     $_level //= 0;
-    return if $_level == 3 || ( (keys %seen) > 100) || $seen{$url};
+    return if $_level == 3;
     $seen{$url} = 1;
-
-    if ($_level > 2) {
-        $seen{$url} = 1;
-    }
-
-    my @links;
 
     my $tx = try {
         my $ua = Mojo::UserAgent->new()->max_redirects(3);
@@ -63,21 +57,21 @@ sub gather_links {
 
     $seen{$tx->req->url->to_abs . ""} = 1;
 
+    my @links;
     my $uri = URI->new($url);
     for my $e ($tx->res->dom->find('a[href]')->each) {
         my $href = $e->attr("href");
         my $u = URI->new_abs("$href", $uri);
         if (!$seen{$u}  && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)\.com\z/ ) {
+            push @links, "$u";
             unless ($url_seen->test("$u")) {
-                gather_links("$u", $url_seen, $_level+1);
+                push @links, gather_links("$u", $url_seen, $_level+1);
             }
         }
+        last if @links > 100;
     }
 
-    if ($_level == 0) {
-        return keys %seen;
-    }
-    return;
+    return @links;
 }
 
 sub extract_info {
