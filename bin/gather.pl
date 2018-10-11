@@ -48,7 +48,6 @@ sub gather_links {
 
     $seen{$tx->req->url->to_abs . ""} = 1;
 
-    say "GATHER: $url => " . $tx->req->url->to_abs;
     my $uri = URI->new($url);
     for my $e ($tx->res->dom->find('a[href]')->each) {
         my $href = $e->attr("href");
@@ -62,7 +61,6 @@ sub gather_links {
 
     if ($_level == 0) {
         return keys %seen;
-        return @links;
     }
     return;
 }
