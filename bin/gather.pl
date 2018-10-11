@@ -23,6 +23,21 @@ sub err {
     say STDERR @_;
 }
 
+
+sub extract_names {
+    my ($known_names, $texts) = @_;
+    my @extracted;
+    for my $name (@$known_names) {
+        for my $txt (@$texts) {
+            if (index($txt, $name) >= 0) {
+                push @extracted, $name;
+                last;
+            }
+        }
+    }
+    return \@extracted;
+}
+
 sub gather_links {
     state %seen;
 
@@ -143,7 +158,7 @@ sub extract_info {
 
     $info{url} = $tx->req->url->to_abs;
 
-    $info{names} = [ map { s/\t/ /g; $_ }  grep { index($title, $_) >= 0 || index($text, $_) >= 0 } @$known_names ];
+    $info{names} = extract_names($known_names, [ $title, $text ]);
 
     return \%info;
 }
@@ -152,10 +167,11 @@ sub process {
     my ($url, $known_names, $url_seen, $out) = @_;
 
     my @links = gather_links($url, $url_seen);
-    say 'TODO: ' . (0 + @links) . ' links from ' . $url;
-    my $extracted_count = 0;
-    for my $url (@links) {
-        my $info = extract_info($url, $known_names) or next;
+    say "[$$] TODO: " . (0 + @links) . " links from $url";
+
+    mce_loop {
+        my $url = $_;
+        my $info = extract_info($url, $known_names) or return;
 
         my $line = encode_json({
             names        => $info->{names},
@@ -166,9 +182,7 @@ sub process {
 
         MCE->sendto("file:$out", $line);
         MCE->do('add_to_url_seen', $url);
-
-        last if $extracted_count++ > 100;
-    }
+    } @links;
 }
 
 my $url_seen;
@@ -223,9 +237,9 @@ if (@ARGV) {
 
 MCE::Loop::init { chunk_size => 1 };
 
-mce_loop {
-    process($_, \@known_names, $url_seen, $partial_output)
-} shuffle(@initial_urls);
+for(shuffle(@initial_urls)) {
+    process($_, \@known_names, $url_seen, $partial_output);
+}
 
 $url_seen->save;
 
