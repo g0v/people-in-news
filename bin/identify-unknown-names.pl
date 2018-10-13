@@ -10,6 +10,8 @@ use Encode qw(encode_utf8 decode_utf8);
 use JSON qw(decode_json);
 use MCE::Loop;
 
+use Sn::TextUtil qw(segmentation_by_script);
+
 sub sort_by(&@) {
     my ($cb, $things);
     return map {
@@ -26,16 +28,28 @@ sub find_names {
 
     my %freq;
     my $data = decode_json($jsonline);
+    my @segments = segmentation_by_script($data->{content_text});
+    push @segments, segmentation_by_script($data->{title});
     my $name_re = qr(\p{Letter}{2,6});
-    for my $t (@$titles) {
-        for my $n (($data->{title} =~ m/($name_re)\Q$t\E/g), ($data->{content_text} =~ m/($name_re)$t/g)) {
-            $freq{front}{$n}++;
-            $freq{title}{$n}{$t}++;
+    my $title_re = '(?:' . join('|', map { quotemeta}  sort { length($b) <=> length($a) } @$titles) . ')';
+    for my $seg (@segments) {
+        my @parts = split /($title_re)/, $seg;
+        if (@parts > 1) {
+            say encode_utf8(join ' ', map { "<$_>" } @parts);
         }
-        for my $n (($data->{title} =~ m/\Q$t\E($name_re)/g),($data->{content_text} =~ m/\Q$t\E($name_re)/g)) {
-            $freq{back}{$n}++;
-            $freq{title}{$n}{$t}++;
-        }
+
+        # while ($seg =~ m{($name_re)?($title_re)($name_re)?}g) {
+        #     my ($name1, $title, $name2) = ($1//'', $2, $3//'');
+        #     if ($name1) {
+        #         $freq{front}{$name1}++;
+        #         $freq{title}{$name1}{$title}++;
+        #     }
+        #     if ($name2) {
+        #         $freq{back}{$name2}++;
+        #         $freq{title}{$name2}{$title}++;
+        #     }
+        #     say encode_utf8("$seg >>> <$name1> $title <$name2>");
+        # }
     }
     MCE->gather(\%freq);
 }
@@ -52,7 +66,7 @@ die "-i <DIR> is needed" unless -d $opts{i};
 
 my @titles = do {
     open my $fh, '<', 'etc/title.txt';
-    map { chomp; decode_utf8($_) } <$fh>;
+    grep { $_ ne '' } map { chomp; decode_utf8($_) } <$fh>;
 };
 
 MCE::Loop::init { chunk_size => 1 };
