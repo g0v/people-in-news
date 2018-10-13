@@ -49,7 +49,6 @@ package Sn::Seen {
 
         return $self;
     }
-    
 };
 
 1;
