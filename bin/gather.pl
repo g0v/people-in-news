@@ -24,20 +24,6 @@ sub err {
 }
 
 
-sub extract_names {
-    my ($known_names, $texts) = @_;
-    my @extracted;
-    for my $name (@$known_names) {
-        for my $txt (@$texts) {
-            if (index($txt, $name) >= 0) {
-                push @extracted, $name;
-                last;
-            }
-        }
-    }
-    return \@extracted;
-}
-
 sub gather_links {
     state %seen;
 
@@ -75,7 +61,7 @@ sub gather_links {
 }
 
 sub extract_info {
-    my ($url, $known_names) = @_;
+    my ($url) = @_;
     my %info;
 
     my $ua = Mojo::UserAgent->new;
@@ -152,22 +138,20 @@ sub extract_info {
 
     $info{url} = $tx->req->url->to_abs;
 
-    # $info{names} = extract_names($known_names, [ $title, $text ]);
     return \%info;
 }
 
 sub process {
-    my ($url, $known_names, $url_seen, $out) = @_;
+    my ($url, $url_seen, $out) = @_;
 
     my @links = gather_links($url, $url_seen);
     say "[$$] TODO: " . (0 + @links) . " links from $url";
 
     mce_loop {
         my $url = $_;
-        my $info = extract_info($url, $known_names) or return;
+        my $info = extract_info($url) or return;
 
         my $line = encode_json({
-            names        => $info->{names},
             url          => "".$info->{url},
             title        => $info->{title},
             content_text => $info->{content_text},
@@ -193,16 +177,6 @@ GetOptions(
 die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
 
 chdir($Bin . '/../');
-
-my @known_names = do {
-    my @people_input = glob('etc/people*.txt');
-    my @ret;
-    for my $fn (@people_input) {
-        open my $fh, '<', $fn;
-        push @ret, map { chomp; decode('utf-8-strict', $_) } <$fh>;        
-    }
-    @ret;
-};
 
 my @t = localtime();
 my $ts = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], $t[1], 0);
@@ -231,7 +205,7 @@ if (@ARGV) {
 MCE::Loop::init { chunk_size => 1 };
 
 for(shuffle(@initial_urls)) {
-    process($_, \@known_names, $url_seen, $partial_output);
+    process($_, $url_seen, $partial_output);
 }
 
 $url_seen->save;
