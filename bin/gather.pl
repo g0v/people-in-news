@@ -17,6 +17,7 @@ use List::Util qw(uniqstr max shuffle);
 use JSON::PP qw(encode_json);
 use FindBin '$Bin';
 
+use Sn;
 use Sn::Seen;
 
 sub err {
@@ -178,11 +179,8 @@ die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
 
 chdir($Bin . '/../');
 
-my @t = localtime();
-my $ts = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], $t[1], 0);
-
 # jsonl => http://jsonlines.org/
-my $output = $opts{db} . "/articles-${ts}.jsonl";
+my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
 my $partial_output = $output . '.partial';
 
 if (-f $output) {
