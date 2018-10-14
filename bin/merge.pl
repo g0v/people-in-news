@@ -17,29 +17,32 @@ GetOptions(
 );
 die "--db <DIR> is needed" unless -d $opts{db};
 
-my %buckets;
-for my $file (glob "$opts{db}/articles-*.jsonl") {
-    my ($k) = $file =~ m/ - ([0-9]{8}) ([0-9]{6})? \.jsonl \z/x;
-    next unless $k;
-    push @{$buckets{$k}}, $file;
-}
-
-for my $yyyymmdd (keys %buckets) {
-    my $out = '';
-    for my $input (@{$buckets{$yyyymmdd}}) {
-        local $/;
-        open my $fh, '<', $input;
-        $out .= <$fh>;
-        close($fh);
+for my $table (qw(articles extracts)) {
+    my %buckets;
+    for my $file (glob "$opts{db}/${table}-*.jsonl") {
+        my ($k) = $file =~ m/ - ([0-9]{8}) ([0-9]{6})? \.jsonl \z/x;
+        next unless $k;
+        push @{$buckets{$k}}, $file;
     }
 
-    my $output = $opts{db} . "/articles-$yyyymmdd.jsonl";
-    my $output_temp = $output . '.temp';
-    open my $fh, '>', $output_temp;
-    print $fh $out;
-    close($fh);
+    for my $yyyymmdd (keys %buckets) {
+        my $out = '';
+        for my $input (@{$buckets{$yyyymmdd}}) {
+            local $/;
+            open my $fh, '<', $input;
+            $out .= <$fh>;
+            close($fh);
+        }
 
-    unlink(@{$buckets{$yyyymmdd}});
-    link($output_temp, $output);
-    unlink($output_temp);
+        my $output = $opts{db} . "/${table}-$yyyymmdd.jsonl";
+        my $output_temp = $output . '.temp';
+        open my $fh, '>', $output_temp;
+        print $fh $out;
+        close($fh);
+
+        unlink(@{$buckets{$yyyymmdd}});
+        link($output_temp, $output);
+        unlink($output_temp);
+    }
+
 }
