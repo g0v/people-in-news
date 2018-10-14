@@ -13,14 +13,12 @@ my %opts;
 GetOptions(
     \%opts,
     "force|f",
-    "o=s",
-    "i=s",
+    "db|d=s",
 );
-die "-i <DIR> is needed" unless -d $opts{i};
-die "-o <DIR> is needed" unless -d $opts{o};
+die "--db <DIR> is needed" unless -d $opts{db};
 
 my %buckets;
-for my $file (glob "$opts{i}/*.jsonl") {
+for my $file (glob "$opts{db}/articles-*.jsonl") {
     my ($k) = $file =~ m/ - ([0-9]{8}) ([0-9]{6})? \.jsonl \z/x;
     next unless $k;
     push @{$buckets{$k}}, $file;
@@ -35,7 +33,7 @@ for my $yyyymmdd (keys %buckets) {
         close($fh);
     }
 
-    my $output = $opts{o} . "/daily-$yyyymmdd.jsonl";
+    my $output = $opts{db} . "/articles-$yyyymmdd.jsonl";
     my $output_temp = $output . '.temp';
     open my $fh, '>', $output_temp;
     print $fh $out;

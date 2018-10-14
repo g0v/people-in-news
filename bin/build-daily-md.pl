@@ -34,7 +34,7 @@ sub build_md {
     my $md = "";
     for my $h (sort { $a cmp $b } keys %$page) {
         $md .= "## $h\n\n";
-        for my $d (uniq_by { $_->{content_text} } @{$page->{$h}}) {
+        for my $d (uniq_by { $_->{url} } @{$page->{$h}}) {
             $d->{title} =~ s/\A\s+//;
             $d->{title} =~ s/\s+\z//;
             $md .= "- [$d->{title}]($d->{url})\n";
@@ -54,14 +54,14 @@ my %opts;
 GetOptions(
     \%opts,
     "force|f",
+    "db=s",
     "o=s",
-    "i=s",
 );
-die "-i <DIR> is needed" unless -d $opts{i};
+die "--db <DIR> is needed" unless -d $opts{db};
 die "-o <DIR> is needed" unless -d $opts{o};
 
 my %buckets;
-for my $file (glob "$opts{i}/*.jsonl") {
+for my $file (glob "$opts{db}/extracts-*.jsonl") {
     my ($k) = $file =~ m/ - ([0-9]{8}) ([0-9]{6})? \.jsonl \z/x;
     next unless $k;
     push @{$buckets{$k}}, $file;

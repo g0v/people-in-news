@@ -152,8 +152,7 @@ sub extract_info {
 
     $info{url} = $tx->req->url->to_abs;
 
-    $info{names} = extract_names($known_names, [ $title, $text ]);
-
+    # $info{names} = extract_names($known_names, [ $title, $text ]);
     return \%info;
 }
 
@@ -189,9 +188,9 @@ sub add_to_url_seen {
 my %opts;
 GetOptions(
     \%opts,
-    "o=s"
+    "db|d=s"
 );
-die "-o <DIR> is needed" unless $opts{o} && -d $opts{o};
+die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
 
 chdir($Bin . '/../');
 
@@ -209,14 +208,14 @@ my @t = localtime();
 my $ts = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], $t[1], 0);
 
 # jsonl => http://jsonlines.org/
-my $output = $opts{o} . "/people-in-news-${ts}.jsonl";
+my $output = $opts{db} . "/articles-${ts}.jsonl";
 my $partial_output = $output . '.partial';
 
 if (-f $output) {
     die "Output exist already: $output";
 }
 
-my $url_seen_f = $opts{o} . "/people-in-news-url-seen.bloomfilter";
+my $url_seen_f = $opts{db} . "/url-seen.bloomfilter";
 $url_seen = Sn::Seen->new( store => $url_seen_f );
 
 my @initial_urls;
