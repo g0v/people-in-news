@@ -205,6 +205,7 @@ sub process {
     my @links = grep { ! $url_seen->test($_) } gather_links($url);
     say "[$$] TODO: " . (0 + @links) . " links from $url";
 
+    my $extracted_count = 0;
     for my $url (@links) {
         my $info = extract_info($url) or next;
         my $line = encode_json({
@@ -215,6 +216,7 @@ sub process {
         }) . "\n";
         MCE->sendto("file:$out", $line);
         MCE->do('add_to_url_seen', $url);
+        last if $extracted_count++ > 300;
     }
 }
 
