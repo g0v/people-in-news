@@ -10,6 +10,7 @@ use JSON qw(encode_json decode_json);
 use MCE::Loop;
 
 use Sn;
+use Sn::KnownNames;
 
 sub extract_names {
     my ($known_names, $texts) = @_;
@@ -64,25 +65,17 @@ GetOptions(
 );
 die "--db <DIR> is needed" unless -d $opts{db};
 
-my @known_names = do {
-    my @people_input = glob('etc/people*.txt');
-    my @ret;
-    for my $fn (@people_input) {
-        open my $fh, '<', $fn;
-        push @ret, map { chomp; decode('utf-8-strict', $_) } <$fh>;        
-    }
-    @ret;
-};
-
 my @input = grep {
-    m/articles - ([0-9]{14}) \.jsonl \z/x
+    m/articles - ([0-9]{8}) \.jsonl \z/x
 } (glob "$opts{db}/*.jsonl");
+
+my $kn = Sn::KnownNames->new( input => [  glob('etc/people*.txt') ] );
 
 my $output = $opts{db} . "/extracts-" . Sn::ts_now() . ".jsonl";
 
 for(@input) {
     process({
-        known_names => \@known_names,
+        known_names => $kn->known_names,
         output => $output
     }, $_);
 }
