@@ -50,7 +50,7 @@ sub gather_links {
     my %seen;
     my @promises;
     my $i = 0;
-    my @links = ();
+    my @links = ($url);
     while (@links < 1000) {
         if (@promises > 7 || (($i >= @links) && @promises)) {
             Mojo::Promise->all(@promises)->wait();
@@ -73,7 +73,7 @@ sub gather_links {
                 for my $e ($tx->res->dom->find('a[href]')->each) {
                     my $href = $e->attr("href");
                     my $u = URI->new_abs("$href", $uri);
-                    if (!$seen{$u} && && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter|linkedin|addtoany)/i ) {
+                    if (!$seen{$u} && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter|linkedin|addtoany)/i ) {
                         push @links, "$u";
                     }
                 }
