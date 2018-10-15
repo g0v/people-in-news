@@ -28,34 +28,33 @@ sub err {
 sub gather_links {
     state %seen;
 
-    my ($url, $url_seen, $_level) = @_;
-    $_level //= 0;
-    return if $_level == 3;
-    $seen{$url} = 1;
+    my ($url, $url_seen) = @_;
 
-    my $tx = try {
-        my $ua = Mojo::UserAgent->new()->max_redirects(3);
-        $ua->get($url);
-    } catch {
-        err "SRCERR: $url";
-        undef;
-    };
-    return unless $tx && $tx->res->is_success;
+    my $i = 0;
+    my @links = ($url);
+    while ($i < @links && @links < 1000) {
+        my $url = $links[$i++];
+        say "+++ " . (0+ @links) . " $url";
 
-    $seen{$tx->req->url->to_abs . ""} = 1;
+        my $tx = try {
+            my $ua = Mojo::UserAgent->new()->max_redirects(3);
+            $ua->get($url);
+        } catch {
+            err "SRCERR: $url";
+            undef;
+        };
+        next unless $tx && $tx->res->is_success;
 
-    my @links;
-    my $uri = URI->new($url);
-    for my $e ($tx->res->dom->find('a[href]')->each) {
-        my $href = $e->attr("href");
-        my $u = URI->new_abs("$href", $uri);
-        if (!$seen{$u}  && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)\.com\z/ ) {
-            push @links, "$u";
-            unless ($url_seen->test("$u")) {
-                push @links, gather_links("$u", $url_seen, $_level+1);
+        $seen{$url} = $seen{$tx->req->url->to_abs . ""} = 1;
+
+        my $uri = URI->new($url);
+        for my $e ($tx->res->dom->find('a[href]')->each) {
+            my $href = $e->attr("href");
+            my $u = URI->new_abs("$href", $uri);
+            if (!$seen{$u} && !$url_seen->test("$u") && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)\z/ ) {
+                push @links, "$u";
             }
         }
-        last if @links > 100;
     }
 
     return @links;
@@ -63,11 +62,12 @@ sub gather_links {
 
 sub extract_info {
     my ($url) = @_;
+    say "[$$] START $url";
+
     my %info;
 
-    my $ua = Mojo::UserAgent->new;
-
     my $tx = try {
+        my $ua = Mojo::UserAgent->new->max_redirects(3);
         $ua->get($url);
     } catch {
         err "FAIL TO FETCH: $url";
@@ -75,19 +75,25 @@ sub extract_info {
     };
     return unless $tx;
 
-    if($tx->error) {
+    if ($tx->error) {
         err "FAIL TO FETCH: $url " . encode_json($tx->error);
         return undef;
     }
 
     my $res = $tx->res;
-    return unless $res->body;
+    unless ($res->body) {
+        err "[$$] NO BODY";
+        return;
+    }
 
     my $dom = $res->dom;
     my $charset;
     my $content_type = $res->headers->content_type;
 
-    return if ( $content_type && $content_type !~ /html/);
+    if ( $content_type && $content_type !~ /html/) {
+        err "[$$] Non HTML";
+        return;
+    }
 
     if ( $content_type && $content_type =~ m!charset=(.+)[;\s]?!) {
         $charset = $1;
@@ -106,10 +112,16 @@ sub extract_info {
         $charset = $enc->name if $enc;
     }
 
-    return unless $charset;
+    unless ($charset) {
+        err "[$$] Unknown charset";
+        return;
+    }
 
     my $title = $dom->find("title");
-    return unless $title->[0];
+    unless ($title->[0]) {
+        err "[$$] blank title";
+        return;
+    }
 
     $info{title} = $title->[0]->text."";
     $info{title} = decode($charset, $info{title}) unless Encode::is_utf8($info{title});
@@ -129,13 +141,19 @@ sub extract_info {
     $text =~ s/\A\s+//;
     $text =~ s/\s+\z//;
 
+    unless ($text) {
+        err "[$$] NO content";
+        return;
+    }
+
     $info{content_text} = $text;
 
     my @paragraphs = split /\n\n/, $text;
-    return unless @paragraphs > 1;
-
     my $maxl = max( map { length($_) } @paragraphs );
-    return if $maxl < 60;
+    if ($maxl < 60) {
+        err "[$$] Not enough contents";
+        return;
+    }
 
     $info{url} = $tx->req->url->to_abs;
 
@@ -150,6 +168,7 @@ sub process {
 
     mce_loop {
         my $url = $_;
+
         my $info = extract_info($url) or return;
 
         my $line = encode_json({
