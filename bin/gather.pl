@@ -91,7 +91,7 @@ sub gather_links {
     }
 
 
-    return uniq(@links);
+    return uniqstr(@links);
 }
 
 sub extract_info {
