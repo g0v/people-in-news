@@ -45,12 +45,12 @@ sub ua_get {
 }
 
 sub gather_links {
-    state %seen;
-
     my ($url, $url_seen) = @_;
+
+    my %seen;
     my @promises;
     my $i = 0;
-    my @links = ($url);
+    my @links = ();
     while (@links < 1000) {
         if (@promises > 7 || (($i >= @links) && @promises)) {
             Mojo::Promise->all(@promises)->wait();
@@ -91,7 +91,7 @@ sub gather_links {
     }
 
 
-    return @links;
+    return uniq(@links);
 }
 
 sub extract_info {
@@ -205,20 +205,16 @@ sub process {
     my @links = gather_links($url, $url_seen);
     say "[$$] TODO: " . (0 + @links) . " links from $url";
 
-    mce_loop {
-        for (@{$_}) {
-            my $url = $_;
-            my $info = extract_info($url) or next;
-            my $line = encode_json({
-                url          => "".$info->{url},
-                title        => $info->{title},
-                content_text => $info->{content_text},
-            }) . "\n";
-
-            MCE->sendto("file:$out", $line);
-            MCE->do('add_to_url_seen', $url);
-        }
-    } @links;
+    for my $url (@links) {
+        my $info = extract_info($url) or next;
+        my $line = encode_json({
+            url          => "".$info->{url},
+            title        => $info->{title},
+            content_text => $info->{content_text},
+        }) . "\n";
+        MCE->sendto("file:$out", $line);
+        MCE->do('add_to_url_seen', $url);
+    }
 }
 
 my $url_seen;
@@ -260,9 +256,11 @@ if (@ARGV) {
 
 MCE::Loop::init { chunk_size => 'auto' };
 
-for(shuffle(@initial_urls)) {
-    process($_, $url_seen, $partial_output);
-}
+mce_loop {
+    for(@$_) {
+        process($_, $url_seen, $partial_output);
+    }
+} shuffle(@initial_urls);
 
 $url_seen->save;
 
