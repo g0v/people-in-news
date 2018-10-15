@@ -45,7 +45,7 @@ sub ua_get {
 }
 
 sub gather_links {
-    my ($url, $url_seen) = @_;
+    my ($url) = @_;
 
     my %seen;
     my @promises;
@@ -73,7 +73,7 @@ sub gather_links {
                 for my $e ($tx->res->dom->find('a[href]')->each) {
                     my $href = $e->attr("href");
                     my $u = URI->new_abs("$href", $uri);
-                    if (!$seen{$u} && !$url_seen->test("$u") && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)/i ) {
+                    if (!$seen{$u} && && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)/i ) {
                         push @links, "$u";
                     }
                 }
@@ -202,7 +202,7 @@ sub extract_info {
 sub process {
     my ($url, $url_seen, $out) = @_;
 
-    my @links = gather_links($url, $url_seen);
+    my @links = grep { ! $url_seen->test($_) } gather_links($url);
     say "[$$] TODO: " . (0 + @links) . " links from $url";
 
     for my $url (@links) {
@@ -242,8 +242,7 @@ if (-f $output) {
     die "Output exist already: $output";
 }
 
-my $url_seen_f = $opts{db} . "/url-seen.bloomfilter";
-$url_seen = Sn::Seen->new( store => $url_seen_f );
+$url_seen = Sn::Seen->new( store => ($opts{db} . "/url-seen.bloomfilter") );
 
 my @initial_urls;
 
