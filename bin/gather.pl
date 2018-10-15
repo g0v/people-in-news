@@ -47,10 +47,10 @@ sub ua_get {
 sub gather_links {
     my ($url) = @_;
 
-    my %seen;
     my @promises;
     my $i = 0;
     my @links = ($url);
+    my %seen  = ($url => 1);
     while (@links < 1000) {
         if (@promises > 7 || (($i >= @links) && @promises)) {
             Mojo::Promise->all(@promises)->wait();
@@ -59,7 +59,6 @@ sub gather_links {
 
         last if $i >= @links;
         my $url = $links[$i++];
-        $seen{$url} = 1;
 
         say "+++ " . (0+ @links) . " $url";
 
@@ -75,6 +74,7 @@ sub gather_links {
                     my $u = URI->new_abs("$href", $uri);
                     if (!$seen{$u} && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter|linkedin|addtoany)/i ) {
                         push @links, "$u";
+                        $seen{$u} = 1;
                     }
                 }
             }
