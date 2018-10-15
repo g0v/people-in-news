@@ -27,6 +27,7 @@ sub err {
 
 sub gather_links {
     state %seen;
+    state $ua = Mojo::UserAgent->new()->max_redirects(3);
 
     my ($url, $url_seen) = @_;
 
@@ -37,7 +38,6 @@ sub gather_links {
         say "+++ " . (0+ @links) . " $url";
 
         my $tx = try {
-            my $ua = Mojo::UserAgent->new()->max_redirects(3);
             $ua->get($url);
         } catch {
             err "SRCERR: $url";
