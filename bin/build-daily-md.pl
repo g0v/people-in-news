@@ -77,13 +77,15 @@ for my $yyyymmdd (keys %buckets) {
     next if !$opts{force} && (($output lt $daily_today) && (-f $output));
 
     my %page;
-
+    my %url_seen;
     for my $file (@input) {
         open my $fh, '<', $file;
         while (<$fh>) {
             chomp;
             my $d = decode_json($_);
             next unless @{$d->{names}};
+            next if $url_seen{$d->{url}};
+            $url_seen{$d->{url}} = 1;
             my $header = join ',', sort { $a cmp $b } @{$d->{names}};
             push @{$page{$header}}, $d;
         }
