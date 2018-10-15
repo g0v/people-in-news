@@ -7,6 +7,7 @@ use URI;
 use Try::Tiny;
 use MCE::Loop;
 use Mojo::UserAgent;
+use Mojo::Promise;
 use HTML::ExtractContent;
 use Encode qw(encode_utf8 decode);
 use Encode::Guess;
@@ -24,38 +25,71 @@ sub err {
     say STDERR @_;
 }
 
+sub ua_get {
+    state $ua = Mojo::UserAgent->new()->max_redirects(3);
+    my ($url) = @_;
+    my $promise = Mojo::Promise->new;
+    $ua->get(
+        $url,
+        sub {
+            my ($ua, $tx) = @_;
+            my $err = $tx->error;
+            if (!$err || $err->{code}) {
+                $promise->resolve($tx);
+            } else {
+                $promise->reject($err->{message});
+            }
+        }
+    );
+    return $promise;
+}
 
 sub gather_links {
     state %seen;
-    state $ua = Mojo::UserAgent->new()->max_redirects(3);
 
     my ($url, $url_seen) = @_;
-
+    my @promises;
     my $i = 0;
     my @links = ($url);
-    while ($i < @links && @links < 1000) {
+    while (@links < 1000) {
+        if (@promises > 7 || (($i >= @links) && @promises)) {
+            Mojo::Promise->all(@promises)->wait();
+            @promises = ();
+        }
+
+        last if $i >= @links;
         my $url = $links[$i++];
+        $seen{$url} = 1;
+
         say "+++ " . (0+ @links) . " $url";
 
-        my $tx = try {
-            $ua->get($url);
-        } catch {
-            err "SRCERR: $url";
-            undef;
-        };
-        next unless $tx && $tx->res->is_success;
+        push @promises, ua_get($url)->then(
+            sub {
+                my ($tx) = @_;
+                return unless $tx->res->is_success;
+                $seen{$url} = $seen{$tx->req->url->to_abs . ""} = 1;
 
-        $seen{$url} = $seen{$tx->req->url->to_abs . ""} = 1;
-
-        my $uri = URI->new($url);
-        for my $e ($tx->res->dom->find('a[href]')->each) {
-            my $href = $e->attr("href");
-            my $u = URI->new_abs("$href", $uri);
-            if (!$seen{$u} && !$url_seen->test("$u") && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)/i ) {
-                push @links, "$u";
+                my $uri = URI->new($url);
+                for my $e ($tx->res->dom->find('a[href]')->each) {
+                    my $href = $e->attr("href");
+                    my $u = URI->new_abs("$href", $uri);
+                    if (!$seen{$u} && !$url_seen->test("$u") && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)/i ) {
+                        push @links, "$u";
+                    }
+                }
             }
-        }
+        )->catch(
+            sub {
+                my $err = shift;
+                err "ERR: $err";
+            }
+        );
     }
+
+    if (@promises) {
+        Mojo::Promise->all(@promises)->wait();
+    }
+
 
     return @links;
 }
