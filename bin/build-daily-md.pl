@@ -34,7 +34,7 @@ sub build_md {
     my $md = "";
     for my $h (sort { $a cmp $b } keys %$page) {
         $md .= "## $h\n\n";
-        for my $d (uniq_by { $_->{url} } @{$page->{$h}}) {
+        for my $d (uniq_by { $_->{title} } @{$page->{$h}}) {
             $d->{title} =~ s/\A\s+//;
             $d->{title} =~ s/\s+\z//;
             $md .= "- [$d->{title}]($d->{url})\n";

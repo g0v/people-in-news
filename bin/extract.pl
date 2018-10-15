@@ -75,12 +75,14 @@ my @known_names = do {
 };
 
 my @input = grep {
-    m/articles - ([0-9]{8}) ([0-9]{6})? \.jsonl \z/x
+    m/articles - ([0-9]{14}) \.jsonl \z/x
 } (glob "$opts{db}/*.jsonl");
 
 my $output = $opts{db} . "/extracts-" . Sn::ts_now() . ".jsonl";
 
-process({
-    known_names => \@known_names,
-    output => $output
-}, $_) for @input
+for(@input) {
+    process({
+        known_names => \@known_names,
+        output => $output
+    }, $_);
+}
