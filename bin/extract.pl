@@ -6,6 +6,7 @@ use Getopt::Long qw(GetOptions);
 use File::Basename qw(basename);
 use Encode qw(decode encode_utf8 decode_utf8);
 use JSON qw(encode_json decode_json);
+use List::Util qw(maxstr);
 
 use MCE::Loop;
 
@@ -67,17 +68,20 @@ GetOptions(
 die "--db <DIR> is needed" unless -d $opts{db};
 
 my @input = grep {
-    m/articles - ([0-9]{8}) \.jsonl \z/x
+    m/articles - ([0-9]{8})([0-9]{6})? \.jsonl \z/x
 } (glob "$opts{db}/*.jsonl");
 
 my $kn = Sn::KnownNames->new( input => [  glob('etc/people*.txt') ] );
 
 my $output = $opts{db} . "/extracts-" . Sn::ts_now() . ".jsonl";
 
-for(@input) {
+my @previous_extract = grep { m/extracts - ([0-9]{8})([0-9]{6})? \.jsonl \z/x } (glob "$opts{db}/*.jsonl");
+my $offset = @previous_extract ? maxstr(@previous_extract) : "extracts-00000000";
+$offset =~ s/extracts/articles/;
+
+for(grep { $_ ge $offset } @input) {
     process({
         known_names => $kn->known_names,
         output => $output
     }, $_);
 }
- 
