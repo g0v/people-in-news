@@ -98,7 +98,7 @@ sub extract_info {
     my ($url) = @_;
     say "[$$] START $url";
 
-    if ($url =~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp] )\z/ix) {
+    if ($url =~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf )\z/ix) {
         err "[$$] Does not look like HTML-ish";
         return;
     }
