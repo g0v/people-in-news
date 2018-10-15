@@ -51,7 +51,7 @@ sub gather_links {
         for my $e ($tx->res->dom->find('a[href]')->each) {
             my $href = $e->attr("href");
             my $u = URI->new_abs("$href", $uri);
-            if (!$seen{$u} && !$url_seen->test("$u") && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)\z/ ) {
+            if (!$seen{$u} && !$url_seen->test("$u") && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)/i ) {
                 push @links, "$u";
             }
         }
