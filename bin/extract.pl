@@ -49,7 +49,7 @@ sub process {
                     names => $names,
                     url => $article->{url},
                     title => $article->{title},
-                    t_extracted => (0+ localtime()),
+                    t_extracted => (0+ time()),
                 }) . "\n";
                 MCE->sendto("file:" . $context->{output}, $line);
             }
@@ -80,3 +80,4 @@ for(@input) {
         output => $output
     }, $_);
 }
+ 

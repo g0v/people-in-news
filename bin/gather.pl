@@ -211,7 +211,7 @@ sub process {
             url          => "".$info->{url},
             title        => $info->{title},
             content_text => $info->{content_text},
-            t_fetched    => (0+ localtime()),
+            t_fetched    => (0+ time()),
         }) . "\n";
         MCE->sendto("file:$out", $line);
         MCE->do('add_to_url_seen', $url);
