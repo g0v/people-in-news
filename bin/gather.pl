@@ -66,13 +66,14 @@ sub gather_links {
             sub {
                 my ($tx) = @_;
                 return unless $tx->res->is_success;
-                $seen{$url} = $seen{$tx->req->url->to_abs . ""} = 1;
+                my $url2 = $tx->req->url->to_abs . "";
+                $seen{$url} = $seen{$url2} = 1;
 
-                my $uri = URI->new($url);
+                my $uri = URI->new($url2);
                 for my $e ($tx->res->dom->find('a[href]')->each) {
                     my $href = $e->attr("href");
                     my $u = URI->new_abs("$href", $uri);
-                    if (!$seen{$u} && $u->scheme =~ /^http/ && $u->host eq $uri->host) {
+                    if (!$seen{$u} && $u->scheme =~ /^http/ && $u->host && $u->host eq $uri->host) {
                         push @links, "$u";
                         $seen{$u} = 1;
                     }
