@@ -72,7 +72,7 @@ sub gather_links {
                 for my $e ($tx->res->dom->find('a[href]')->each) {
                     my $href = $e->attr("href");
                     my $u = URI->new_abs("$href", $uri);
-                    if (!$seen{$u} && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter|linkedin|addtoany)/i ) {
+                    if (!$seen{$u} && $u->scheme =~ /^http/ && $u->host eq $uri->host) {
                         push @links, "$u";
                         $seen{$u} = 1;
                     }
