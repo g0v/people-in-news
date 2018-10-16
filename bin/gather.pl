@@ -216,7 +216,7 @@ sub process {
         }) . "\n";
         MCE->sendto("file:$out", $line);
         MCE->do('add_to_url_seen', $url);
-        last if $extracted_count++ > 300;
+        last if $extracted_count++ > 30;
     }
 }
 
