@@ -26,33 +26,25 @@ sub err {
 }
 
 sub ua_get {
-    state $ua = Mojo::UserAgent->new()->max_redirects(3);
+    state $ua = Mojo::UserAgent->new()->transactor(
+        Mojo::UserAgent::Transactor->new()->name('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:62.0) Gecko/20100101 Firefox/62.0')
+    )->max_redirects(3);
+
     my ($url) = @_;
-    my $promise = Mojo::Promise->new;
-    $ua->get(
-        $url,
-        sub {
-            my ($ua, $tx) = @_;
-            my $err = $tx->error;
-            if (!$err || $err->{code}) {
-                $promise->resolve($tx);
-            } else {
-                $promise->reject($tx);
-            }
-        }
-    );
-    return $promise;
+    return $ua->get_p($url);
 }
 
 sub gather_links {
     my ($url) = @_;
 
     my @promises;
+    my $error_count = 0;
     my $i = 0;
     my @links = ($url);
     my %seen  = ($url => 1);
-    while (@links < 1000) {
-        if (@promises > 7 || (($i >= @links) && @promises)) {
+
+    while (@links < 1000 && $error_count < 10) {
+        if (@promises > 30 || (($i >= @links) && @promises)) {
             Mojo::Promise->all(@promises)->wait();
             @promises = ();
         }
@@ -79,10 +71,9 @@ sub gather_links {
             }
         )->catch(
             sub {
-                my $tx = shift;
-                my $err = $tx->error->{message};
-                my $url = $tx->req->url->to_abs;
-                err "ERR: $url $err";
+                my $err = shift;
+                err "ERR: $err @_";
+                $error_count++;
             }
         );
     }
@@ -90,7 +81,6 @@ sub gather_links {
     if (@promises) {
         Mojo::Promise->all(@promises)->wait();
     }
-
 
     return uniqstr(@links);
 }
@@ -113,11 +103,11 @@ sub extract_info {
         # err "FAIL TO FETCH: $url";
         undef;
     };
-    return unless $tx;
+    return (undef, 1) unless $tx;
 
     if ($tx->error) {
         err "FAIL TO FETCH: $url " . encode_json($tx->error);
-        return undef;
+        return (undef, 1);
     }
 
     my $res = $tx->res;
@@ -209,9 +199,16 @@ sub process {
     my @links = grep { ! $url_seen->test($_) } gather_links($url);
     say "[$$] TODO: " . (0 + @links) . " links from $url";
 
+    my $error_count = 0;
     my $extracted_count = 0;
     for my $url (@links) {
-        my $info = extract_info($url) or next;
+        my ($info, $error) = extract_info($url);
+        if ($error) {
+            last if $error_count++ > 10;
+            next;
+        }
+        next unless $info;
+
         my $line = encode_json({
             url          => "".$info->{url},
             title        => $info->{title},
