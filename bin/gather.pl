@@ -37,7 +37,7 @@ sub ua_get {
             if (!$err || $err->{code}) {
                 $promise->resolve($tx);
             } else {
-                $promise->reject($err->{message});
+                $promise->reject($tx);
             }
         }
     );
@@ -60,8 +60,6 @@ sub gather_links {
         last if $i >= @links;
         my $url = $links[$i++];
 
-        say "+++ " . (0+ @links) . " $url";
-
         push @promises, ua_get($url)->then(
             sub {
                 my ($tx) = @_;
@@ -81,8 +79,10 @@ sub gather_links {
             }
         )->catch(
             sub {
-                my $err = shift;
-                err "ERR: $err";
+                my $tx = shift;
+                my $err = $tx->error->{message};
+                my $url = $tx->req->url->to_abs;
+                err "ERR: $url $err";
             }
         );
     }
@@ -97,10 +97,10 @@ sub gather_links {
 
 sub extract_info {
     my ($url) = @_;
-    say "[$$] START $url";
+    # say "[$$] START $url";
 
     if ($url =~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf )\z/ix) {
-        err "[$$] Does not look like HTML-ish";
+        # err "[$$] Does not look like HTML-ish";
         return;
     }
 
@@ -110,7 +110,7 @@ sub extract_info {
         my $ua = Mojo::UserAgent->new->max_redirects(3);
         $ua->get($url);
     } catch {
-        err "FAIL TO FETCH: $url";
+        # err "FAIL TO FETCH: $url";
         undef;
     };
     return unless $tx;
@@ -122,7 +122,7 @@ sub extract_info {
 
     my $res = $tx->res;
     unless ($res->body) {
-        err "[$$] NO BODY";
+        # err "[$$] NO BODY";
         return;
     }
 
@@ -131,7 +131,7 @@ sub extract_info {
     my $content_type = $res->headers->content_type;
 
     if ( $content_type && $content_type !~ /html/) {
-        err "[$$] Non HTML";
+        # err "[$$] Non HTML";
         return;
     }
 
@@ -153,13 +153,13 @@ sub extract_info {
     }
 
     unless ($charset) {
-        err "[$$] Unknown charset";
+        # err "[$$] Unknown charset";
         return;
     }
 
     my $title = $dom->find("title");
     unless ($title->[0]) {
-        err "[$$] blank title";
+        # err "[$$] blank title";
         return;
     }
 
@@ -182,7 +182,7 @@ sub extract_info {
     $text =~ s/\s+\z//;
 
     unless ($text) {
-        err "[$$] NO content";
+        # err "[$$] NO content";
         return;
     }
 
@@ -191,7 +191,7 @@ sub extract_info {
     my @paragraphs = split /\n\n/, $text;
     my $maxl = max( map { length($_) } @paragraphs );
     if ($maxl < 60) {
-        err "[$$] Not enough contents";
+        # err "[$$] Not enough contents";
         return;
     }
 
@@ -202,6 +202,9 @@ sub extract_info {
 
 sub process {
     my ($url, $url_seen, $out) = @_;
+
+    open my $fh, '>', $out;
+    $fh->autoflush(1);
 
     my @links = grep { ! $url_seen->test($_) } gather_links($url);
     say "[$$] TODO: " . (0 + @links) . " links from $url";
@@ -215,16 +218,23 @@ sub process {
             content_text => $info->{content_text},
             t_fetched    => (0+ time()),
         }) . "\n";
-        MCE->sendto("file:$out", $line);
-        MCE->do('add_to_url_seen', $url);
+
+        print $fh $line;
+
         last if $extracted_count++ > 30;
+    }
+    close($fh);
+    if (@links) {
+        MCE->do('add_to_url_seen', \@links);
+    } else {
+        unlink($out);
     }
 }
 
 my $url_seen;
 sub add_to_url_seen {
-    my ($url) = @_;
-    $url_seen->add($url);
+    my ($urls) = @_;
+    $url_seen->add(@$urls);
 }
 
 # main
@@ -236,14 +246,6 @@ GetOptions(
 die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
 
 chdir($Bin . '/../');
-
-# jsonl => http://jsonlines.org/
-my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
-my $partial_output = $output . '.partial';
-
-if (-f $output) {
-    die "Output exist already: $output";
-}
 
 $url_seen = Sn::Seen->new( store => ($opts{db} . "/url-seen.bloomfilter") );
 
@@ -261,10 +263,15 @@ MCE::Loop::init { chunk_size => 'auto' };
 
 mce_loop {
     for(@$_) {
-        process($_, $url_seen, $partial_output);
+        # jsonl => http://jsonlines.org/
+        my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
+        while (-f $output) {
+            sleep 1;
+            $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
+        }
+
+        process($_, $url_seen, $output);
     }
 } shuffle(@initial_urls);
 
 $url_seen->save;
-
-rename $partial_output, $output;
