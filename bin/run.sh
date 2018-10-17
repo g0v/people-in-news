@@ -21,6 +21,6 @@ ts_end=$(date +%s)
 
 echo "DONE:" $(( $ts_end - $ts_begin )) 'seconds'
 
-sleep 600;
+sleep 3600;
 
 exec $0

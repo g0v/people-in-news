@@ -269,6 +269,6 @@ mce_loop {
 
         process($_, $url_seen, $output);
     }
-} shuffle(@initial_urls);
+} @initial_urls;
 
 $url_seen->save;
