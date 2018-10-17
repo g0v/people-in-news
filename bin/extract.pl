@@ -28,34 +28,33 @@ sub extract_names {
 }
 
 sub process {
-    my ($context, $input) = @_;
+    my ($context) = @_;
 
     my @jsonlines;
-    open my $fh, '<', $input;
+    open my $fh, '<', $context->{input};
     @jsonlines = map { chomp; $_ } <$fh>;
     close($fh);
 
-    mce_loop {
-        my ($mce, $chunk_ref, $chunk_id) = @_;
+    open $fh, '>', $context->{output};
+    for (@jsonlines) {
+        my $article = decode_json($_);
+        my @texts = ($article->{title}, $article->{content_text});
+        my $names = extract_names(
+            $context->{known_names},
+            \@texts,
+        );
+        if (@$names) {
+            my $line = encode_json({
+                names => $names,
+                url => $article->{url},
+                title => $article->{title},
+                t_extracted => (0+ time()),
+            }) . "\n";
 
-        for(@{$chunk_ref}) {
-            my $article = decode_json($_);
-            my @texts = ($article->{title}, $article->{content_text});
-            my $names = extract_names(
-                $context->{known_names},
-                \@texts,
-            );
-            if (@$names) {
-                my $line = encode_json({
-                    names => $names,
-                    url => $article->{url},
-                    title => $article->{title},
-                    t_extracted => (0+ time()),
-                }) . "\n";
-                MCE->sendto("file:" . $context->{output}, $line);
-            }
+            print $fh $line;
         }
-    } @jsonlines;
+    }
+    close($fh);
 }
 
 ## main
@@ -67,21 +66,22 @@ GetOptions(
 );
 die "--db <DIR> is needed" unless -d $opts{db};
 
-my @input = grep {
-    m/articles - ([0-9]{8})([0-9]{6})? \.jsonl \z/x
-} (glob "$opts{db}/*.jsonl");
-
 my $kn = Sn::KnownNames->new( input => [  glob('etc/people*.txt') ] );
 
-my $output = $opts{db} . "/extracts-" . Sn::ts_now() . ".jsonl";
-
-my @previous_extract = grep { m/extracts - ([0-9]{8})([0-9]{6})? \.jsonl \z/x } (glob "$opts{db}/*.jsonl");
-my $offset = @previous_extract ? maxstr(@previous_extract) : "extracts-00000000";
-$offset =~ s/extracts/articles/;
-
-for(grep { $_ ge $offset } @input) {
-    process({
+mce_loop {
+    for(@$_) {
+        process($_)
+    }
+} grep {
+    ! -f $_->{output}
+} map {
+    my $input = $_;
+    my $output = $input =~ s/articles/extracts/r;
+    +{
         known_names => $kn->known_names,
-        output => $output
-    }, $_);
-}
+        output => $output,
+        input  => $input,
+    }
+} grep {
+    m/articles - ([0-9]{8})([0-9]{6})? \.jsonl \z/x
+} (glob "$opts{db}/*.jsonl");

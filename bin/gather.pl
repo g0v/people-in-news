@@ -26,33 +26,25 @@ sub err {
 }
 
 sub ua_get {
-    state $ua = Mojo::UserAgent->new()->max_redirects(3);
+    state $ua = Mojo::UserAgent->new()->transactor(
+        Mojo::UserAgent::Transactor->new()->name('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:62.0) Gecko/20100101 Firefox/62.0')
+    )->max_redirects(3);
+
     my ($url) = @_;
-    my $promise = Mojo::Promise->new;
-    $ua->get(
-        $url,
-        sub {
-            my ($ua, $tx) = @_;
-            my $err = $tx->error;
-            if (!$err || $err->{code}) {
-                $promise->resolve($tx);
-            } else {
-                $promise->reject($err->{message});
-            }
-        }
-    );
-    return $promise;
+    return $ua->get_p($url);
 }
 
 sub gather_links {
     my ($url) = @_;
 
     my @promises;
+    my $error_count = 0;
     my $i = 0;
     my @links = ($url);
     my %seen  = ($url => 1);
-    while (@links < 1000) {
-        if (@promises > 7 || (($i >= @links) && @promises)) {
+
+    while (@links < 1000 && $error_count < 10) {
+        if (@promises > 30 || (($i >= @links) && @promises)) {
             Mojo::Promise->all(@promises)->wait();
             @promises = ();
         }
@@ -60,19 +52,18 @@ sub gather_links {
         last if $i >= @links;
         my $url = $links[$i++];
 
-        say "+++ " . (0+ @links) . " $url";
-
         push @promises, ua_get($url)->then(
             sub {
                 my ($tx) = @_;
                 return unless $tx->res->is_success;
-                $seen{$url} = $seen{$tx->req->url->to_abs . ""} = 1;
+                my $url2 = $tx->req->url->to_abs . "";
+                $seen{$url} = $seen{$url2} = 1;
 
-                my $uri = URI->new($url);
+                my $uri = URI->new($url2);
                 for my $e ($tx->res->dom->find('a[href]')->each) {
                     my $href = $e->attr("href");
                     my $u = URI->new_abs("$href", $uri);
-                    if (!$seen{$u} && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter|linkedin|addtoany)/i ) {
+                    if (!$seen{$u} && $u->scheme =~ /^http/ && $u->host && $u->host eq $uri->host) {
                         push @links, "$u";
                         $seen{$u} = 1;
                     }
@@ -81,7 +72,8 @@ sub gather_links {
         )->catch(
             sub {
                 my $err = shift;
-                err "ERR: $err";
+                err "ERR: $err @_";
+                $error_count++;
             }
         );
     }
@@ -90,16 +82,15 @@ sub gather_links {
         Mojo::Promise->all(@promises)->wait();
     }
 
-
     return uniqstr(@links);
 }
 
 sub extract_info {
     my ($url) = @_;
-    say "[$$] START $url";
+    # say "[$$] START $url";
 
     if ($url =~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf )\z/ix) {
-        err "[$$] Does not look like HTML-ish";
+        # err "[$$] Does not look like HTML-ish";
         return;
     }
 
@@ -109,19 +100,19 @@ sub extract_info {
         my $ua = Mojo::UserAgent->new->max_redirects(3);
         $ua->get($url);
     } catch {
-        err "FAIL TO FETCH: $url";
+        # err "FAIL TO FETCH: $url";
         undef;
     };
-    return unless $tx;
+    return (undef, 1) unless $tx;
 
     if ($tx->error) {
         err "FAIL TO FETCH: $url " . encode_json($tx->error);
-        return undef;
+        return (undef, 1);
     }
 
     my $res = $tx->res;
     unless ($res->body) {
-        err "[$$] NO BODY";
+        # err "[$$] NO BODY";
         return;
     }
 
@@ -130,7 +121,7 @@ sub extract_info {
     my $content_type = $res->headers->content_type;
 
     if ( $content_type && $content_type !~ /html/) {
-        err "[$$] Non HTML";
+        # err "[$$] Non HTML";
         return;
     }
 
@@ -152,13 +143,13 @@ sub extract_info {
     }
 
     unless ($charset) {
-        err "[$$] Unknown charset";
+        # err "[$$] Unknown charset";
         return;
     }
 
     my $title = $dom->find("title");
     unless ($title->[0]) {
-        err "[$$] blank title";
+        # err "[$$] blank title";
         return;
     }
 
@@ -181,7 +172,7 @@ sub extract_info {
     $text =~ s/\s+\z//;
 
     unless ($text) {
-        err "[$$] NO content";
+        # err "[$$] NO content";
         return;
     }
 
@@ -190,7 +181,7 @@ sub extract_info {
     my @paragraphs = split /\n\n/, $text;
     my $maxl = max( map { length($_) } @paragraphs );
     if ($maxl < 60) {
-        err "[$$] Not enough contents";
+        # err "[$$] Not enough contents";
         return;
     }
 
@@ -202,28 +193,45 @@ sub extract_info {
 sub process {
     my ($url, $url_seen, $out) = @_;
 
+    open my $fh, '>', $out;
+    $fh->autoflush(1);
+
     my @links = grep { ! $url_seen->test($_) } gather_links($url);
     say "[$$] TODO: " . (0 + @links) . " links from $url";
 
+    my $error_count = 0;
     my $extracted_count = 0;
     for my $url (@links) {
-        my $info = extract_info($url) or next;
+        my ($info, $error) = extract_info($url);
+        if ($error) {
+            last if $error_count++ > 10;
+            next;
+        }
+        next unless $info;
+
         my $line = encode_json({
             url          => "".$info->{url},
             title        => $info->{title},
             content_text => $info->{content_text},
             t_fetched    => (0+ time()),
         }) . "\n";
-        MCE->sendto("file:$out", $line);
-        MCE->do('add_to_url_seen', $url);
-        last if $extracted_count++ > 300;
+
+        print $fh $line;
+
+        last if $extracted_count++ > 30;
+    }
+    close($fh);
+    if (@links) {
+        MCE->do('add_to_url_seen', \@links);
+    } else {
+        unlink($out);
     }
 }
 
 my $url_seen;
 sub add_to_url_seen {
-    my ($url) = @_;
-    $url_seen->add($url);
+    my ($urls) = @_;
+    $url_seen->add(@$urls);
 }
 
 # main
@@ -235,14 +243,6 @@ GetOptions(
 die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
 
 chdir($Bin . '/../');
-
-# jsonl => http://jsonlines.org/
-my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
-my $partial_output = $output . '.partial';
-
-if (-f $output) {
-    die "Output exist already: $output";
-}
 
 $url_seen = Sn::Seen->new( store => ($opts{db} . "/url-seen.bloomfilter") );
 
@@ -260,10 +260,15 @@ MCE::Loop::init { chunk_size => 'auto' };
 
 mce_loop {
     for(@$_) {
-        process($_, $url_seen, $partial_output);
+        # jsonl => http://jsonlines.org/
+        my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
+        while (-f $output) {
+            sleep 1;
+            $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
+        }
+
+        process($_, $url_seen, $output);
     }
-} shuffle(@initial_urls);
+} @initial_urls;
 
 $url_seen->save;
-
-rename $partial_output, $output;

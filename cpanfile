@@ -11,3 +11,4 @@ requires 'Firefox::Marionette'    => '0.66';
 requires 'Types::URI'             => '0';
 requires 'Type::Tiny'             => '0';
 requires 'Text::Markdown'         => '0';
+requires 'Text::Markdown::Discount', '0';
