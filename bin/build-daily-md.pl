@@ -82,8 +82,9 @@ for my $yyyymmdd (keys %buckets) {
         open my $fh, '<', $file;
         while (<$fh>) {
             chomp;
+            next unless /\A\{/ && /\}\z/;
             my $d = decode_json($_);
-            next unless @{$d->{names}};
+            next unless @{$d->{names}} && $d->{url};
             next if $url_seen{$d->{url}};
             $url_seen{$d->{url}} = 1;
             my $header = join ',', sort { $a cmp $b } @{$d->{names}};
