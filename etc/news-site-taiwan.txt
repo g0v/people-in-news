@@ -41,6 +41,7 @@ https://tw.on.cc/
 https://twreporter.org/
 https://udn.com/news/index
 https://udn.com/vote2018/index
+https://udn.com/news/breaknews/1
 https://www.101newsmedia.com/
 https://www.cet-taiwan.org/
 https://www.chinapost.com.tw/
@@ -53,6 +54,7 @@ https://www.ettoday.net/
 https://www.fairmedia.com.tw/
 https://www.fountmedia.io/
 https://www.ltn.com.tw/
+https://news.ltn.com.tw/list/breakingnews
 https://www.mdnkids.com/
 https://www.mirrormedia.mg/
 https://www.msn.com/zh-tw
