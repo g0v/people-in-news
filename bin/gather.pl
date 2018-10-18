@@ -80,30 +80,17 @@ sub gather_links {
 
     if (@promises) {
         Mojo::Promise->all(@promises)->wait();
+        @promises = ();
     }
 
     return uniqstr(@links);
 }
 
 sub extract_info {
-    my ($url) = @_;
+    my ($tx) = @_;
     # say "[$$] START $url";
 
     my %info;
-
-    my $tx = try {
-        my $ua = Mojo::UserAgent->new->max_redirects(3);
-        $ua->get($url);
-    } catch {
-        # err "FAIL TO FETCH: $url";
-        undef;
-    };
-    return (undef, 1) unless $tx;
-
-    if ($tx->error) {
-        err "FAIL TO FETCH: $url " . encode_json($tx->error);
-        return (undef, 1);
-    }
 
     my $res = $tx->res;
     unless ($res->body) {
@@ -194,6 +181,7 @@ sub process {
     my @links = grep { ! $url_seen->test($_) } gather_links($url);
     say "[$$] TODO: " . (0 + @links) . " links from $url";
 
+    my @promises;
     my $error_count = 0;
     my $extracted_count = 0;
     for my $url (@links) {
@@ -202,30 +190,50 @@ sub process {
             next;
         }
 
-        my ($info, $error) = extract_info($url);
-        if ($error) {
-            last if $error_count++ > 10;
-            next;
+        push @promises, ua_get($url)->then(
+            sub {
+                my ($tx) = @_;
+                return unless $tx->res->is_success;
+
+                my $info = extract_info($tx) or return;
+
+                my $line = encode_json({
+                    url          => "".$info->{url},
+                    title        => $info->{title},
+                    content_text => $info->{content_text},
+                    t_fetched    => (0+ time()),
+                }) . "\n";
+
+                print $fh $line;
+
+                $extracted_count++;
+            }
+        )->catch(
+            sub {
+                $error_count++
+            }
+        );
+
+        if (@promises > 3) {
+            Mojo::Promise->all(@promises)->wait;
+            @promises = ();
         }
-        next unless $info;
 
-        my $line = encode_json({
-            url          => "".$info->{url},
-            title        => $info->{title},
-            content_text => $info->{content_text},
-            t_fetched    => (0+ time()),
-        }) . "\n";
-
-        print $fh $line;
-
-        last if $extracted_count++ > 30;
+        last if $error_count > 10;
+        last if $extracted_count > 30;
     }
-    close($fh);
+
+    if (@promises) {
+        Mojo::Promise->all(@promises)->wait();
+        @promises = ();
+    }
+
     if (@links) {
         MCE->do('add_to_url_seen', \@links);
     } else {
         unlink($out);
     }
+    close($fh);
 }
 
 my $url_seen;
