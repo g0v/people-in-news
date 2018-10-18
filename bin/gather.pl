@@ -115,6 +115,8 @@ sub extract_info {
         return;
     }
 
+    $info{t_fetched} = (0+ time());
+
     my $dom = $res->dom;
     my $charset;
     my $content_type = $res->headers->content_type;
