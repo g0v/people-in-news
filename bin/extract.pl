@@ -66,7 +66,7 @@ GetOptions(
 );
 die "--db <DIR> is needed" unless -d $opts{db};
 
-my $kn = Sn::KnownNames->new( input => [  glob('etc/people*.txt') ] );
+my $kn = Sn::KnownNames->new( input => [  glob('etc/substr-*.txt') ] );
 
 mce_loop {
     for(@$_) {
