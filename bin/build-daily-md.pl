@@ -61,7 +61,7 @@ die "--db <DIR> is needed" unless -d $opts{db};
 die "-o <DIR> is needed" unless -d $opts{o};
 
 my %buckets;
-for my $file (glob "$opts{db}/extracts-*.jsonl") {
+for my $file (glob "$opts{db}/articles-*.jsonl") {
     my ($k) = $file =~ m/ - ([0-9]{8}) ([0-9]{6})? \.jsonl \z/x;
     next unless $k;
     push @{$buckets{$k}}, $file;

@@ -20,6 +20,7 @@ use FindBin '$Bin';
 
 use Sn;
 use Sn::Seen;
+use Sn::KnownNames;
 
 sub err {
     say STDERR @_;
@@ -84,6 +85,22 @@ sub gather_links {
     }
 
     return uniqstr(@links);
+}
+
+sub extract_names {
+    my ($texts) = @_;
+    state $kn = Sn::KnownNames->new( input => [  glob('etc/substr-*.txt') ] );
+
+    my @extracted;
+    for my $name (@{$kn->known_names}) {
+        for my $txt (@$texts) {
+            if (index($txt, $name) >= 0) {
+                push @extracted, $name;
+                last;
+            }
+        }
+    }
+    return \@extracted;
 }
 
 sub extract_info {
@@ -158,8 +175,6 @@ sub extract_info {
         return;
     }
 
-    $info{content_text} = $text;
-
     my @paragraphs = split /\n\n/, $text;
     my $maxl = max( map { length($_) } @paragraphs );
     if ($maxl < 60) {
@@ -167,7 +182,10 @@ sub extract_info {
         return;
     }
 
-    $info{url} = $tx->req->url->to_abs;
+    $info{names}        = extract_names([ $info{title}, $text ]);
+    $info{url}          = "". $tx->req->url->to_abs;
+    $info{content_text} = $text;
+    $info{t_extracted}  = (0+ time());
 
     return \%info;
 }
@@ -197,12 +215,7 @@ sub process {
 
                 my $info = extract_info($tx) or return;
 
-                my $line = encode_json({
-                    url          => "".$info->{url},
-                    title        => $info->{title},
-                    content_text => $info->{content_text},
-                    t_fetched    => (0+ time()),
-                }) . "\n";
+                my $line = encode_json($info) . "\n";
 
                 print $fh $line;
 
