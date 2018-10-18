@@ -89,11 +89,6 @@ sub extract_info {
     my ($url) = @_;
     # say "[$$] START $url";
 
-    if ($url =~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf )\z/ix) {
-        # err "[$$] Does not look like HTML-ish";
-        return;
-    }
-
     my %info;
 
     my $tx = try {
@@ -202,6 +197,11 @@ sub process {
     my $error_count = 0;
     my $extracted_count = 0;
     for my $url (@links) {
+        if ($url =~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf )\z/ix) {
+            # err "[$$] Does not look like HTML-ish";
+            next;
+        }
+
         my ($info, $error) = extract_info($url);
         if ($error) {
             last if $error_count++ > 10;
