@@ -3,6 +3,7 @@ use v5.18;
 
 use strict;
 use warnings;
+use Encode qw(decode_utf8);
 
 use Sn::TX;
 
@@ -29,6 +30,25 @@ sub readlines_utf8 {
     close($fh);
 
     return \@lines;
+}
+
+sub extract_substrings {
+    my ($texts) = @_;
+
+    state @extractors;
+    unless (@extractors) {
+        @extractors = map {
+            my $fn = $_;
+            my $name = substr($fn, 11) =~ s/\.txt$//r;
+            Sn::Extractor->new(
+                name => $name,
+                substrings => readlines_utf8($fn),
+            );
+        } glob('etc/substr-*.txt');
+    }
+
+    my %extracts = map { $_->name => $_->extract($texts) } @extractors;
+    return \%extracts;
 }
 
 1;

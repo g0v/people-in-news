@@ -20,7 +20,6 @@ use FindBin '$Bin';
 
 use Sn;
 use Sn::Seen;
-use Sn::KnownNames;
 use Sn::Extractor;
 
 sub err {
@@ -86,17 +85,6 @@ sub gather_links {
     }
 
     return uniqstr(@links);
-}
-
-sub extract_names {
-    my ($texts) = @_;
-
-    state $extractor = Sn::Extractor->new(
-        name => 'Political People',
-        substrings => Sn::readlines_utf8('etc/substr-political-people.txt'),
-    );
-
-    return $extractor->extract($texts);
 }
 
 sub extract_info {
@@ -180,9 +168,9 @@ sub extract_info {
         return;
     }
 
-    $info{names}        = extract_names([ $info{title}, $text ]);
     $info{url}          = "". $tx->req->url->to_abs;
     $info{content_text} = $text;
+    $info{substrings}   = Sn::extract_substrings([ $info{title}, $text ]);
     $info{t_extracted}  = (0+ time());
 
     return \%info;

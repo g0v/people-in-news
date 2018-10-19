@@ -12,17 +12,6 @@ use Sn;
 use Sn::Seen;
 use Sn::Extractor;
 
-sub extract_names {
-    my ($texts) = @_;
-
-    state $extractor = Sn::Extractor->new(
-        name => 'Political People',
-        substrings => Sn::readlines_utf8('etc/substr-political-people.txt'),
-    );
-
-    return $extractor->extract($texts);
-}
-
 sub process {
     my ($f_input, $f_output) = @_;
 
@@ -35,7 +24,7 @@ sub process {
         my $article = decode_json($_);
         next unless $article->{title} && $article->{content_text};
 
-        $article->{names} = extract_names([ $article->{title}, $article->{content_text} ]);
+        $article->{substrings} = Sn::extract_substrings([ $article->{title}, $article->{content_text} ]);
         $article->{t_extracted} = 0+ time();
 
         my $x = encode_json($article) . "\n";
