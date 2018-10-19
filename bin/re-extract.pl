@@ -7,6 +7,7 @@ use MCE;
 use MCE::Loop;
 use Getopt::Long qw(GetOptions);
 use JSON::PP qw(encode_json decode_json);
+use Try::Tiny;
 
 use Sn;
 use Sn::Seen;
@@ -21,7 +22,8 @@ sub process {
     while(<$fh_in>) {
         chomp;
 
-        my $article = decode_json($_);
+        my $article = try { decode_json($_) } or next;
+
         next unless $article->{title} && $article->{content_text};
 
         $article->{substrings} = Sn::extract_substrings([ $article->{title}, $article->{content_text} ]);
