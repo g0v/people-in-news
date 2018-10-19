@@ -17,7 +17,7 @@ sub extract_names {
 
     state $extractor = Sn::Extractor->new(
         name => 'Political People',
-        substrings => Sn::readlines('etc/substr-political-people.txt'),
+        substrings => Sn::readlines_utf8('etc/substr-political-people.txt'),
     );
 
     return $extractor->extract($texts);

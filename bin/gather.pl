@@ -46,7 +46,7 @@ sub gather_links {
     my %seen  = ($url => 1);
 
     while (@links < 1000 && $error_count < 10) {
-        if (@promises > 30 || (($i >= @links) && @promises)) {
+        if (@promises > 8 || (($i >= @links) && @promises)) {
             Mojo::Promise->all(@promises)->wait();
             @promises = ();
         }
@@ -93,7 +93,7 @@ sub extract_names {
 
     state $extractor = Sn::Extractor->new(
         name => 'Political People',
-        substrings => Sn::readlines('etc/substr-political-people.txt'),
+        substrings => Sn::readlines_utf8('etc/substr-political-people.txt'),
     );
 
     return $extractor->extract($texts);
@@ -270,9 +270,7 @@ my @initial_urls;
 if (@ARGV) {
     @initial_urls = @ARGV;
 } else {
-    open my $fh, '<', 'etc/news-site-taiwan.txt';
-    @initial_urls = map { chomp; $_ } <$fh>;
-    close $fh;
+    @initial_urls = @{ Sn::readlines('etc/news-site-taiwan.txt') };
 }
 
 MCE::Loop::init { chunk_size => 'auto' };

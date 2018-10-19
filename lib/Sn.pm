@@ -15,6 +15,16 @@ sub readlines {
     my ($fn) = @_;
 
     open my $fh, '<', $fn;
+    my @lines = map { chomp; $_ } <$fh>;
+    close($fh);
+
+    return \@lines;
+}
+
+sub readlines_utf8 {
+    my ($fn) = @_;
+
+    open my $fh, '<', $fn;
     my @lines = map { chomp; decode_utf8($_); } <$fh>;
     close($fh);
 
