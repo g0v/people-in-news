@@ -10,22 +10,17 @@ use JSON::PP qw(encode_json decode_json);
 
 use Sn;
 use Sn::Seen;
-use Sn::KnownNames;
+use Sn::Extractor;
 
 sub extract_names {
     my ($texts) = @_;
-    state $kn = Sn::KnownNames->new( input => [  glob('etc/substr-*.txt') ] );
 
-    my @extracted;
-    for my $name (@{$kn->known_names}) {
-        for my $txt (@$texts) {
-            if (index($txt, $name) >= 0) {
-                push @extracted, $name;
-                last;
-            }
-        }
-    }
-    return \@extracted;
+    state $extractor = Sn::Extractor->new(
+        name => 'Political People',
+        substrings => Sn::readlines('etc/substr-political-people.txt'),
+    );
+
+    return $extractor->extract($texts);
 }
 
 sub process {

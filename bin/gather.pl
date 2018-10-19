@@ -21,6 +21,7 @@ use FindBin '$Bin';
 use Sn;
 use Sn::Seen;
 use Sn::KnownNames;
+use Sn::Extractor;
 
 sub err {
     say STDERR @_;
@@ -89,18 +90,13 @@ sub gather_links {
 
 sub extract_names {
     my ($texts) = @_;
-    state $kn = Sn::KnownNames->new( input => [  glob('etc/substr-*.txt') ] );
 
-    my @extracted;
-    for my $name (@{$kn->known_names}) {
-        for my $txt (@$texts) {
-            if (index($txt, $name) >= 0) {
-                push @extracted, $name;
-                last;
-            }
-        }
-    }
-    return \@extracted;
+    state $extractor = Sn::Extractor->new(
+        name => 'Political People',
+        substrings => Sn::readlines('etc/substr-political-people.txt'),
+    );
+
+    return $extractor->extract($texts);
 }
 
 sub extract_info {
