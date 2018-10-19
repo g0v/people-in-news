@@ -62,7 +62,7 @@ sub gather_links {
 
                 my $uri = URI->new($url2);
                 for my $e ($tx->res->dom->find('a[href]')->each) {
-                    my $href = $e->attr("href");
+                    my $href = $e->attr("href") or next;
                     my $u = URI->new_abs("$href", $uri);
                     if (!$seen{$u} && $u->scheme =~ /^http/ && $u->host && $u->host eq $uri->host) {
                         push @links, "$u";
