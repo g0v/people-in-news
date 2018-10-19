@@ -17,7 +17,7 @@ GetOptions(
 );
 die "--db <DIR> is needed" unless -d $opts{db};
 
-for my $table (qw(articles extracts)) {
+for my $table (qw(articles)) {
     my %buckets;
     for my $file (glob "$opts{db}/${table}-*.jsonl") {
         my ($k) = $file =~ m/ - ([0-9]{8}) ([0-9]{6})? \.jsonl \z/x;
