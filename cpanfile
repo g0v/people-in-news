@@ -1,3 +1,4 @@
+requires 'Moo'                    => '0';
 requires 'HTML::ExtractContent'   => '0';
 requires 'IO::Socket::SSL'        => '2.060';
 requires 'MCE::Loop'              => '0';
