@@ -32,7 +32,7 @@ sub build_md {
         my $h1_titlized = $h1 =~ s/-/ /gr =~ s/\b(\p{Letter})/uc($1)/ger;
 
         $md .= "## $h1_titlized\n\n";
-        for my $h2 (%{$page->{$h1}}) {
+        for my $h2 (keys %{$page->{$h1}}) {
             $md .= "### $h2\n\n";
             for my $d (uniq_by { $_->{title} } @{$page->{$h1}{$h2}}) {
                 $d->{title} =~ s/\A\s+//;
