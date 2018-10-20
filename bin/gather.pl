@@ -22,61 +22,81 @@ use Sn;
 use Sn::Seen;
 use Sn::Extractor;
 
+## global
+my $STOP = 0;
+local $SIG{INT} = sub { $STOP = 1 };
+
 sub err {
     say STDERR @_;
 }
 
-sub ua_get {
-    state $ua = Mojo::UserAgent->new()->transactor(
-        Mojo::UserAgent::Transactor->new()->name('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:62.0) Gecko/20100101 Firefox/62.0')
-    )->max_redirects(3);
-
-    my ($url) = @_;
-    return $ua->get_p($url);
+sub looks_like_similar_host {
+    my ($host1, $host2) = @_;
+    return 1 if $host1 eq $host2;
+    my $rhost1 = reverse($host1);
+    my $rhost2 = reverse($host2);
+    return ( 0 == index($rhost2, $rhost1) );
 }
 
 sub gather_links {
-    my ($url) = @_;
+    my ($urls, $url_seen) = @_;
+
+    state $ua = Mojo::UserAgent->new()->max_redirects(3);
 
     my @promises;
-    my $error_count = 0;
-    my $i = 0;
-    my @links = ($url);
-    my %seen  = ($url => 1);
+    my $iters = 0;
+    my @discovered;
+    my @linkstack = (@$urls);
+    my @linkstack2;
+    my %depth = map { $_ => 1 } @linkstack;
 
-    while (@links < 1000 && $error_count < 10) {
-        if (@promises > 8 || (($i >= @links) && @promises)) {
-            Mojo::Promise->all(@promises)->wait();
-            @promises = ();
-        }
+    while (!$STOP && @linkstack && @discovered < 10000 && $iters++ < 100) {
+        my $url = pop @linkstack;
+        next if $depth{$url} > 2;
 
-        last if $i >= @links;
-        my $url = $links[$i++];
-
-        push @promises, ua_get($url)->then(
+        say ">>> ($iters) <" . (0+ @linkstack) . ", " . (0+ @discovered). "> $url";
+        push @promises, $ua->get_p($url)->then(
             sub {
                 my ($tx) = @_;
                 return unless $tx->res->is_success;
-                my $url2 = $tx->req->url->to_abs . "";
-                $seen{$url} = $seen{$url2} = 1;
+                my $uri = URI->new( "". $tx->req->url->to_abs );
 
-                my $uri = URI->new($url2);
+                my @new_links;
                 for my $e ($tx->res->dom->find('a[href]')->each) {
                     my $href = $e->attr("href") or next;
                     my $u = URI->new_abs("$href", $uri);
-                    if (!$seen{$u} && $u->scheme =~ /^http/ && $u->host && $u->host eq $uri->host) {
-                        push @links, "$u";
-                        $seen{$u} = 1;
+                    $u->fragment("");
+                    $u = URI->new($u->as_string =~ s/#$//r);
+
+                    if ((! defined($depth{"$u"})) &&
+                        $u->scheme =~ /^http/ &&
+                        $u->host &&
+                        looks_like_similar_host($u->host, $uri->host) &&
+                        ($u !~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf|zip|docx?|xls|apk )\z/ix)
+                    ) {
+                        $depth{$u} = $depth{$url} + 1;
+                        push @linkstack2, "$u";
+                        unless ($url_seen->test("$u")) {
+                            push @discovered, "$u";
+                        }
                     }
                 }
             }
         )->catch(
             sub {
                 my $err = shift;
-                err "ERR: $err @_";
-                $error_count++;
+                err "ERR: $err: $url";
             }
         );
+
+        if (@promises > 4 || @linkstack == 0) {
+            Mojo::Promise->all(@promises)->wait();
+            @promises = ();
+        }
+
+        if (!@linkstack && @linkstack2) {
+            @linkstack = shuffle(uniqstr(@linkstack2));
+        }
     }
 
     if (@promises) {
@@ -84,7 +104,7 @@ sub gather_links {
         @promises = ();
     }
 
-    return uniqstr(@links);
+    return [ uniqstr(@discovered) ];
 }
 
 sub extract_info {
@@ -177,24 +197,28 @@ sub extract_info {
 }
 
 sub process {
-    my ($url, $url_seen, $out) = @_;
+    state $ua = Mojo::UserAgent->new()->transactor(
+        Mojo::UserAgent::Transactor->new()->name('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:62.0) Gecko/20100101 Firefox/62.0')
+    )->max_redirects(3);
+
+    my ($urls, $url_seen, $out) = @_;
 
     open my $fh, '>', $out;
     $fh->autoflush(1);
 
-    my @links = grep { ! $url_seen->test($_) } gather_links($url);
-    say "[$$] TODO: " . (0 + @links) . " links from $url";
+    my @links = @{ gather_links($urls, $url_seen) };
+    say "[$$] TODO: " . (0 + @links) . " discovered links from " . join(" ", @$urls);
 
     my @promises;
     my $error_count = 0;
     my $extracted_count = 0;
     for my $url (@links) {
-        if ($url =~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf )\z/ix) {
-            # err "[$$] Does not look like HTML-ish";
+        if ($url =~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf|zip|docx?|xls|apk )\z/ix) {
+            err "[$$] Non-HTML-ish: $url";
             next;
         }
 
-        push @promises, ua_get($url)->then(
+        push @promises, $ua->get_p($url)->then(
             sub {
                 my ($tx) = @_;
                 return unless $tx->res->is_success;
@@ -242,6 +266,7 @@ sub add_to_url_seen {
 }
 
 # main
+
 my %opts;
 GetOptions(
     \%opts,
@@ -264,16 +289,14 @@ if (@ARGV) {
 MCE::Loop::init { chunk_size => 'auto' };
 
 mce_loop {
-    for(@$_) {
-        # jsonl => http://jsonlines.org/
-        my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
-        while (-f $output) {
-            sleep 1;
-            $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
-        }
-
-        process($_, $url_seen, $output);
+    # jsonl => http://jsonlines.org/
+    my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
+    while (-f $output) {
+        sleep 1;
+        $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
     }
+    process($_, $url_seen, $output);
+
 } @initial_urls;
 
 $url_seen->save;
