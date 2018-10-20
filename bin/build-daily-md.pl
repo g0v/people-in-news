@@ -9,11 +9,6 @@ use JSON qw(decode_json);
 use List::Util qw(maxstr);
 use Try::Tiny;
 
-sub sort_by(&@) {
-    my $cb = shift;
-    return map { $_->[1] } sort { $a->[0] cmp $b->[0] } map {[ $cb->($_), $_ ]} @_;
-}
-
 sub uniq_by(&@) {
     my $cb = shift;
     my %seen;
@@ -37,7 +32,7 @@ sub build_md {
         my $h1_titlized = $h1 =~ s/-/ /gr =~ s/\b(\p{Letter})/uc($1)/ger;
 
         $md .= "## $h1_titlized\n\n";
-        for my $h2 (sort { $a cmp $b } keys %{$page->{$h1}}) {
+        for my $h2 (%{$page->{$h1}}) {
             $md .= "### $h2\n\n";
             for my $d (uniq_by { $_->{title} } @{$page->{$h1}{$h2}}) {
                 $d->{title} =~ s/\A\s+//;
@@ -96,10 +91,9 @@ for my $yyyymmdd (keys %buckets) {
             $url_seen{$d->{url}} = 1;
 
             for my $k (keys %{$d->{substrings}}) {
-                next unless @{$d->{substrings}{$k}};
-
-                my $header = join ',', sort { $a cmp $b } @{$d->{substrings}{$k}};
-                push @{$page{$k}{$header}}, $d;
+                for (@{$d->{substrings}{$k}}) {
+                    push @{$page{$k}{$_}}, $d;
+                }
             }
         }
         close($fh);
