@@ -24,6 +24,8 @@ Text::Markdown::Discount::with_html5_tags();
 
 my @things = sort {
     $b->{mtime} <=> $a->{mtime}
+} grep {
+    $_->{input} && -f $_->{input}
 } map {
     my $input = $_;
     my $output = $opts{o} . '/' . (basename($input) =~ s/\.md\z/.html/r);
