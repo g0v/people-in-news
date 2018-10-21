@@ -32,6 +32,19 @@ sub readlines_utf8 {
     return \@lines;
 }
 
+sub read_string_list {
+    my ($fn) = @_;
+    my @lines = grep {
+        s/\A#.+\z//;
+        s/\A\s+//;
+        s/\s+\z//;
+
+        $_ ne ''
+    } @{ readlines_utf8($fn) };
+
+    return \@lines;
+}
+
 sub extract_substrings {
     my ($texts) = @_;
 
@@ -42,7 +55,7 @@ sub extract_substrings {
             my $name = substr($fn, 11) =~ s/\.txt$//r;
             Sn::Extractor->new(
                 name => $name,
-                substrings => readlines_utf8($fn),
+                substrings => read_string_list($fn),
             );
         } glob('etc/substr-*.txt');
     }
