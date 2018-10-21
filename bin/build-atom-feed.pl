@@ -66,7 +66,7 @@ die "-o <DIR> is needed" unless -d $opts{o};
 my @things = map {
     my $input = $_;
     my ($ts) = basename($input) =~ m/articles-([0-9]{14})\.jsonl\z/g;
-    +{ input => $input, ts => $ts }
+    $ts ? +{ input => $input, ts => $ts } : ()
 } grep {
     (stat($_))[7] > 0
 } glob("$opts{db}/articles-*.jsonl");
