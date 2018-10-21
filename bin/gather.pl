@@ -222,13 +222,9 @@ sub process {
             sub {
                 my ($tx) = @_;
                 return unless $tx->res->is_success;
-
                 my $info = extract_info($tx) or return;
-
                 my $line = encode_json($info) . "\n";
-
                 print $fh $line;
-
                 $extracted_count++;
             }
         )->catch(
