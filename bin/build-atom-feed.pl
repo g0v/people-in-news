@@ -48,6 +48,7 @@ sub build_atom_feed {
         }
     }
 
+    unlink($output);
     $feed->to_file($output);
 }
 
