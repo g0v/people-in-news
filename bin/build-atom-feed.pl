@@ -34,7 +34,7 @@ sub build_atom_feed {
                 link => $article->{url},
                 title => $article->{title},
             );
-            $item->set_value(content => $article->{content_text}, type => "text");
+            $item->set_value(content => markdown($article->{content_text}), type => "html");
 
             my @categories;
             for (keys %{$article->{substrings}}) {
