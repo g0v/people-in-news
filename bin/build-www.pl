@@ -28,20 +28,17 @@ my @things = sort {
     my $input = $_;
     my $output = $opts{o} . '/' . (basename($input) =~ s/\.md\z/.html/r);
     my $input_mtime = (stat($input))[7];
-    (-f $output && $input_mtime <= (stat($output))[7] ) ? () : {
+    ( (-f $output) && ($input_mtime <= (stat($output))[7]) ) ? () : (+{
         input => $input, output => $output, mtime => $input_mtime
-    }
+    })
 } glob("$opts{i}/*.md");
 
-MCE::Loop::init { chunk_size => 1 };
-mce_loop {
+for (@things){
     my $input = $_->{input};
     my $output = $_->{output};
-    if ($input && $output) {
-        say "$input => $output";
-        my $text = decode_utf8( scalar read_file($input) );
-        my $html = '<html><body>' . markdown($text) . '</body></html>';
-        write_file($output, encode_utf8($html));
-    }
-} @things;
 
+    say "$input => $output";
+    my $text = decode_utf8( scalar read_file($input) );
+    my $html = '<html><body>' . markdown($text) . '</body></html>';
+    write_file($output, encode_utf8($html));
+}
