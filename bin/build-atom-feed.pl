@@ -18,30 +18,33 @@ sub build_atom_feed {
 
     return unless $input && $output;
 
-    say "$input => $output";
-
     my $feed = XML::FeedPP::Atom::Atom10->new(
         title => "Articles",
     );
 
-    open my $fh, '<', $input;
-    while (<$fh>) {
-        chomp;
-        my $article = try { decode_json($_) } or next;
-        my $item = $feed->add_item(
-            link => $article->{url},
-            title => $article->{title},
-        );
-        $item->set_value(content => $article->{content_text}, type => "text");
+    say "$output <= " . join(" ", @$input);
 
-        my @categories;
-        for (keys %{$article->{substrings}}) {
-            for (@{$article->{substrings}{$_}}) {
-                push @categories, $_;
+    for my $input (@$input) {
+        open my $fh, '<', $input;
+
+        while (<$fh>) {
+            chomp;
+            my $article = try { decode_json($_) } or next;
+            my $item = $feed->add_item(
+                link => $article->{url},
+                title => $article->{title},
+            );
+            $item->set_value(content => $article->{content_text}, type => "text");
+
+            my @categories;
+            for (keys %{$article->{substrings}}) {
+                for (@{$article->{substrings}{$_}}) {
+                    push @categories, $_;
+                }
             }
-        }
-        if (@categories) {
-            $item->category(\@categories);
+            if (@categories) {
+                $item->category(\@categories);
+            }
         }
     }
 
@@ -61,18 +64,15 @@ die "-o <DIR> is needed" unless -d $opts{o};
 
 my @things = map {
     my $input = $_;
-    my ($ts) = basename($input) =~ m/articles-(\d+)\.jsonl\z/g;
+    my ($ts) = basename($input) =~ m/articles-([0-9]{14})\.jsonl\z/g;
     +{ input => $input, ts => $ts }
 } grep {
     (stat($_))[7] > 0
 } glob("$opts{db}/articles-*.jsonl");
 
-my $latest = $things[0];
-for (@things) {
-    if ($_->{ts} > $latest->{ts}) {
-        $latest = $_;
-    }
+if (@things) {
+    build_atom_feed({
+        input => [map { $_->{input} } @things],
+        output => $opts{o} . "/articles-latest.atom",
+    });
 }
-
-$latest->{output} = $opts{o} . "/articles-latest.atom";
-build_atom_feed($latest);
