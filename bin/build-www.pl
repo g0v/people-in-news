@@ -24,8 +24,6 @@ Text::Markdown::Discount::with_html5_tags();
 
 my @things = sort {
     $b->{mtime} <=> $a->{mtime}
-} grep {
-    $_->{input} && -f $_->{input}
 } map {
     my $input = $_;
     my $output = $opts{o} . '/' . (basename($input) =~ s/\.md\z/.html/r);
@@ -39,9 +37,11 @@ MCE::Loop::init { chunk_size => 1 };
 mce_loop {
     my $input = $_->{input};
     my $output = $_->{output};
-    say "$input => $output";
-    my $text = decode_utf8( scalar read_file($input) );
-    my $html = '<html><body>' . markdown($text) . '</body></html>';
-    write_file($output, encode_utf8($html));
+    if ($input && $output) {
+        say "$input => $output";
+        my $text = decode_utf8( scalar read_file($input) );
+        my $html = '<html><body>' . markdown($text) . '</body></html>';
+        write_file($output, encode_utf8($html));
+    }
 } @things;
 
