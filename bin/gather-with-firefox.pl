@@ -178,7 +178,7 @@ if (@ARGV) {
     @new_links = mce_loop_f {
         chomp;
         process($_, \@known_names, $url_seen_filter, $partial_output) if $_;
-    } 'etc/news-site-taiwan.txt';
+    } 'etc/news-sites.txt';
 }
 
 $url_seen_filter->add(@new_links);

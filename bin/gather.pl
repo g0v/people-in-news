@@ -279,7 +279,7 @@ my @initial_urls;
 if (@ARGV) {
     @initial_urls = @ARGV;
 } else {
-    @initial_urls = @{ Sn::read_string_list('etc/news-site-taiwan.txt') };
+    @initial_urls = @{ Sn::read_string_list('etc/news-sites.txt') };
 }
 
 MCE::Loop::init { chunk_size => 'auto' };

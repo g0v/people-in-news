@@ -197,7 +197,7 @@ my @initial_links;
 if (@ARGV) {
     @initial_links = @ARGV;
 } else {
-    open my $fh, '<', 'etc/news-site-taiwan.txt';
+    open my $fh, '<', 'etc/news-sites.txt';
     @initial_links = map { chomp; $_ } <$fh>;
     close($fh);
 }
