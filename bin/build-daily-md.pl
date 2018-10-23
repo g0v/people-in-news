@@ -7,7 +7,15 @@ use Encode qw(encode_utf8 decode_utf8);
 use Getopt::Long qw(GetOptions);
 use JSON qw(decode_json);
 use List::Util qw(maxstr);
+use String::Trim qw(trim);
 use Try::Tiny;
+
+sub squeeze {
+    my ($str) = @_;
+    $str =~ s/\r?\n/ /g;
+    $str =~ s/\s+/ /g;
+    return trim($str);
+}
 
 sub uniq_by(&@) {
     my $cb = shift;
@@ -35,9 +43,7 @@ sub build_md {
         for my $h2 (keys %{$page->{$h1}}) {
             $md .= "### $h2\n\n";
             for my $d (uniq_by { $_->{title} } @{$page->{$h1}{$h2}}) {
-                $d->{title} =~ s/\A\s+//;
-                $d->{title} =~ s/\s+\z//;
-                $md .= "- [$d->{title}]($d->{url})\n";
+                $md .= "- [" . squeeze($d->{title}) . "]($d->{url})\n";
             }
             $md .= "\n";
         }
