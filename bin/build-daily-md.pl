@@ -100,10 +100,16 @@ for my $yyyymmdd (keys %buckets) {
         @articles = grep { $title_freq{$_->{title}} == 1 } @articles;
 
         for my $d (@articles) {
+            my $substring_count = 0;
             for my $k (keys %{$d->{substrings}}) {
                 for (@{$d->{substrings}{$k}}) {
                     push @{$page{$k}{$_}}, $d;
+                    $substring_count++;
                 }
+            }
+
+            if ($substring_count == 0) {
+                push @{$page{"(Unmatched)"}{"(Unmatched)"}}, $d;
             }
         }
     }
