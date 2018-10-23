@@ -3,6 +3,7 @@ use v5.26;
 use strict;
 use warnings;
 
+use URI::Escape qw(uri_escape_utf8);
 use MCE::Loop;
 use Mojo::UserAgent;
 use JSON qw(encode_json);
@@ -45,6 +46,8 @@ sub extract_feed_entries {
             };
         }
     );
+
+    @articles = grep { $_->{url} !~ /\P{ASCII}/ } @articles;
 
     for(@articles) {
         $_->{content_text} = Mojo::DOM->new('<body>' . $_->{content} . '</body>')->all_text();
