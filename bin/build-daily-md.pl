@@ -82,6 +82,9 @@ for my $yyyymmdd (keys %buckets) {
     my %url_seen;
     for my $file (@input) {
         open my $fh, '<', $file;
+
+        my %title_freq;
+        my @articles;
         while (<$fh>) {
             chomp;
             next unless /\A\{/ && /\}\z/;
@@ -89,14 +92,20 @@ for my $yyyymmdd (keys %buckets) {
             next unless $d->{url};
             next if $url_seen{$d->{url}};
             $url_seen{$d->{url}} = 1;
+            push @articles, $d;
+            $title_freq{$d->{title}}++;
+        }
+        close($fh);
 
+        @articles = grep { $title_freq{$_->{title}} == 1 } @articles;
+
+        for my $d (@articles) {
             for my $k (keys %{$d->{substrings}}) {
                 for (@{$d->{substrings}{$k}}) {
                     push @{$page{$k}{$_}}, $d;
                 }
             }
         }
-        close($fh);
     }
     
     build_md(\%page, $output);

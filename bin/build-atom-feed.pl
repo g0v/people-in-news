@@ -24,27 +24,35 @@ sub build_atom_feed {
 
     say "$output <= " . join(" ", @$input);
 
+    my (%freq, @articles);
     for my $input (@$input) {
         open my $fh, '<', $input;
-
         while (<$fh>) {
             chomp;
             my $article = try { decode_json($_) } or next;
-            my $item = $feed->add_item(
-                link => $article->{url},
-                title => $article->{title},
-            );
-            $item->set_value(content => markdown($article->{content_text}), type => "html");
+            unless ($freq{$article->{title}}++) {
+                push @articles, $article;
+            }
+        }
+        close($fh);
+    }
 
-            my @categories;
-            for (keys %{$article->{substrings}}) {
-                for (@{$article->{substrings}{$_}}) {
-                    push @categories, $_;
-                }
+    @articles = grep { $freq{$_->{title}} == 1 } @articles;
+    for my $article (@articles) {
+        my $item = $feed->add_item(
+            link => $article->{url},
+            title => $article->{title},
+        );
+        $item->set_value(content => markdown($article->{content_text}), type => "html");
+
+        my @categories;
+        for (keys %{$article->{substrings}}) {
+            for (@{$article->{substrings}{$_}}) {
+                push @categories, $_;
             }
-            if (@categories) {
-                $item->category(\@categories);
-            }
+        }
+        if (@categories) {
+            $item->category(\@categories);
         }
     }
 
