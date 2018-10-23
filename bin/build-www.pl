@@ -33,12 +33,32 @@ my @things = sort {
     })
 } glob("$opts{i}/*.md");
 
+my $toc_js_script = <<'JS';
+<script type="text/javascript">
+(() => {
+  const headers = document.querySelectorAll('h2');
+  for (const el of headers) {
+    el.id = el.textContent;
+  }
+  const links = Array.from(headers, el => el.textContent)
+                     .map(t => `<li><a href="#${t}">${t}</a></li>`)
+                     .join('');
+  document.body.insertAdjacentHTML('afterbegin', `<ul>${links}</ul>`);
+})();
+</script>
+JS
+
 for (@things){
     my $input = $_->{input};
     my $output = $_->{output};
 
     say "$input => $output";
     my $text = decode_utf8( scalar read_file($input) );
-    my $html = '<html><body>' . markdown($text) . '</body></html>';
+    my $html = "<!doctype html>\n" .
+        '<html><head><meta charset="utf-8" /></head><body>' .
+        markdown($text) .
+        $toc_js_script .
+        '</body></html>';
+
     write_file($output, encode_utf8($html));
 }
