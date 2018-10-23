@@ -59,8 +59,8 @@ GetOptions(
     "db=s",
     "o=s",
 );
-die "--db <DIR> is needed" unless -d $opts{db};
-die "-o <DIR> is needed" unless -d $opts{o};
+die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
+die "-o <DIR> is needed" unless $opts{o} && -d $opts{o};
 
 my %buckets;
 for my $file (glob "$opts{db}/articles-*.jsonl") {
@@ -80,11 +80,12 @@ for my $yyyymmdd (keys %buckets) {
 
     my %page;
     my %url_seen;
+    my %title_freq;
+
+    my @articles;
     for my $file (@input) {
         open my $fh, '<', $file;
 
-        my %title_freq;
-        my @articles;
         while (<$fh>) {
             chomp;
             next unless /\A\{/ && /\}\z/;
@@ -92,25 +93,27 @@ for my $yyyymmdd (keys %buckets) {
             next unless $d->{url};
             next if $url_seen{$d->{url}};
             $url_seen{$d->{url}} = 1;
-            push @articles, $d;
-            $title_freq{$d->{title}}++;
+
+            unless ($title_freq{$d->{title}}++) {
+                push @articles, $d;
+            }
         }
         close($fh);
+    }
 
-        @articles = grep { $title_freq{$_->{title}} == 1 } @articles;
+    @articles = grep { $title_freq{$_->{title}} == 1 } @articles;
 
-        for my $d (@articles) {
-            my $substring_count = 0;
-            for my $k (keys %{$d->{substrings}}) {
-                for (@{$d->{substrings}{$k}}) {
-                    push @{$page{$k}{$_}}, $d;
-                    $substring_count++;
-                }
+    for my $d (@articles) {
+        my $substring_count = 0;
+        for my $k (keys %{$d->{substrings}}) {
+            for (@{$d->{substrings}{$k}}) {
+                push @{$page{$k}{$_}}, $d;
+                $substring_count++;
             }
+        }
 
-            if ($substring_count == 0) {
-                push @{$page{"(Unmatched)"}{"(Unmatched)"}}, $d;
-            }
+        if ($substring_count == 0) {
+            push @{$page{"(No Category)"}{"(No Keyword)"}}, $d;
         }
     }
     
