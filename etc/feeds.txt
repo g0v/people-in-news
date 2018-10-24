@@ -1,3 +1,4 @@
+http://zh.cn.nikkei.com/rss.html
 http://trad.cn.rfi.fr/general/rss
 http://www.aborigine.tw/?feed=rss2
 http://www.aborigine.tw/?feed=comments-rss2
