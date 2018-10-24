@@ -68,6 +68,7 @@ https://www.storm.mg/
 https://www.taiwan.net.tw/
 https://www.taiwandaily.net/
 https://www.taiwannews.com.tw/
+https://www.taiwannews.com.tw/en/index
 https://www.taiwannews.com.tw/ch/index
 https://www.taiwantoday.tw/
 https://www.techbang.com/
@@ -91,3 +92,12 @@ http://www.ganlangroup.com/
 http://www.herald-today.com/
 http://www.ntdtv.com/indexb5.html
 https://news.sina.com.tw/
+http://news.pchome.com.tw/
+https://times.hinet.net/
+https://www.bbc.com/zhongwen/trad
+http://nexttv.com.tw/news
+https://news.ftv.com.tw/
+https://www.new7.com.tw/
+https://news.ebc.net.tw/
+https://technews.tw/
+https://www.settv.com.tw/
