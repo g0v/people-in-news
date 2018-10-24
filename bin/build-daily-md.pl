@@ -86,7 +86,7 @@ for my $yyyymmdd (keys %buckets) {
 
     my %page;
     my %url_seen;
-    my %title_freq;
+    my %freq;
 
     my @articles;
     for my $file (@input) {
@@ -100,14 +100,16 @@ for my $yyyymmdd (keys %buckets) {
             next if $url_seen{$d->{url}};
             $url_seen{$d->{url}} = 1;
 
-            unless ($title_freq{$d->{title}}++) {
-                push @articles, $d;
-            }
+            next unless (
+                $freq{title}{$d->{title}}++ == 0
+                && $freq{content_text}{$d->{content_text}}++ == 0
+            );
+            push @articles, $d;
         }
         close($fh);
     }
 
-    @articles = grep { $title_freq{$_->{title}} == 1 } @articles;
+    @articles = grep { $freq{title}{$_->{title}} == 1 && $freq{content_text}{$_->{content_text}} == 1 } @articles;
 
     for my $d (@articles) {
         my $substring_count = 0;

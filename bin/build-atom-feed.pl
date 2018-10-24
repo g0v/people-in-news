@@ -30,14 +30,17 @@ sub build_atom_feed {
         while (<$fh>) {
             chomp;
             my $article = try { decode_json($_) } or next;
-            unless ($freq{$article->{title}}++) {
-                push @articles, $article;
-            }
+            next unless (
+                $freq{title}{$article->{title}}++ == 0
+                && $freq{content_text}{$article->{content_text}}++ == 0
+            );
+            push @articles, $article;
         }
         close($fh);
     }
 
-    @articles = grep { $freq{$_->{title}} == 1 } @articles;
+    @articles = grep { $freq{title}{$_->{title}} == 1 && $freq{content_text}{$_->{content_text}} == 1 } @articles;
+
     for my $article (@articles) {
         my $item = $feed->add_item(
             link => $article->{url},
