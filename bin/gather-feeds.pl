@@ -99,7 +99,7 @@ my @initial_urls;
 if (@ARGV) {
     @initial_urls = @ARGV;
 } else {
-    @initial_urls = @{ Sn::read_string_list('etc/feeds-news-site-taiwan.txt') };
+    @initial_urls = @{ Sn::read_string_list('etc/feeds.txt') };
 }
 
 my $url_seen = Sn::Seen->new( store => ($opts{db} . "/url-seen.bloomfilter") );
