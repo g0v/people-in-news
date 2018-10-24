@@ -15,4 +15,5 @@ requires 'Type::Tiny';
 requires 'Types::URI';
 requires 'URI';
 requires 'XML::FeedPP';
+requires 'String::Trim';
 
