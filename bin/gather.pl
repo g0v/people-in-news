@@ -166,8 +166,15 @@ sub extract_info {
 
     my $extractor = HTML::ExtractContent->new;
     my $html = decode($charset, $res->body);
+    my $text;
 
-    my $text = $extractor->extract($html)->as_text;
+    my $dom = Mojo::DOM->new($html);
+    if (my $el = $dom->at('article')) {
+        $text = $ex->extract("$el")->as_text;
+    } else {
+        $text $ex->extract($html)->as_text;
+    }
+
     $text =~ s/\t/ /g;
     $text =~ s/\r\n/\n/g;
     if ($text !~ m/\n\n/) {
