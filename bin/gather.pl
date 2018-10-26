@@ -21,6 +21,7 @@ use FindBin '$Bin';
 use Sn;
 use Sn::Seen;
 use Sn::Extractor;
+use Sn::HTMLExtractor;
 
 ## global
 my $STOP = 0;
@@ -121,7 +122,6 @@ sub extract_info {
 
     $info{t_fetched} = (0+ time());
 
-    my $dom = $res->dom;
     my $charset;
     my $content_type = $res->headers->content_type;
 
@@ -134,7 +134,9 @@ sub extract_info {
         $charset = $1;
     }
 
+    my $dom;
     if (!$charset) {
+        $dom = $res->dom;
         if (my $meta_el = $dom->find("meta[http-equiv=Content-Type]")->first) {
             ($charset) = $meta_el->{content} =~ m{charset=([^\s;]+)};
             $charset = lc($charset) if defined($charset);
@@ -152,52 +154,20 @@ sub extract_info {
         return;
     }
 
-    my $title = $dom->find("title");
-    unless ($title->[0]) {
-        # err "[$$] blank title";
-        return;
-    }
-
-    $info{title} = $title->[0]->text."";
-    $info{title} = decode($charset, $info{title}) unless Encode::is_utf8($info{title});
-    $info{title} =~ s/\r\n/\n/g;
-    $info{title} =~ s/\A\s+//;
-    $info{title} =~ s/\s+\z//;
-
-    my $extractor = HTML::ExtractContent->new;
     my $html = decode($charset, $res->body);
-    my $text;
 
-    $dom = Mojo::DOM->new($html);
-    if (my $el = $dom->at('article')) {
-        $text = $extractor->extract("$el")->as_text;
-    } else {
-        $text = $extractor->extract($html)->as_text;
-    }
+    my $extractor = Sn::HTMLExtractor->new( html => $html );
 
-    $text =~ s/\t/ /g;
-    $text =~ s/\r\n/\n/g;
-    if ($text !~ m/\n\n/) {
-        $text =~ s/\n/\n\n/g;
-    }
-    $text =~ s/\A\s+//;
-    $text =~ s/\s+\z//;
+    my $title = $extractor->title;
+    return unless $title;
 
-    unless ($text) {
-        # err "[$$] NO content";
-        return;
-    }
+    my $text = $extractor->content_text;
+    return unless $text;
 
-    my @paragraphs = split /\n\n/, $text;
-    my $maxl = max( map { length($_) } @paragraphs );
-    if ($maxl < 60) {
-        # err "[$$] Not enough contents";
-        return;
-    }
-
-    $info{url}          = "". $tx->req->url->to_abs;
+    $info{title}        = $title;
     $info{content_text} = $text;
-    $info{substrings}   = Sn::extract_substrings([ $info{title}, $text ]);
+    $info{url}          = "". $tx->req->url->to_abs;
+    $info{substrings}   = Sn::extract_substrings([ $title, $text ]);
     $info{t_extracted}  = (0+ time());
 
     return \%info;
