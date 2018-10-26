@@ -168,11 +168,11 @@ sub extract_info {
     my $html = decode($charset, $res->body);
     my $text;
 
-    my $dom = Mojo::DOM->new($html);
+    $dom = Mojo::DOM->new($html);
     if (my $el = $dom->at('article')) {
-        $text = $ex->extract("$el")->as_text;
+        $text = $extractor->extract("$el")->as_text;
     } else {
-        $text $ex->extract($html)->as_text;
+        $text = $extractor->extract($html)->as_text;
     }
 
     $text =~ s/\t/ /g;

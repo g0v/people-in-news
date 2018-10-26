@@ -55,7 +55,7 @@ sub extract_substrings {
             my $name = substr($fn, 11) =~ s/\.txt$//r;
             Sn::Extractor->new(
                 name => $name,
-                substrings => read_string_list($fn),
+                substrings => [ map { split /\t+/ } @{ read_string_list($fn) }],
             );
         } glob('etc/substr-*.txt');
     }
@@ -65,4 +65,3 @@ sub extract_substrings {
 }
 
 1;
-
