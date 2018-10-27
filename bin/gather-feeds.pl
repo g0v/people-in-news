@@ -113,7 +113,7 @@ if (@$articles) {
     my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
     open my $fh, '>', $output;
     for (@$articles) {
-        print $fh encode_json($_);
+        print $fh encode_json($_) . "\n";
     }
     close($fh);
 
