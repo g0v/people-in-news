@@ -58,30 +58,31 @@ sub extract_feed_entries {
 }
 
 sub gather_feed_links {
-    state $ua = Mojo::UserAgent->new()->max_redirects(3);
-    my ($urls) = @_;
+        my ($urls) = @_;
 
-    my (@promises, @articles);
-    for my $url (@$urls) {
-        push @promises, $ua->get_p($url)->then(
-            sub {
-                my ($tx) = @_;
-                push @articles, @{ extract_feed_entries($tx) };
-            }
-        )->catch(
-            sub {
-                my ($error) = @_;
-                say STDERR "ERROR: $url $error\n";
-            }
-        );
+    my @articles = mce_loop {
+        my $ua = Mojo::UserAgent->new()->max_redirects(3);
+        my (@promises, @articles);
 
-        if (@promises > 4) {
-            Mojo::Promise->all(@promises)->wait;
+        for my $url (@$_) {
+            push @promises, $ua->get_p($url)->then(
+                sub {
+                    my ($tx) = @_;
+                    push @articles, @{ extract_feed_entries($tx) };
+                }
+            )->catch(
+                sub {
+                    my ($error) = @_;
+                    say STDERR "ERROR: $url $error\n";
+                }
+            );
+
+            Mojo::Promise->all(@promises)->wait() if @promises > 4;
         }
-    }
-    if (@promises) {
-        Mojo::Promise->all(@promises)->wait;
-    }
+        Mojo::Promise->all(@promises)->wait() if @promises;
+
+        MCE->gather(@articles);
+    } @$urls;
 
     return \@articles;
 }
