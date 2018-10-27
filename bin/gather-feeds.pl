@@ -49,7 +49,7 @@ sub extract_feed_entries {
 
     for(@articles) {
         $_->{url} = "" . URI->new($_->{url});
-        $_->{content_text} = Mojo::DOM->new('<body>' . $_->{content} . '</body>')->all_text();
+        $_->{content_text} = Mojo::DOM->new('<body>' . (delete $_->{content}) . '</body>')->all_text();
         $_->{substrings} = Sn::extract_substrings([ $_->{title}, $_->{content_text} ]);
         $_->{t_extracted} = (0+ time());
     }
