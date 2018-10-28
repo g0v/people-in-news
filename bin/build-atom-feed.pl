@@ -28,13 +28,20 @@ sub build_atom_feed {
     my (%freq, @articles);
     for my $input (@$input) {
         open my $fh, '<', $input;
+        my $line_num = 0;
         while (<$fh>) {
+            $line_num++;
             chomp;
-            my $article = try { decode_json($_) } or next;
-            next unless (
-                $freq{title}{$article->{title}}++ == 0
-                && $freq{content_text}{$article->{content_text}}++ == 0
-            );
+            my $article = try { decode_json($_) };
+            unless ($article) {
+                say STDERR "decode_json failed at: $input line $line_num";
+                next;
+            }
+
+            next if $freq{url}{$article->{url}}++;
+
+            $freq{title}{$article->{title}}++;
+            $freq{content_text}{$article->{content_text}}++;
             push @articles, $article;
         }
         close($fh);
