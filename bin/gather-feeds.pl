@@ -95,33 +95,43 @@ sub gather_feed_links {
 sub fetch_and_extract_full_text {
     my ($articles) = @_;
 
-    my @promises;
-    my $ua = Mojo::UserAgent->new()->max_redirects(3);
+    my @new_articles = mce_loop {
+        my @articles = @$_;
 
-    for my $article (@$articles) {
-        my $url = $article->{url};
-        push @promises, $ua->get_p($url)->then(
-            sub {
-                my ($tx) = @_;
+        my $ua = Mojo::UserAgent->new()->max_redirects(3);
+        my @promises;
+        for my $article (@articles) {
+            my $url = $article->{url};
+            say "[$$] promise: $url";
+            push @promises, $ua->get_p($url)->then(
+                sub {
+                    my ($tx) = @_;
 
-                my $charset = Sn::tx_guess_charset($tx);
-                if ($charset) {
-                    my $html = decode($charset, $tx->res->body);
-                    my $text = Sn::HTMLExtractor->new(html => $html)->content_text;
-                    if ($text && length($text) > length($article->{content_text})) {
-                        # $article->{feed_content_text} = $article->{content_text};
-                        $article->{content_text} = "" . $text;
-                        say "Extracted: " . encode_utf8(substr($text, 0, 40)) . "...";
+                    my $charset = Sn::tx_guess_charset($tx);
+                    if ($charset) {
+                        my $html = decode($charset, $tx->res->body);
+                        my $text = Sn::HTMLExtractor->new(html => $html)->content_text;
+                        if ($text && length($text) > length($article->{content_text})) {
+                            # $article->{feed_content_text} = $article->{content_text};
+                            $article->{content_text} = "" . $text;
+                            say "Extracted: " . encode_utf8(substr($text, 0, 40)) . "...";
+                        }
                     }
-                }
 
-                $article->{substrings} = Sn::extract_substrings([ $article->{title}, $article->{content_text} ]);
-                $article->{t_extracted} = (0+ time());
-            }
-        )->catch(sub { say STDERR "ERROR: $url $_[0]" });
-        Mojo::Promise->all(@promises)->wait if @promises > 4;
-    }
-    Mojo::Promise->all(@promises)->wait if @promises;
+                    $article->{substrings} = Sn::extract_substrings([ $article->{title}, $article->{content_text} ]);
+                    $article->{t_extracted} = (0+ time());
+
+                    MCE->gather($article);
+                }
+            )->catch(sub { say STDERR "ERROR: $url $_[0]" });
+            Mojo::Promise->all(@promises)->wait if @promises > 4;
+        }
+        Mojo::Promise->all(@promises)->wait if @promises;
+
+        MCE->gather(@articles);
+    } @$articles;
+
+    return \@new_articles;
 }
 
 ## main
@@ -150,7 +160,7 @@ if (@$articles) {
     $url_seen->add(map { $_->{url} } @$articles);
     $url_seen->save;
 
-    fetch_and_extract_full_text($articles);
+    $articles = fetch_and_extract_full_text($articles);
 
     my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
     open my $fh, '>', $output;
