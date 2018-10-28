@@ -11,6 +11,7 @@ use JSON qw(decode_json);
 use Try::Tiny;
 use MCE::Loop;
 use XML::FeedPP;
+use Lsit::Util qw(shuffle);
 
 sub build_atom_feed {
     my $input = $_[0]->{input};
@@ -39,7 +40,7 @@ sub build_atom_feed {
         close($fh);
     }
 
-    @articles = grep { $freq{title}{$_->{title}} == 1 && $freq{content_text}{$_->{content_text}} == 1 } @articles;
+    @articles = shuffle grep { $freq{title}{$_->{title}} == 1 && $freq{content_text}{$_->{content_text}} == 1 } @articles;
 
     for my $article (@articles) {
         my $item = $feed->add_item(
