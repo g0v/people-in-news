@@ -44,21 +44,25 @@ package Sn::HTMLExtractor {
         my ($self) = @_;
 
         my $extractor = HTML::ExtractContent->new;
-        my $text;
 
+        my $content_dom;
         if (my $el = $self->dom->at('article')) {
-            $text = $extractor->extract("$el")->as_text;
+            $content_dom = Mojo::DOM->new('<body>' . $extractor->extract("$el")->as_html . '</body>');
         } else {
-            $text = $extractor->extract($self->html)->as_text;
+            $content_dom = Mojo::DOM->new('<body>' . $extractor->extract($self->html)->as_html . '</body>');
         }
 
-        $text =~ s/\t/ /g;
-        $text =~ s/\r\n/\n/g;
-        if ($text !~ m/\n\n/) {
-            $text =~ s/\n/\n\n/g;
-        }
-        $text =~ s/\A\s+//;
-        $text =~ s/\s+\z//;
+        my $text = $content_dom->find('body > *')->map('all_text')->map(
+            sub {
+                s/\t/ /g;
+                s/\r\n/\n/g;
+                s/\n\n/\n/g;
+                s/\A\s+//;
+                s/\s+\z//;
+
+                $_ ? $_ : ();
+            }
+        )->join("\n\n");
 
         unless ($text) {
             return undef;
