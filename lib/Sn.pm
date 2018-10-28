@@ -4,6 +4,7 @@ use v5.18;
 use strict;
 use warnings;
 use Encode qw(decode_utf8);
+use List::Util qw(uniqstr);
 
 use Sn::TX;
 
@@ -55,7 +56,7 @@ sub extract_substrings {
             my $name = substr($fn, 11) =~ s/\.txt$//r;
             Sn::Extractor->new(
                 name => $name,
-                substrings => [ map { split /\t+/ } @{ read_string_list($fn) }],
+                substrings => [ uniqstr map { split /\t+/ } @{ read_string_list($fn) } ],
             );
         } glob('etc/substr-*.txt');
     }
