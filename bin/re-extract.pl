@@ -21,9 +21,8 @@ sub process {
 
     while(<$fh_in>) {
         chomp;
-
-        my $article = try { decode_json($_) } or next;
-
+        my $json = $_;
+        my $article = try { decode_json($json) } or next;
         next unless $article->{title} && $article->{content_text};
 
         $article->{substrings} = Sn::extract_substrings([ $article->{title}, $article->{content_text} ]);
@@ -40,16 +39,21 @@ sub process {
 }
 
 ## main
+my @article_files;
 my %opts;
 GetOptions(
     \%opts,
     "db|d=s"
 );
-die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
+
+if (@ARGV) {
+    @article_files = @ARGV;
+} else {
+    die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
+    @article_files = glob($opts{db} . "/articles-*.jsonl");
+}
 
 MCE::Loop::init { chunk_size => 'auto' };
-
-my @article_files = glob($opts{db} . "/articles-*.jsonl");
 
 mce_loop {
     for my $input (@$_) {
