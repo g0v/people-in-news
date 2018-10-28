@@ -69,6 +69,8 @@ package Sn::HTMLExtractor {
         }
 
         my @paragraphs = split /\n\n/, $text;
+        return undef unless @paragraphs;
+
         my $maxl = max( map { length($_) } @paragraphs );
         if ($maxl < 60) {
             # err "[$$] Not enough contents";

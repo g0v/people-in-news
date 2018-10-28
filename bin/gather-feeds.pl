@@ -9,10 +9,12 @@ use Mojo::UserAgent;
 use JSON qw(encode_json);
 use Getopt::Long qw(GetOptions);
 use FindBin '$Bin';
+use Encode qw(encode_utf8 decode);
 
 use Sn;
 use Sn::Seen;
 use Sn::Extractor;
+use Sn::HTMLExtractor;
 
 ## global
 my $STOP = 0;
@@ -48,25 +50,26 @@ sub extract_feed_entries {
     );
 
     for(@articles) {
-        $_->{url} = "" . URI->new($_->{url});
-        $_->{substrings} = Sn::extract_substrings([ $_->{title}, $_->{content_text} ]);
-        $_->{t_extracted} = (0+ time());
         my $text = Mojo::DOM->new('<body>' . (delete $_->{content}) . '</body>')->all_text();
-        $text =~ s/\A\s+//r =~ s/\s+\z//r;
-        $_->{content_text} = $text;
+
+        $_->{content_text} = Sn::trim_whitespace($text);
+        $_->{title} = Sn::trim_whitespace($_->{title});
+        $_->{content_text} = "". $text;
+        $_->{url} = "" . URI->new($_->{url});
     }
 
     return \@articles;
 }
 
 sub gather_feed_links {
-        my ($urls) = @_;
+    my ($urls) = @_;
 
     my @articles = mce_loop {
         my $ua = Mojo::UserAgent->new()->max_redirects(3);
         my (@promises, @articles);
 
         for my $url (@$_) {
+            say "promise: $url";
             push @promises, $ua->get_p($url)->then(
                 sub {
                     my ($tx) = @_;
@@ -87,6 +90,38 @@ sub gather_feed_links {
     } @$urls;
 
     return \@articles;
+}
+
+sub fetch_and_extract_full_text {
+    my ($articles) = @_;
+
+    my @promises;
+    my $ua = Mojo::UserAgent->new()->max_redirects(3);
+
+    for my $article (@$articles) {
+        my $url = $article->{url};
+        push @promises, $ua->get_p($url)->then(
+            sub {
+                my ($tx) = @_;
+
+                my $charset = Sn::tx_guess_charset($tx);
+                if ($charset) {
+                    my $html = decode($charset, $tx->res->body);
+                    my $text = Sn::HTMLExtractor->new(html => $html)->content_text;
+                    if ($text && length($text) > length($article->{content_text})) {
+                        # $article->{feed_content_text} = $article->{content_text};
+                        $article->{content_text} = "" . $text;
+                        say "Extracted: " . encode_utf8(substr($text, 0, 40)) . "...";
+                    }
+                }
+
+                $article->{substrings} = Sn::extract_substrings([ $article->{title}, $article->{content_text} ]);
+                $article->{t_extracted} = (0+ time());
+            }
+        )->catch(sub { say STDERR "ERROR: $url $_[0]" });
+        Mojo::Promise->all(@promises)->wait if @promises > 4;
+    }
+    Mojo::Promise->all(@promises)->wait if @promises;
 }
 
 ## main
@@ -112,13 +147,15 @@ my $articles = gather_feed_links(\@initial_urls);
 @$articles = grep { ! $url_seen->test($_->{url}) } @$articles;
 
 if (@$articles) {
+    $url_seen->add(map { $_->{url} } @$articles);
+    $url_seen->save;
+
+    fetch_and_extract_full_text($articles);
+
     my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
     open my $fh, '>', $output;
     for (@$articles) {
         print $fh encode_json($_) . "\n";
     }
     close($fh);
-
-    $url_seen->add(map { $_->{url} } @$articles);
-    $url_seen->save;
 }

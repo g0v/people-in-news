@@ -119,40 +119,9 @@ sub extract_info {
         # err "[$$] NO BODY";
         return;
     }
-
     $info{t_fetched} = (0+ time());
 
-    my $charset;
-    my $content_type = $res->headers->content_type;
-
-    if ( $content_type && $content_type !~ /html/) {
-        # err "[$$] Non HTML";
-        return;
-    }
-
-    if ( $content_type && $content_type =~ m!charset=(.+)[;\s]?!) {
-        $charset = $1;
-    }
-
-    my $dom;
-    if (!$charset) {
-        $dom = $res->dom;
-        if (my $meta_el = $dom->find("meta[http-equiv=Content-Type]")->first) {
-            ($charset) = $meta_el->{content} =~ m{charset=([^\s;]+)};
-            $charset = lc($charset) if defined($charset);
-        }
-    }
-    $charset = 'utf-8-strict' if $charset && $charset =~ /utf-?8/i;
-
-    if (!$charset) {
-        my $enc = guess_encoding($res->body, qw/big5 utf8/);
-        $charset = $enc->name if $enc;
-    }
-
-    unless ($charset) {
-        # err "[$$] Unknown charset";
-        return;
-    }
+    my $charset = Sn::tx_guess_charset($tx) or return;
 
     my $html = decode($charset, $res->body);
 
