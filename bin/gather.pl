@@ -45,42 +45,41 @@ sub gather_links {
     state $ua = Mojo::UserAgent->new()->max_redirects(3);
 
     my @promises;
-    my $iters = 0;
     my @discovered;
     my @linkstack = (@$urls);
-    my @linkstack2;
-    my %depth = map { $_ => 1 } @linkstack;
+    my %seen = map { $_ => 1 } @linkstack;
 
-    while (!$STOP && @linkstack && @discovered < 10000 && $iters++ < 100) {
+    while (!$STOP && @linkstack) {
         my $url = pop @linkstack;
-        next if $depth{$url} > 2;
 
-        say ">>> ($iters) <" . (0+ @linkstack) . ", " . (0+ @discovered). "> $url";
+        say ">>> <" . (0+ @linkstack) . ", " . (0+ @discovered). "> $url";
         push @promises, $ua->get_p($url)->then(
             sub {
                 my ($tx) = @_;
                 return unless $tx->res->is_success;
                 my $uri = URI->new( "". $tx->req->url->to_abs );
 
-                my @new_links;
+                my $count = 0;
                 for my $e ($tx->res->dom->find('a[href]')->each) {
                     my $href = $e->attr("href") or next;
                     my $u = URI->new_abs("$href", $uri);
                     $u->fragment("");
                     $u = URI->new($u->as_string =~ s/#$//r);
 
-                    if ((! defined($depth{"$u"})) &&
+                    if ((! defined($seen{"$u"})) &&
                         $u->scheme =~ /^http/ &&
                         $u->host &&
                         looks_like_similar_host($u->host, $uri->host) &&
                         ($u !~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf|zip|docx?|xls|apk )\z/ix)
                     ) {
-                        $depth{$u} = $depth{$url} + 1;
-                        push @linkstack2, "$u";
+                        $count++;
+                        $seen{$u} = 1;
                         unless ($url_seen->test("$u")) {
                             push @discovered, "$u";
                         }
                     }
+
+                    last if $count > 999;
                 }
             }
         )->catch(
@@ -94,10 +93,6 @@ sub gather_links {
             Mojo::Promise->all(@promises)->wait();
             @promises = ();
         }
-
-        if (!@linkstack && @linkstack2) {
-            @linkstack = shuffle(uniqstr(@linkstack2));
-        }
     }
 
     if (@promises) {
@@ -110,8 +105,6 @@ sub gather_links {
 
 sub extract_info {
     my ($tx) = @_;
-    # say "[$$] START $url";
-
     my %info;
 
     my $res = $tx->res;
@@ -133,12 +126,13 @@ sub extract_info {
     my $text = $extractor->content_text;
     return unless $text;
 
-    $info{title}        = $title;
-    $info{content_text} = $text;
+    $info{title}        = "". $title;
+    $info{content_text} = "". $text;
     $info{url}          = "". $tx->req->url->to_abs;
     $info{substrings}   = Sn::extract_substrings([ $title, $text ]);
     $info{t_extracted}  = (0+ time());
 
+    say "[$$] extracted: $info{url}";
     return \%info;
 }
 
@@ -153,28 +147,36 @@ sub process {
     $fh->autoflush(1);
 
     my @links = @{ gather_links($urls, $url_seen) };
-    say "[$$] TODO: " . (0 + @links) . " discovered links from " . join(" ", @$urls);
+    if (@links) {
+        say "[$$] TODO: " . (0 + @links) . " discovered links from " . join(" ", @$urls);
+    }
 
     my @promises;
     my $error_count = 0;
     my $extracted_count = 0;
+    my @processed_links;
     for my $url (@links) {
-        if ($url =~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf|zip|docx?|xls|apk )\z/ix) {
-            err "[$$] Non-HTML-ish: $url";
-            next;
-        }
-
+        # say ">>> [$$] promise: $url";
         push @promises, $ua->get_p($url)->then(
             sub {
                 my ($tx) = @_;
-                return unless $tx->res->is_success;
-                my $info = extract_info($tx) or return;
+                unless ($tx->res->is_success) {
+                    say 'NOT SUCCESSFUL: ' . $url;
+                    return;
+                }
+
+                my $info = extract_info($tx);
+                push @processed_links, $url;
+                return unless $info;
+
                 my $line = encode_json($info) . "\n";
                 print $fh $line;
+
                 $extracted_count++;
             }
         )->catch(
             sub {
+                say STDERR "ERROR: " . $_[0];
                 $error_count++
             }
         );
@@ -193,11 +195,10 @@ sub process {
         @promises = ();
     }
 
-    if (@links) {
-        MCE->do('add_to_url_seen', \@links);
-    } else {
-        unlink($out);
+    if (@processed_links) {
+        MCE->do('add_to_url_seen', \@processed_links);
     }
+
     close($fh);
 }
 
