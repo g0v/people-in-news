@@ -197,3 +197,5 @@ https://www.nownews.com/feed/
 https://www.bnext.com.tw/rss
 https://zht.globalvoices.org/feed/
 https://cn.nytimes.com/rss/zh-hant/
+https://www.newsmarket.com.tw/feed/
+https://vita.tw/feed
