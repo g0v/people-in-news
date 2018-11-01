@@ -51,8 +51,6 @@ sub gather_links {
 
     while (!$STOP && @linkstack) {
         my $url = pop @linkstack;
-
-        say ">>> <" . (0+ @linkstack) . ", " . (0+ @discovered). "> $url";
         push @promises, $ua->get_p($url)->then(
             sub {
                 my ($tx) = @_;
@@ -156,7 +154,8 @@ sub process {
     my $extracted_count = 0;
     my @processed_links;
     for my $url (@links) {
-        # say ">>> [$$] promise: $url";
+        last if $STOP;
+
         push @promises, $ua->get_p($url)->then(
             sub {
                 my ($tx) = @_;
