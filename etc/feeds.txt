@@ -194,3 +194,6 @@ https://www.101newsmedia.com/rss.xml
 https://www.chinatimes.com/rss/realtimenews.xml
 https://www.nownews.com/comments/feed/
 https://www.nownews.com/feed/
+https://www.bnext.com.tw/rss
+https://zht.globalvoices.org/feed/
+https://cn.nytimes.com/rss/zh-hant/
