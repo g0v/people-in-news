@@ -1,13 +1,29 @@
+use v5.18;
+
 package Sn::FFUA {
     use strict;
-    use warning;
+    use warnings;
 
     use Firefox::Marionette;
     use Mojo::DOM;
 
+    use Moo;
+
+    has firefox => (
+        is => 'lazy',
+    );
+
+    no Moo;
+
+    sub _build_firefox {
+        return Firefox::Marionette->new( visible => 1 );
+    }
+
     sub fetch {
-        my ($url) = @_;
-        state $firefox = Firefox::Marionette->new();
+        my ($self, $url) = @_;
+
+        my $firefox = $self->firefox;
+
         $firefox->go($url);
         my $sleeps = 0;
         sleep 1 while ($sleeps++ < 10 && (! $firefox->interactive()));

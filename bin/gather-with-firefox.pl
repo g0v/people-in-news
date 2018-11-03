@@ -5,7 +5,6 @@ use warnings;
 
 use URI;
 use Try::Tiny;
-use MCE::Loop;
 use HTML::ExtractContent;
 use Encode qw(encode_utf8 decode);
 use Encode::Guess;
@@ -17,6 +16,7 @@ use JSON::PP qw(encode_json);
 use FindBin '$Bin';
 
 use Sn;
+use Sn::FFUA;
 
 sub err {
     say STDERR @_;
@@ -25,17 +25,11 @@ sub err {
 sub gather_links {
     state %seen;
 
-    my ($url, $url_seen_filter, $_level) = @_;
-    $_level //= 0;
-    return if $_level == 3 || ( (keys %seen) > 100);
-
-    if ($_level > 2) {
-        $seen{$url} = 1;
-    }
+    my ($ua, $url, $url_seen_filter, $_level) = @_;
 
     my @links;
 
-    my $tx = Sn::fetch($url) or return;
+    my $tx = $ua->fetch($url) or return;
     return if $tx->no_content;
 
     $seen{$tx->uri} = 1;
@@ -47,26 +41,18 @@ sub gather_links {
         if (!$seen{$u}  && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)\.com\z/ ) {
             unless ($url_seen_filter->test("$u")) {
                 $seen{$u} = 1;
-            #     gather_links("$u", $url_seen_filter, $_level+1);
             }
         }
-        last if (100 < keys %seen);
     }
-    if ($_level == 0) {
-        my @links = keys %seen;
-        if (@links > 100) {
-            @links = @links[0..99];
-        }
-        return @links;
-    }
-    return;
+
+    return keys %seen;
 }
 
 sub extract_info {
-    my ($url, $known_names) = @_;
+    my ($ua, $url, $known_names) = @_;
     my %info;
 
-    my $tx = Sn::fetch($url) or return;
+    my $tx = $ua->fetch($url) or return;
     return if $tx->no_content;
 
     my $dom = $tx->dom;
@@ -105,12 +91,15 @@ sub extract_info {
 }
 
 sub process {
-    my ($url, $known_names, $url_seen_filter, $out) = @_;
+    my ($ua, $url, $known_names, $url_seen_filter, $out) = @_;
+    open my $output_fh, '>', $out;
 
-    my @links = gather_links($url, $url_seen_filter);
-    say 'TODO: ' . (0 + @links) . ' links from ' . $url;
+    my @new_links;
+    my @links = gather_links($ua, $url, $url_seen_filter);
+    @links = @links[0..9] if @links > 10;
+
     for my $url (@links) {
-        my $info = extract_info($url, $known_names) or next;
+        my $info = extract_info($ua, $url, $known_names) or next;
 
         my $line = encode_json({
             names        => $info->{names},
@@ -119,19 +108,22 @@ sub process {
             content_text => $info->{content_text},
         }) . "\n";
 
+        print $output_fh $line;
+
         say "DONE: $url";
-        MCE->sendto("file:$out", $line);
-        MCE->gather($url);
     }
+
+    close($output_fh);
+    return \@links;
 }
 
 # main
 my %opts;
 GetOptions(
     \%opts,
-    "o=s"
+    "db=s"
 );
-die "-o <DIR> is needed" unless $opts{o} && -d $opts{o};
+die "-db <DIR> is needed" unless $opts{db} && -d $opts{db};
 
 chdir($Bin . '/../');
 
@@ -145,11 +137,10 @@ my @known_names = do {
     @ret;
 };
 
-my @t = localtime();
-my $hourstamp = sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], 0, 0);
+my $timestamp = Sn::ts_now();
 
 # jsonl => http://jsonlines.org/
-my $output = $opts{o} . "/people-in-news-${hourstamp}.jsonl";
+my $output = $opts{db} . "/articles-${timestamp}.jsonl";
 my $partial_output = $output . '.partial';
 
 if (-f $output) {
@@ -157,7 +148,7 @@ if (-f $output) {
 }
 
 my $url_seen_filter;
-my $url_seen_f = $opts{o} . "/people-in-news-url-seen.bloomfilter";
+my $url_seen_f = $opts{db} . "/url-seen.bloomfilter";
 
 if (-f $url_seen_f) {
     open my $fh, '<', $url_seen_f;
@@ -169,19 +160,20 @@ if (-f $url_seen_f) {
 }
 
 my @new_links;
-MCE::Loop::init { chunk_size => 1, max_workers => 1 };
-if (@ARGV) {
-    @new_links = mce_loop {
-        process($_, \@known_names, $url_seen_filter, $partial_output);
-    } @ARGV;
-} else {
-    @new_links = mce_loop_f {
-        chomp;
-        process($_, \@known_names, $url_seen_filter, $partial_output) if $_;
-    } 'etc/news-sites.txt';
+my $ua = Sn::FFUA->new;
+
+my @inital_urls = @ARGV;
+unless (@inital_urls) {
+    open my $fh, '<', 'etc/news-sites.txt';
+    @inital_urls = map { chomp; $_ } <$fh>;
+    close($fh);
 }
 
-$url_seen_filter->add(@new_links);
+foreach(@inital_urls) {
+    my $new_links = process($ua, $_, \@known_names, $url_seen_filter, $partial_output);
+    $url_seen_filter->add(@$new_links);
+}
+
 my $x = $url_seen_filter->serialize;
 open my $fh, '>', $url_seen_f;
 print $fh $x;
