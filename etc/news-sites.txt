@@ -76,7 +76,7 @@ https://www.mirrormedia.mg/
 https://www.new7.com.tw/
 https://www.newstaiwan.com.tw/
 https://www.nownews.com/
-https://www.peoplenews.tw
+http://www.peoplenews.tw
 https://www.peopo.org/
 https://www.setn.com/
 https://www.settv.com.tw/
@@ -92,7 +92,6 @@ https://www.twnewsdaily.com/
 https://www.upmedia.mg/
 https://www.ustv.com.tw/
 https://www.xinmedia.com/
-https://n.yam.com/
 https://www.niusnews.com/
 https://cnews.com.tw/
 https://www.new7.com.tw/
