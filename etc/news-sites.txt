@@ -2,7 +2,6 @@ http://0media.tw/
 http://citytimes.tw/
 http://focustaiwan.tw/
 http://healthmedia.com.tw/
-http://news.pchome.com.tw/
 http://news.tnn.tw/
 http://news.tvb.com/
 http://nexttv.com.tw/news
@@ -47,7 +46,6 @@ https://news.ltn.com.tw/list/breakingnews
 https://news.now.com/
 https://news.pts.org.tw/
 https://news.rti.org.tw/
-https://news.sina.com.tw/
 https://newtalk.tw/
 https://panmedia.asia/
 https://taiwanenews.com/
@@ -55,8 +53,6 @@ https://taronews.tw/
 https://technews.tw/
 https://theinitium.com/
 https://thestandnews.com/
-https://times.hinet.net/
-https://today.line.me/tw/pc
 https://tw.appledaily.com/
 https://tw.on.cc/
 https://twreporter.org/
@@ -77,8 +73,6 @@ https://www.fountmedia.io/
 https://www.ltn.com.tw/
 https://www.mdnkids.com/
 https://www.mirrormedia.mg/
-https://www.msn.com/zh-tw
-https://www.new7.com.tw/
 https://www.new7.com.tw/
 https://www.newstaiwan.com.tw/
 https://www.nownews.com/
@@ -88,7 +82,6 @@ https://www.setn.com/
 https://www.settv.com.tw/
 https://www.storm.mg/
 https://www.taiwan.net.tw/
-https://www.taiwandaily.net/
 https://www.taiwannews.com.tw/
 https://www.taiwantoday.tw/
 https://www.techbang.com/
