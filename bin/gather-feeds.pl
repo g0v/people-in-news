@@ -69,7 +69,6 @@ sub gather_feed_links {
         my (@promises, @articles);
 
         for my $url (@$_) {
-            say "promise: $url";
             push @promises, $ua->get_p($url)->then(
                 sub {
                     my ($tx) = @_;
