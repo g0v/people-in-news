@@ -65,25 +65,16 @@ sub gather_feed_links {
     my ($urls) = @_;
 
     my @articles = mce_loop {
+        my $urls = $_;
         my $ua = Mojo::UserAgent->new()->max_redirects(3);
-        my (@promises, @articles);
 
-        for my $url (@$_) {
-            push @promises, $ua->get_p($url)->then(
-                sub {
-                    my ($tx) = @_;
-                    push @articles, @{ extract_feed_entries($tx) };
-                }
-            )->catch(
-                sub {
-                    my ($error) = @_;
-                    say STDERR "ERROR: $url $error\n";
-                }
-            );
-
-            Mojo::Promise->all(@promises)->wait() if @promises > 4;
-        }
-        Mojo::Promise->all(@promises)->wait() if @promises;
+        my @articles;
+        Sn::promise_loop(
+            $urls,
+            sub { $ua->get_p($_) },
+            sub { push @articles, @{ extract_feed_entries($_[0]) }; },
+            sub { say STDERR "ERROR: $_[0]\n"; }
+        );
 
         MCE->gather(@articles);
     } @$urls;

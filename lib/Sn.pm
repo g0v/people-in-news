@@ -6,8 +6,21 @@ use warnings;
 use Encode::Guess;
 use Encode qw(decode_utf8);
 use List::Util qw(uniqstr);
+use Mojo::Promise;
 
 use Sn::TX;
+
+sub promise_loop {
+    my ($works, $promiser, $thener, $catcher) = @_;
+
+    my @promises;
+    for (@$works) {
+        push @promises, $promiser->($_)->then($thener)->catch($catcher);
+        Mojo::Promise->all(@promises)->wait() if @promises > 4;
+    }
+    Mojo::Promise->all(@promises)->wait() if @promises;
+}
+
 
 sub ts_now {
     my @t = localtime();
