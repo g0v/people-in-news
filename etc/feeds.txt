@@ -1,3 +1,5 @@
+https://www.cw.com.tw/RSS/cw_content.xml
+https://www.cw.com.tw/RSS/english.xml
 http://feeds.feedburner.com/techbang/daily
 http://news.ltn.com.tw/rss/business.xml
 http://news.ltn.com.tw/rss/consumer.xml
