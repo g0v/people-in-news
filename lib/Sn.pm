@@ -73,26 +73,44 @@ sub read_string_list {
 
 sub extract_substrings {
     my ($texts) = @_;
+    my %extracts;
 
-    state @extractors;
-    unless (@extractors) {
-        @extractors = map {
-            my $fn = $_;
-            my $name = substr($fn, 11) =~ s/\.txt$//r;
-            Sn::Extractor->new(
-                name => $name,
-                substrings => [ uniqstr map { split /\t+/ } @{ read_string_list($fn) } ],
-            );
-        } glob('etc/substr-*.txt');
+    state %token;
+    unless (%token) {
+        for my $fn (glob('etc/substr-*.txt')) {
+            my $token_type = substr($fn, 11, -4);
+            my @tokens = uniqstr map { split /\t+/ } @{ read_string_list($fn) };
+            for (@tokens) {
+                push @{$token{$_}}, $token_type;
+            }
+        }
     }
 
-    my %extracts = map { $_->name => $_->extract($texts) } @extractors;
+    my @tokens = sort { length($b) <=> length($a) } keys %token;
+    for my $text (@$texts) {
+        my (%matched, %cov);
+        for my $tok (@tokens) {
+            my $pos = index($text, $tok, 0);
+            if ($pos >= 0) {
+                unless ( $cov{$pos} && $cov{$pos + length($tok)} ) {
+                    $matched{$tok} = $pos;
+                    $cov{$_}++ for $pos ... $pos+length($tok);
+                }
+            }
+        }
+
+        for my $tok (keys %matched) {
+            for my $token_type (@{$token{$tok}}) {
+                push @{ $extracts{ $token_type } }, $tok;
+            }
+        }
+    }
+
     return \%extracts;
 }
 
 sub tx_guess_charset {
     my ($tx) = @_;
-    
     my $charset;
     my $content_type = $tx->res->headers->content_type;
 
