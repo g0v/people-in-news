@@ -15,15 +15,11 @@ use List::Util qw(shuffle);
 
 sub build_atom_feed {
     my $input = $_[0]->{input};
-    my $output = $_[0]->{output};
-
-    return unless $input && $output;
+    return unless $input;
 
     my $feed = XML::FeedPP::Atom::Atom10->new(
         title => "Articles",
     );
-
-    say "$output <= " . join(" ", @$input);
 
     my (%freq, @articles);
     for my $input (@$input) {
@@ -67,7 +63,26 @@ sub build_atom_feed {
         }
     }
 
-    unlink($output);
+    return $feed;
+}
+
+sub write_atom_feed {
+    my $feed = build_atom_feed(@_);
+    my $output = $_[0]->{output};
+    unlink($output) if -f $output;
+    $feed->to_file($output);
+}
+
+sub write_atom_feed_link_only {
+    my $feed = build_atom_feed(@_);
+    my $output = $_[0]->{output};
+
+    my $i = 0;
+    while (my $item = $feed->get_item($i++) ) {
+        delete $item->{content};
+    }
+
+    unlink($output) if -f $output;
     $feed->to_file($output);
 }
 
@@ -91,8 +106,13 @@ my @things = map {
 } glob("$opts{db}/articles-*.jsonl");
 
 if (@things) {
-    build_atom_feed({
+    write_atom_feed({
         input => [map { $_->{input} } @things],
         output => $opts{o} . "/articles-latest.atom",
+    });
+
+    write_atom_feed_link_only({
+        input => [map { $_->{input} } @things],
+        output => $opts{o} . "/articles-latest-link-only.atom",
     });
 }
