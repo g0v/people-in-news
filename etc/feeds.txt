@@ -1,3 +1,4 @@
+https://www.cmmedia.com.tw/rss/yahoo/article
 https://www.cw.com.tw/RSS/cw_content.xml
 https://www.cw.com.tw/RSS/english.xml
 http://feeds.feedburner.com/techbang/daily
