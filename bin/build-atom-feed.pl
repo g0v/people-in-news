@@ -11,7 +11,7 @@ use JSON qw(decode_json);
 use Try::Tiny;
 use MCE::Loop;
 use XML::FeedPP;
-use List::Util qw(shuffle);
+use List::Util qw(uniq shuffle);
 
 sub build_atom_feed {
     my $input = $_[0]->{input};
@@ -59,6 +59,7 @@ sub build_atom_feed {
             }
         }
         if (@categories) {
+            @categories = uniq(@categories);
             $item->category(\@categories);
         }
     }
