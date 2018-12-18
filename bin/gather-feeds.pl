@@ -29,11 +29,12 @@ sub extract_feed_entries {
     $xml->find("item")->each(
         sub {
             my $el = $_;
-            push @articles, {
-                url   => $el->at("link")->all_text,
-                title => $el->at("title")->all_text,
-                content => $el->at("description")->all_text,
-            };
+            my %o;
+            for (["link", "url"], ["title", "title"], ["description", "content"]) {
+                my $x = $el->at($_->[0]) or next;
+                $o{ $_->[1] } = $x->all_text;
+            }
+            push @articles, \%o if $o{url};
         }
     );
 
@@ -41,16 +42,24 @@ sub extract_feed_entries {
     $xml->find("entry")->each(
         sub {
             my $el = $_;
-            push @articles, {
-                url   => $el->at("link")->attr("href"),
-                title => $el->at("title")->text,
-                content => el->at("content")->all_text,
-            };
+            my (%o, $x);
+
+            if ($x = $el->at("link")) {
+                $o{url} = $x->attr("href");
+            }
+            if ($x = $el->at("title")) {
+                $o{title} = $x->text;
+            }
+            if ($x = $el->at("content")) {
+                $o{content} = $x->all_text;
+            }
+
+            push @articles, \%o if $o{url};
         }
     );
 
     for(@articles) {
-        my $text = Mojo::DOM->new('<body>' . (delete $_->{content}) . '</body>')->all_text();
+        my $text = Mojo::DOM->new('<body>' . ((delete $_->{content}) // '') . '</body>')->all_text();
 
         $_->{content_text} = Sn::trim_whitespace($text);
         $_->{title} = Sn::trim_whitespace($_->{title});
