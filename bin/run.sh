@@ -5,9 +5,11 @@ cd $(dirname $0)/../
 
 ts_begin=$(date +%s)
 
+perl -Ilib bin/gather-feeds.pl --db var/db
 perl -Ilib bin/gather.pl --db var/db
-perl -Ilib bin/build-daily-md.pl --db var/db -o var/people-in-news.wiki
-perl -Ilib bin/build-www.pl -i var/people-in-news.wiki -o var/www
+perl -Ilib bin/build-atom-feed.pl --db var/db -o var/www
+perl -Ilib bin/build-daily-md.pl --db var/db -o var/www
+perl -Ilib bin/build-www.pl -i var/www -o var/www
 perl -Ilib bin/merge.pl --db var/db 
 
 ts_end=$(date +%s)
