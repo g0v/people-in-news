@@ -10,14 +10,6 @@ perl -Ilib bin/build-daily-md.pl --db var/db -o var/people-in-news.wiki
 perl -Ilib bin/build-www.pl -i var/people-in-news.wiki -o var/www
 perl -Ilib bin/merge.pl --db var/db 
 
-cd var/people-in-news.wiki
-git add '*.md'
-git commit -m build
-git pull --no-edit
-git push
-cd -
-
 ts_end=$(date +%s)
 
 echo "DONE:" $(( $ts_end - $ts_begin )) 'seconds'
-
