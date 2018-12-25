@@ -371,3 +371,5 @@ http://tube.chinatimes.com/rss/tube-hot.xml
 http://ivoting.chinatimes.com/rss/poll.xml
 http://ivoting.chinatimes.com/rss/analytics.xml
 https://feeds.bbci.co.uk/zhongwen/trad/rss.xml
+http://tbnews.com.tw/rss.php
+https://www.civilmedia.tw/feed
