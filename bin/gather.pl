@@ -175,7 +175,7 @@ sub process {
             }
         )->catch(
             sub {
-                say STDERR "ERROR: " . $_[0];
+                say STDERR "ERROR:\t" . $_[0] . "\t$url";
                 $error_count++
             }
         );

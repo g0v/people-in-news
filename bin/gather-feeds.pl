@@ -82,7 +82,7 @@ sub gather_feed_links {
             $urls,
             sub { $ua->get_p($_) },
             sub { push @articles, @{ extract_feed_entries($_[0]) }; },
-            sub { say STDERR "ERROR: $_[0]\n"; }
+            sub { say STDERR "ERROR:\t$_[0]\t$url"; }
         );
 
         MCE->gather(@articles);
