@@ -1,5 +1,6 @@
 requires 'Algorithm::BloomFilter' => '0.02';
 requires 'File::Slurp';
+requires 'File::Next';
 requires 'Firefox::Marionette'    => '0.66';
 requires 'HTML::ExtractContent';
 requires 'IO::Socket::SSL'        => '2.060';
