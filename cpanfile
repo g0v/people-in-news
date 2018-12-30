@@ -17,4 +17,4 @@ requires 'Types::URI';
 requires 'URI';
 requires 'XML::FeedPP';
 requires 'String::Trim';
-
+requires 'PerlIO::via::gzip';
