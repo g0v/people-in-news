@@ -35,9 +35,8 @@ for my $date (@dates) {
         }
     }
 
-
     for my $category ( keys %stats ) {
-        open my $ofh, '>:utf8', $opts{o} . "/stats-${category}-${date}.tsv";
+        open my $ofh, '>:utf8', $opts{o} . "/dailystats-${category}-${date}.tsv";
         for my $s (sort { $stats{$category}{$b} <=> $stats{$category}{$a} } keys %{$stats{$category}}) {
             print $ofh join("\t", $s, $stats{$category}{$s}) . "\n";
         }
