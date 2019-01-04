@@ -1,6 +1,6 @@
 package Sn::ArticleIterator;
 use Moo;
-use Types::Standard qw(Str);
+use Types::Standard qw(Str CodeRef);
 use Types::Common::Numeric qw(PositiveOrZeroNum);
 use File::Next;
 use JSON::XS qw(decode_json);
@@ -15,6 +15,18 @@ has db_path => (
     required => 1,
 );
 
+has current_file => (
+    is => 'rw',
+    isa => Str,
+);
+
+has filter_file => (
+    is => 'ro',
+    isa => CodeRef,
+    required => 1,
+    default => sub { 1 },
+);
+
 has _file_iter => (
     is => 'lazy',
 );
@@ -22,7 +34,9 @@ has _file_iter => (
 sub _build__file_iter {
     my ($self) = @_;
     return File::Next::files(
-        +{ file_filter => sub { /\.jsonl(\.gz)?$/ } },
+        +{ file_filter => sub {
+               /\.jsonl(\.gz)?$/ && $self->filter_file->($_)
+           } },
         $self->db_path,
     );
 }
@@ -35,6 +49,7 @@ sub reify {
 
     while (@objs < 1000) {
         my $fn = $self->_file_iter->() or last;
+        $self->current_file($fn);
 
         my $fh;
         if ($fn =~ /\.gz$/) {
@@ -46,8 +61,7 @@ sub reify {
         while(<$fh>) {
             chomp;
             try {
-                my $o = decode_json($_);
-                push @objs, $o;
+                push @objs, decode_json($_);
             };                  # Ignore Errors
         }
     }
