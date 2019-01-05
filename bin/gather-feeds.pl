@@ -78,11 +78,19 @@ sub gather_feed_links {
         my $ua = Mojo::UserAgent->new()->max_redirects(3);
 
         my @articles;
-        Sn::promise_loop(
+
+        Sn::urls_get_all(
             $urls,
-            sub { $ua->get_p($_) },
-            sub { push @articles, @{ extract_feed_entries($_[0]) }; },
-            sub { say STDERR "ERROR:\t$_[0]"; }
+            sub {
+                my ($tx, $url) = @_;
+                push @articles, @{ extract_feed_entries($tx) };
+                return $STOP ? 0 : 1;
+            },
+            sub {
+                my ($error, $url) = @_;
+                say STDERR "ERROR:\t$error\t$url";
+                return $STOP ? 0 : 1;
+            }
         );
 
         MCE->gather(@articles);
