@@ -21,6 +21,51 @@ sub promise_loop {
     Mojo::Promise->all(@promises)->wait() if @promises;
 }
 
+sub urls_get_all {
+    state $ua = Mojo::UserAgent->new()->transactor(
+        Mojo::UserAgent::Transactor->new()->name('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:62.0) Gecko/20100101 Firefox/62.0')
+    )->max_redirects(3);
+
+    my ($urls, $on_success_cb, $on_error_cb) = @_;
+
+    my @promises;
+    my $should_stop = 0;
+    for my $url (@$urls) {
+        last if $should_stop;
+        say STDERR "promise: $url";
+
+        push @promises, $ua->get_p($url)->then(
+            sub {
+                my ($tx) = @_;
+                unless ($tx->res->is_success) {
+                    say 'NOT SUCCESSFUL: ' . $url;
+                    return;
+                }
+                say STDERR "SUCCESSFUL: $url";
+                unless ($on_success_cb->($tx, $url)) {
+                    say STDERR "SHOULD STOP: $url";
+                    $should_stop = 1;
+                }
+            }
+        )->catch(
+            sub {
+                unless ($on_error_cb->($_[0], $url)) {
+                    $should_stop = 1;
+                }
+            }
+        );
+
+        if (@promises > 3) {
+            Mojo::Promise->all(@promises)->wait;
+            @promises = ();
+        }
+    }
+
+    if (@promises) {
+        Mojo::Promise->all(@promises)->wait();
+        @promises = ();
+    }
+}
 
 sub ts_now {
     my @t = localtime();

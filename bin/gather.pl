@@ -135,10 +135,6 @@ sub extract_info {
 }
 
 sub process {
-    state $ua = Mojo::UserAgent->new()->transactor(
-        Mojo::UserAgent::Transactor->new()->name('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:62.0) Gecko/20100101 Firefox/62.0')
-    )->max_redirects(3);
-
     my ($urls, $url_seen, $out) = @_;
 
     open my $fh, '>', $out;
@@ -153,46 +149,26 @@ sub process {
     my $error_count = 0;
     my $extracted_count = 0;
     my @processed_links;
-    for my $url (@links) {
-        last if $STOP;
 
-        push @promises, $ua->get_p($url)->then(
-            sub {
-                my ($tx) = @_;
-                unless ($tx->res->is_success) {
-                    say 'NOT SUCCESSFUL: ' . $url;
-                    return;
-                }
-
-                my $info = extract_info($tx);
-                push @processed_links, $url;
-                return unless $info;
-
+    Sn::urls_get_all(
+        \@links,
+        sub {
+            my ($tx, $url) = @_;
+            my $info = extract_info($tx);
+            push @processed_links, $url;
+            if ($info) {
                 my $line = encode_json($info) . "\n";
                 print $fh $line;
-
                 $extracted_count++;
             }
-        )->catch(
-            sub {
-                say STDERR "ERROR:\t" . $_[0] . "\t$url";
-                $error_count++
-            }
-        );
-
-        if (@promises > 3) {
-            Mojo::Promise->all(@promises)->wait;
-            @promises = ();
+            return $STOP ? 0 : 1;
+        },
+        sub {
+            my ($error, $url) = @_;
+            say STDERR "ERROR:\t$error\t$url";
+            return $STOP ? 0 : 1;
         }
-
-        last if $error_count > 10;
-        last if $extracted_count > 30;
-    }
-
-    if (@promises) {
-        Mojo::Promise->all(@promises)->wait();
-        @promises = ();
-    }
+    );
 
     if (@processed_links) {
         MCE->do('add_to_url_seen', \@processed_links);
@@ -238,7 +214,6 @@ mce_loop {
         $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
     }
     process($_, $url_seen, $output);
-
 } @initial_urls;
 
 $url_seen->save;
