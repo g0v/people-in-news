@@ -323,16 +323,6 @@ https://www.chinatimes.com/rss/commercial-facebook.xml
 https://www.chinatimes.com/rss/want-daily-click.xml
 https://www.chinatimes.com/rss/want-daily-star.xml
 https://www.chinatimes.com/rss/want-daily-facebook.xml
-http://newsblog.chinatimes.com/rss/newsblog.xml
-http://newsblog.chinatimes.com/rss/forum.xml
-http://newsblog.chinatimes.com/rss/arts.xml
-http://newsblog.chinatimes.com/rss/life.xml
-http://newsblog.chinatimes.com/rss/finance.xml
-http://newsblog.chinatimes.com/rss/ent.xml
-http://newsblog.chinatimes.com/rss/sport.xml
-http://newsblog.chinatimes.com/rss/tech.xml
-http://newsblog.chinatimes.com/rss/edu.xml
-http://newsblog.chinatimes.com/rss/org.xml
 http://magazine.chinatimes.com/rss/magazine.xml
 http://magazine.chinatimes.com/rss/news.xml
 http://magazine.chinatimes.com/rss/financial.xml
