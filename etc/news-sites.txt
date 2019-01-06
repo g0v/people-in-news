@@ -16,7 +16,7 @@ http://www.bookmedia.com.tw/
 http://www.ctitv.com.tw/
 http://www.ctv.com.tw/
 http://www.eeaglenews.com/
-http://www.epochtimes.com/
+https://www.epochtimes.com/
 http://www.fingermedia.tw/
 http://www.freedomnews.com.tw/index.php
 http://www.ganlangroup.com/
