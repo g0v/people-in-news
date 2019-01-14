@@ -18,3 +18,4 @@ requires 'URI';
 requires 'XML::FeedPP';
 requires 'String::Trim';
 requires 'PerlIO::via::gzip';
+requires 'Chart::Plotly';
