@@ -32,7 +32,7 @@ sub urls_get_all {
     my $should_stop = 0;
     for my $url (@$urls) {
         last if $should_stop;
-        say STDERR "promise: $url";
+        # say STDERR "promise: $url";
 
         push @promises, $ua->get_p($url)->then(
             sub {
@@ -41,9 +41,9 @@ sub urls_get_all {
                     say 'NOT SUCCESSFUL: ' . $url;
                     return;
                 }
-                say STDERR "SUCCESSFUL: $url";
+                # say STDERR "SUCCESSFUL: $url";
                 unless ($on_success_cb->($tx, $url)) {
-                    say STDERR "SHOULD STOP: $url";
+                    # say STDERR "SHOULD STOP: $url";
                     $should_stop = 1;
                 }
             }
