@@ -102,7 +102,7 @@ sub gather_feed_links {
 sub fetch_and_extract_full_text {
     my ($articles) = @_;
 
-    my @new_articles = mce_loop {
+    my @o = mce_loop {
         my @articles = @$_;
         my @urls = map { $_->{url} } @articles;
         my %u2a  = map { $_->{url} => $_ } @articles;
@@ -127,8 +127,7 @@ sub fetch_and_extract_full_text {
                 $article->{substrings} = Sn::extract_substrings([ $article->{title}, $article->{content_text} ]);
                 $article->{t_extracted} = (0+ time());
 
-                MCE->gather($article);
-
+                MCE->gather([ $article, $tx->req->url ]);
                 return 1;
             },
             sub {
@@ -139,7 +138,9 @@ sub fetch_and_extract_full_text {
         );
     } @$articles;
 
-    return \@new_articles;
+    my @new_articles = map { $_->[0] } @o;
+    my @new_urls = map { $_->[1] } @o;
+    return \@new_articles, \@new_urls;
 }
 
 ## main
@@ -166,9 +167,10 @@ my $articles = gather_feed_links(\@initial_urls);
 
 if (@$articles) {
     $url_seen->add(map { $_->{url} } @$articles);
-    $url_seen->save;
+    ($articles, my $new_urls) = fetch_and_extract_full_text($articles);
 
-    $articles = fetch_and_extract_full_text($articles);
+    $url_seen->add(@$new_urls);
+    $url_seen->save;
 
     my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
     open my $fh, '>', $output;
