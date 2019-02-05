@@ -120,7 +120,7 @@ sub fetch_and_extract_full_text {
                     if ($text && length($text) > length($article->{content_text})) {
                         # $article->{feed_content_text} = $article->{content_text};
                         $article->{content_text} = "" . $text;
-                        say "Extracted: " . encode_utf8(substr($text, 0, 40)) . "...";
+                        # say "Extracted: " . encode_utf8(substr($text, 0, 40)) . "...";
                     }
                 }
 
