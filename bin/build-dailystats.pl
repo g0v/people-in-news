@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use Getopt::Long qw(GetOptions);
 # use File::Glob ':bsd_glob';
+use Mojo::URL;
 
 use Sn;
 use Sn::ArticleIterator;
@@ -38,6 +39,9 @@ for my $date (@dates) {
                 $stats{$category}{$s}++;
             }
         }
+
+        my $host = Mojo::URL->new( $article->{url} )->host;
+        $stats{URLHOST}{$host}++;
     }
 
     open my $ofh_all, '>:utf8', $fn_stats_all;
