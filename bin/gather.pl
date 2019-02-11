@@ -160,6 +160,8 @@ sub process {
                 my $line = encode_json($info) . "\n";
                 print $fh $line;
                 $extracted_count++;
+            } else {
+                say "[$$] Fail to extract from $url";
             }
             return $STOP ? 0 : 1;
         },
@@ -201,7 +203,10 @@ my @initial_urls;
 if (@ARGV) {
     @initial_urls = @ARGV;
 } else {
-    @initial_urls = @{ Sn::read_string_list('etc/news-sites.txt') };
+    @initial_urls = (
+        @{ Sn::read_string_list('etc/news-sites.txt') },
+        @{ Sn::read_string_list('etc/news-aggregation-sites.txt') },
+    );
 }
 
 MCE::Loop::init { chunk_size => 'auto' };
