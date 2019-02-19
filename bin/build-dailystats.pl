@@ -20,7 +20,7 @@ die "--db <DIR> is needed" unless -d $opts{db};
 die "-o <DIR> is needed" unless -d $opts{o};
 
 my $yyyymmdd_now = Sn::yyyymmdd_now();
-my @dates = grep { $_ ne $yyyymmdd_now } map { /articles-([0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9])\.jsonl/ ? $1 : () } glob($opts{db} . '/articles-*.jsonl*');
+my @dates = grep { $_ ne $yyyymmdd_now } map { /articles-([0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9])\.jsonl\.gz$/ ? $1 : () } glob($opts{db} . '/articles-*.jsonl.gz');
 
 for my $date (@dates) {
     my $fn_stats_all = $opts{o} . "/dailystats-ALL-${date}.tsv";
