@@ -207,7 +207,7 @@ if (@ARGV) {
     );
 }
 
-MCE::Loop::init { chunk_size => 'auto' };
+MCE::Loop::init { chunk_size => 'auto', max_workers => 8 };
 
 mce_loop {
     # jsonl => http://jsonlines.org/

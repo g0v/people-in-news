@@ -5,6 +5,7 @@ package Sn::HTMLExtractor {
     use HTML::ExtractContent;
     use Mojo::DOM;
     use Types::Standard qw(Str InstanceOf);
+    use Encode qw(decode);
 
     has html => (
         is => 'ro',
@@ -45,27 +46,21 @@ package Sn::HTMLExtractor {
 
         my $extractor = HTML::ExtractContent->new;
 
-        my $content_dom;
-        if (my $el = $self->dom->at('article')) {
+        my ($content_dom, $el);
+        if ($el = $self->dom->at('article')) {
             $content_dom = Mojo::DOM->new('<body>' . $extractor->extract("$el")->as_html . '</body>');
         } else {
             $content_dom = Mojo::DOM->new('<body>' . $extractor->extract($self->html)->as_html . '</body>');
         }
 
-        my $text = $content_dom->find('body > *')->map('all_text')->map(
-            sub {
-                s/\t/ /g;
-                s/\r\n/\n/g;
-                s/\n\n/\n/g;
-                s/\A\s+//;
-                s/\s+\z//;
-
-                $_ ? $_ : ();
-            }
-        )->join("\n\n");
-
-        unless ($text) {
-            return undef;
+        my $text = $content_dom->all_text;
+        for ($text) {
+            s/\x{fffd}//g;
+            s/\t/ /gs;
+            s/\r\n/\n/gs;
+            s/\n +/\n/gsm;
+            s/ +\n/\n/gsm;
+            s/\n\n\n/\n\n/gsm;
         }
 
         my @paragraphs = split /\n\n/, $text;

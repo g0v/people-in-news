@@ -21,13 +21,17 @@ sub promise_loop {
     Mojo::Promise->all(@promises)->wait() if @promises;
 }
 
-sub urls_get_all {
+sub ua {
     state $ua = Mojo::UserAgent->new()->transactor(
         Mojo::UserAgent::Transactor->new()->name('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:62.0) Gecko/20100101 Firefox/62.0')
     )->max_redirects(3);
+    return $ua;
+}
 
+sub urls_get_all {
     my ($urls, $on_success_cb, $on_error_cb) = @_;
 
+    my $ua = ua();
     my @promises;
     my $should_stop = 0;
     for my $url (@$urls) {
