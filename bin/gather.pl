@@ -42,7 +42,9 @@ sub looks_like_similar_host {
 sub gather_links {
     my ($urls, $url_seen) = @_;
 
-    state $ua = Mojo::UserAgent->new()->max_redirects(3);
+    state $ua = Mojo::UserAgent->new()->transactor(
+        Mojo::UserAgent::Transactor->new()->name('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:62.0) Gecko/20100101 Firefox/62.0')
+    )->max_redirects(3);
 
     my @promises;
     my @discovered;
@@ -57,7 +59,6 @@ sub gather_links {
                 return unless $tx->res->is_success;
                 my $uri = URI->new( "". $tx->req->url->to_abs );
 
-                my $count = 0;
                 for my $e ($tx->res->dom->find('a[href]')->each) {
                     my $href = $e->attr("href") or next;
                     my $u = URI->new_abs("$href", $uri);
@@ -70,14 +71,11 @@ sub gather_links {
                         looks_like_similar_host($u->host, $uri->host) &&
                         ($u !~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf|zip|docx?|xls|apk )\z/ix)
                     ) {
-                        $count++;
                         $seen{$u} = 1;
                         unless ($url_seen->test("$u")) {
                             push @discovered, "$u";
                         }
                     }
-
-                    last if $count > 999;
                 }
             }
         )->catch(
