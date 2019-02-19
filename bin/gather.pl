@@ -59,7 +59,10 @@ sub gather_links {
                 return unless $tx->res->is_success;
                 my $uri = URI->new( "". $tx->req->url->to_abs );
 
+                my $count = 0;
                 for my $e ($tx->res->dom->find('a[href]')->each) {
+                    last if $count++ > 9999;
+
                     my $href = $e->attr("href") or next;
                     my $u = URI->new_abs("$href", $uri);
                     $u->fragment("");
