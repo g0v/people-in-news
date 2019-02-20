@@ -46,12 +46,14 @@ package Sn::HTMLExtractor {
 
         my $extractor = HTML::ExtractContent->new;
 
-        my ($content_dom, $el);
+        my ($content_dom, $el, $html);
         if ($el = $self->dom->at('article')) {
-            $content_dom = Mojo::DOM->new('<body>' . $extractor->extract("$el")->as_html . '</body>');
+            $html = $extractor->extract("$el")->as_html;
         } else {
-            $content_dom = Mojo::DOM->new('<body>' . $extractor->extract($self->html)->as_html . '</body>');
+            $html = $extractor->extract($self->html)->as_html;
         }
+        $content_dom = Mojo::DOM->new('<body>' . $html . '</body>');
+        $content_dom->find('br')->each(sub { $_[0]->replace("\n<br>") });
 
         my ($text, @paragraphs);
         @paragraphs = $content_dom->find('*')->map('text')->map(
