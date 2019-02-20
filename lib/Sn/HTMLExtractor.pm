@@ -53,17 +53,33 @@ package Sn::HTMLExtractor {
             $content_dom = Mojo::DOM->new('<body>' . $extractor->extract($self->html)->as_html . '</body>');
         }
 
-        my $text = $content_dom->all_text;
-        for ($text) {
-            s/\x{fffd}//g;
-            s/\t/ /gs;
-            s/\r\n/\n/gs;
-            s/\n +/\n/gsm;
-            s/ +\n/\n/gsm;
-            s/\n\n\n/\n\n/gsm;
+        my ($text, @paragraphs);
+        @paragraphs = $content_dom->find('*')->map('text')->map(
+            sub {
+                s/\t/ /g;
+                s/\r\n/\n/g;
+                s/\A\s+//;
+                s/\s+\z//;
+
+                $_ ? $_ : ()
+            }
+        )->each;
+
+        if (@paragraphs) {
+            $text = join("\n\n", @paragraphs);
+        } else {
+            $text = $content_dom->all_text;
+            for ($text) {
+                s/\x{fffd}//g;
+                s/\t/ /gs;
+                s/\r\n/\n/gs;
+                s/\n +/\n/gsm;
+                s/ +\n/\n/gsm;
+                s/\n\n\n/\n\n/gsm;
+            }
+            @paragraphs = split /\n\n/, $text;
         }
 
-        my @paragraphs = split /\n\n/, $text;
         return undef unless @paragraphs;
 
         my $maxl = max( map { length($_) } @paragraphs );
