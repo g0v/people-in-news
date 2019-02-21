@@ -42,27 +42,23 @@ sub looks_like_similar_host {
 sub gather_links {
     my ($urls, $url_seen) = @_;
 
-    state $ua = Mojo::UserAgent->new()->transactor(
-        Mojo::UserAgent::Transactor->new()->name('Mozilla/5.0 (Macintosh; Intel Mac OS X 10.13; rv:62.0) Gecko/20100101 Firefox/62.0')
-    )->max_redirects(3);
+    my $ua = Sn::ua();
 
     my @promises;
-    my @discovered;
     my @linkstack = (@$urls);
     my %seen = map { $_ => 1 } @linkstack;
 
-    while (!$STOP && @linkstack) {
+    my $count = 0;
+    while ($count++ < 200 && !$STOP && @linkstack) {
         my $url = pop @linkstack;
         push @promises, $ua->get_p($url)->then(
             sub {
                 my ($tx) = @_;
                 return unless $tx->res->is_success;
                 my $uri = URI->new( "". $tx->req->url->to_abs );
+                say $count++ . ". $uri";
 
-                my $count = 0;
                 for my $e ($tx->res->dom->find('a[href]')->each) {
-                    last if $count++ > 9999;
-
                     my $href = $e->attr("href") or next;
                     my $u = URI->new_abs("$href", $uri);
                     $u->fragment("");
@@ -75,9 +71,7 @@ sub gather_links {
                         ($u !~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf|zip|docx?|xls|apk )\z/ix)
                     ) {
                         $seen{$u} = 1;
-                        unless ($url_seen->test("$u")) {
-                            push @discovered, "$u";
-                        }
+                        push @linkstack, "$u";
                     }
                 }
             }
@@ -85,10 +79,11 @@ sub gather_links {
             sub {
                 my $err = shift;
                 err "ERR: $err: $url";
+                $count++;
             }
         );
 
-        if (@promises > 4 || @linkstack == 0) {
+        if (@promises > 4) {
             Mojo::Promise->all(@promises)->wait();
             @promises = ();
         }
@@ -99,7 +94,7 @@ sub gather_links {
         @promises = ();
     }
 
-    return [ uniqstr(@discovered) ];
+    return [ grep { ! $url_seen->test("$_") } uniqstr(@linkstack) ];
 }
 
 sub extract_info {
