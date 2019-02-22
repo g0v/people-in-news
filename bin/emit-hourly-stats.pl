@@ -47,7 +47,7 @@ while (my $article = $articles->next) {
     $stats{URLHOST}{$host}++;
 }
 
-my $graphite = Net::Graphite->new( host => '127.0.0.1', proto => 'udp' );
+my $graphite = Net::Graphite->new( host => '127.0.0.1' );
 for my $category ( keys %stats ) {
     for my $s (keys %{$stats{$category}}) {
         my $metric = join '.', qw(hourly csum substr-in-news), $category, graphite_metric_escape($s);
