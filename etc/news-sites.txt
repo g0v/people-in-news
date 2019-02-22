@@ -142,3 +142,7 @@ https://tnntoday.com/
 http://newnet.tw/
 https://cn.wsj.com/zh-hant
 http://www.greatnews.com.tw/home/index.php
+http://www.ksnews.com.tw/index.php
+http://mol.mcu.edu.tw/
+http://www.southnews.com.tw/
+http://www.matsu-news.gov.tw/
