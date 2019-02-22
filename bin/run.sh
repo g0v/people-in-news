@@ -15,6 +15,7 @@ perl -Ilib bin/build-www.pl -i var/www -o var/www
 perl -Ilib bin/merge.pl --db var/db 
 
 perl -Ilib bin/build-dailystats.pl --db var/db -o var/db
+perl -Ilib bin/emit-hourly-stats.pl --db var/db
 
 ts_end=$(date +%s)
 
