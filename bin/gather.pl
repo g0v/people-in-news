@@ -151,11 +151,11 @@ sub process {
         sub {
             my ($tx, $url) = @_;
             my $info = extract_info($tx);
-            push @processed_links, $url;
             if ($info) {
                 my $line = encode_json($info) . "\n";
                 print $fh $line;
                 $extracted_count++;
+                push @processed_links, $url;
             } else {
                 say "[$$] Fail to extract from $url";
             }
