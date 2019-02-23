@@ -4,7 +4,7 @@ requires 'File::Next';
 requires 'Firefox::Marionette'    => '0.66';
 requires 'HTML::ExtractContent';
 requires 'IO::Socket::SSL'        => '2.060';
-requires 'JSON';
+requires 'JSON' => 4;
 requires 'MCE::Loop';
 requires 'Mojo::UserAgent';
 requires 'Moo';
