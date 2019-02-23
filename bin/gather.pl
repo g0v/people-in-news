@@ -94,7 +94,7 @@ sub gather_links {
         @promises = ();
     }
 
-    return [ grep { ! $url_seen->test("$_") } uniqstr(@linkstack) ];
+    return [ grep { ! $url_seen->test("$_") } keys %seen ];
 }
 
 sub extract_info {
