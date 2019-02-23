@@ -135,40 +135,48 @@ sub process {
     open my $fh, '>', $out;
     $fh->autoflush(1);
 
-    my @links = @{ gather_links($urls, $url_seen) };
-    if (@links) {
-        say "[$$] TODO: " . (0 + @links) . " discovered links from " . join(" ", @$urls);
-    }
-
-    my @promises;
     my $error_count = 0;
     my $extracted_count = 0;
-    my @processed_links;
 
-    Sn::urls_get_all(
-        \@links,
-        sub {
-            my ($tx, $url) = @_;
-            my $info = extract_info($tx);
-            if ($info) {
-                my $line = encode_json($info) . "\n";
-                print $fh $line;
-                $extracted_count++;
-                push @processed_links, $url;
-            } else {
-                say "[$$] Fail to extract from $url";
+    my @links = @{ gather_links($urls, $url_seen) };
+
+    my %seen;
+    while (!$STOP && @links && $extracted_count < 999) {
+        my (@discovered_links, @processed_links);
+
+        say "[$$] TODO: " . (0 + @links) . " discovered links from " . join(" ", @$urls);
+
+        Sn::urls_get_all(
+            \@links,
+            sub {
+                my ($tx, $url) = @_;
+                my $info = extract_info($tx);
+                if ($info) {
+                    my $line = encode_json($info) . "\n";
+                    print $fh $line;
+                    $extracted_count++;
+                    push @processed_links, $url;
+                } else {
+                    unless ($seen{$url}) {
+                        push @discovered_links, $url;
+                        $seen{$url} = 1;
+                    }
+                    say "[$$] Fail to extract from $url";
+                }
+                return $STOP ? 0 : 1;
+            },
+            sub {
+                my ($error, $url) = @_;
+                say STDERR "ERROR:\t$error\t$url";
+                return $STOP ? 0 : 1;
             }
-            return $STOP ? 0 : 1;
-        },
-        sub {
-            my ($error, $url) = @_;
-            say STDERR "ERROR:\t$error\t$url";
-            return $STOP ? 0 : 1;
-        }
-    );
+        );
 
-    if (@processed_links) {
-        MCE->do('add_to_url_seen', \@processed_links);
+        if (@processed_links) {
+            MCE->do('add_to_url_seen', \@processed_links);
+        }
+
+        @links = grep { ! $seen{$_} } @{ gather_links(\@discovered_links, $url_seen) };
     }
 
     close($fh);
