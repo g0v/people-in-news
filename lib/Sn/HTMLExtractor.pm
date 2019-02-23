@@ -62,7 +62,7 @@ package Sn::HTMLExtractor {
                 s/\r\n/\n/g;
                 s/\A\s+//;
                 s/\s+\z//;
-
+                s/\n\n\n+/\n\n/;
                 $_ ? $_ : ()
             }
         )->each;
