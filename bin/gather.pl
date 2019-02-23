@@ -46,7 +46,7 @@ sub gather_links {
 
     my @promises;
     my @linkstack = (@$urls);
-    my %seen = map { $_ => 1 } @linkstack;
+    my %seen;
 
     my $count = 0;
     while ($count++ < 200 && !$STOP && @linkstack) {
@@ -63,16 +63,15 @@ sub gather_links {
                     my $u = URI->new_abs("$href", $uri);
                     $u->fragment("");
                     $u = URI->new($u->as_string =~ s/#$//r);
-
-                    if ((! defined($seen{"$u"})) &&
-                        $u->scheme =~ /^http/ &&
-                        $u->host &&
-                        looks_like_similar_host($u->host, $uri->host) &&
-                        ($u !~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf|zip|docx?|xls|apk )\z/ix)
-                    ) {
-                        $seen{$u} = 1;
-                        push @linkstack, "$u";
-                    }
+                    next unless (
+                        $u->scheme =~ /^http/
+                        && $u->host
+                        && ($u !~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf|zip|docx?|xls|apk )\z/ix)
+                        && looks_like_similar_host($u->host, $uri->host)
+                        && (! defined($seen{"$u"}))
+                    );
+                    $seen{$u} = 1;
+                    push @linkstack, "$u";
                 }
             }
         )->catch(
