@@ -113,18 +113,19 @@ sub process {
                 my ($tx, $url) = @_;
                 my $info = extract_info($tx);
                 if ($info) {
-                    if ($info->{title}) {
-                        my $line = encode_json($info) . "\n";
-                        print $fh $line;
-                        $extracted_count++;
-                        push @processed_links, $url;
-                    }
-
                     for my $url (@{$info->{links} //[]}) {
                         unless ($seen{$url}) {
                             push @discovered_links, $url;
                             $seen{$url} = 1;
                         }
+                    }
+                    delete $info->{links};
+
+                    if ($info->{title}) {
+                        my $line = encode_json($info) . "\n";
+                        print $fh $line;
+                        $extracted_count++;
+                        push @processed_links, $url;
                     }
                 } else {
                     say "[$$] Fail to extract from $url";
