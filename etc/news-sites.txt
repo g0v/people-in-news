@@ -156,3 +156,5 @@ http://twlugang.com/
 http://www.taiwantimes.com.tw/index.php
 http://www.taidaily.com/
 http://pacific-times.com/
+http://pingtungtimes.com.tw
+https://www.miaoli-news.com.tw/news.html
