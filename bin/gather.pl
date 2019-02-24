@@ -39,63 +39,6 @@ sub looks_like_similar_host {
     return ( 0 == index($rhost2, $rhost1) );
 }
 
-sub gather_links {
-    my ($urls, $url_seen) = @_;
-
-    my $ua = Sn::ua();
-
-    my @promises;
-    my @linkstack = (@$urls);
-    my %seen;
-
-    my $count = 0;
-    while ($count++ < 200 && !$STOP && @linkstack) {
-        my $url = pop @linkstack;
-        push @promises, $ua->get_p($url)->then(
-            sub {
-                my ($tx) = @_;
-                return unless $tx->res->is_success;
-                my $uri = URI->new( "". $tx->req->url->to_abs );
-                say $count++ . ". $uri";
-
-                for my $e ($tx->res->dom->find('a[href]')->each) {
-                    my $href = $e->attr("href") or next;
-                    my $u = URI->new_abs("$href", $uri);
-                    $u->fragment("");
-                    $u = URI->new($u->as_string =~ s/#$//r);
-                    next unless (
-                        $u->scheme =~ /^http/
-                        && $u->host
-                        && ($u !~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf|zip|docx?|xls|apk )\z/ix)
-                        && looks_like_similar_host($u->host, $uri->host)
-                        && (! defined($seen{"$u"}))
-                    );
-                    $seen{$u} = 1;
-                    push @linkstack, "$u";
-                }
-            }
-        )->catch(
-            sub {
-                my $err = shift;
-                err "ERR: $err: $url";
-                $count++;
-            }
-        );
-
-        if (@promises > 4) {
-            Mojo::Promise->all(@promises)->wait();
-            @promises = ();
-        }
-    }
-
-    if (@promises) {
-        Mojo::Promise->all(@promises)->wait();
-        @promises = ();
-    }
-
-    return [ grep { ! $url_seen->test("$_") } keys %seen ];
-}
-
 sub extract_info {
     my ($tx) = @_;
     my %info;
@@ -106,22 +49,40 @@ sub extract_info {
         return;
     }
     $info{t_fetched} = (0+ time());
+    $info{url}       = "". $tx->req->url->to_abs;
 
     my $charset = Sn::tx_guess_charset($tx) or return;
+
+    my (%seen, @links);
+    my $uri = URI->new( "". $tx->req->url->to_abs );
+    for my $e ($tx->res->dom->find('a[href]')->each) {
+        my $href = $e->attr("href") or next;
+        my $u = URI->new_abs("$href", $uri);
+        $u->fragment("");
+        $u = URI->new($u->as_string =~ s/#$//r);
+        next unless (
+            $u->scheme =~ /^http/
+            && $u->host
+            && ($u !~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf|zip|docx?|xls|apk )\z/ix)
+            && looks_like_similar_host($u->host, $uri->host)
+            && (! defined($seen{"$u"}))
+        );
+        $seen{$u} = 1;
+    }
+    $info{links} = [keys %seen];
 
     my $html = decode($charset, $res->body);
 
     my $extractor = Sn::HTMLExtractor->new( html => $html );
 
     my $title = $extractor->title;
-    return unless $title;
+    return \%info unless $title;
 
     my $text = $extractor->content_text;
-    return unless $text;
+    return \%info unless $text;
 
     $info{title}        = "". $title;
     $info{content_text} = "". $text;
-    $info{url}          = "". $tx->req->url->to_abs;
     $info{substrings}   = Sn::extract_substrings([ $title, $text ]);
     $info{t_extracted}  = (0+ time());
 
@@ -138,32 +99,37 @@ sub process {
     my $error_count = 0;
     my $extracted_count = 0;
 
-    my @links = @{ gather_links($urls, $url_seen) };
+    my @links = @$urls;
+    my %seen = map { $_ => 1 } @links;
 
-    my %seen;
-    while (!$STOP && @links && $extracted_count < 999) {
+    my $round = 0;
+    while (!$STOP && @links && $round++ < 3) {
         my (@discovered_links, @processed_links);
 
-        say "[$$] TODO: " . (0 + @links) . " discovered links from " . join(" ", @$urls);
-
+        say "[$$] TODO: " . (0 + @links) . " urls";
         Sn::urls_get_all(
             \@links,
             sub {
                 my ($tx, $url) = @_;
                 my $info = extract_info($tx);
                 if ($info) {
-                    my $line = encode_json($info) . "\n";
-                    print $fh $line;
-                    $extracted_count++;
-                    push @processed_links, $url;
-                } else {
-                    unless ($seen{$url}) {
-                        push @discovered_links, $url;
-                        $seen{$url} = 1;
+                    if ($info->{title}) {
+                        my $line = encode_json($info) . "\n";
+                        print $fh $line;
+                        $extracted_count++;
+                        push @processed_links, $url;
                     }
+
+                    for my $url (@{$info->{links} //[]}) {
+                        unless ($seen{$url}) {
+                            push @discovered_links, $url;
+                            $seen{$url} = 1;
+                        }
+                    }
+                } else {
                     say "[$$] Fail to extract from $url";
                 }
-                return $STOP ? 0 : 1;
+                return ($STOP || ($extracted_count > 999)) ? 0 : 1;
             },
             sub {
                 my ($error, $url) = @_;
@@ -176,7 +142,7 @@ sub process {
             MCE->do('add_to_url_seen', \@processed_links);
         }
 
-        @links = grep { ! $seen{$_} } @{ gather_links(\@discovered_links, $url_seen) };
+        @links = grep { ! $url_seen->test("$_") } @discovered_links;
     }
 
     close($fh);
@@ -212,7 +178,7 @@ if (@ARGV) {
     );
 }
 
-MCE::Loop::init { chunk_size => 'auto', max_workers => 4 };
+MCE::Loop::init { chunk_size => 'auto' };
 
 mce_loop {
     # jsonl => http://jsonlines.org/
