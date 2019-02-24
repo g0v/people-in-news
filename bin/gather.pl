@@ -188,6 +188,6 @@ mce_loop {
         $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
     }
     process($_, $url_seen, $output);
-} @initial_urls;
+} shuffle @initial_urls;
 
 $url_seen->save;
