@@ -4,6 +4,7 @@ http://www.eventsinfocus.org/rss.xml
 https://www.cmmedia.com.tw/rss/yahoo/article
 https://www.cw.com.tw/RSS/cw_content.xml
 https://www.cw.com.tw/RSS/english.xml
+https://www.cw.com.tw/RSS/opinion.xml
 http://feeds.feedburner.com/techbang/daily
 http://news.ltn.com.tw/rss/business.xml
 http://news.ltn.com.tw/rss/consumer.xml
