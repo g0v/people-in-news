@@ -143,7 +143,7 @@ sub process {
             MCE->do('add_to_url_seen', \@processed_links);
         }
 
-        @links = grep { ! $url_seen->test("$_") } @discovered_links;
+        @links = grep { ( ! m{^https://twitter.com/intent/tweet/} ) && (! $url_seen->test("$_")) } @discovered_links;
     }
 
     close($fh);
