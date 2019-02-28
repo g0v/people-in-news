@@ -357,3 +357,5 @@ http://tbnews.com.tw/rss.php
 https://www.civilmedia.tw/feed
 http://feeds.feedburner.com/cnaFirstNews
 https://tnntoday.com/feed
+http://www.peopo.org/rss-news
+http://www.peopo.org/rss-top10
