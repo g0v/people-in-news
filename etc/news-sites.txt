@@ -43,7 +43,8 @@ https://musou.tw/
 https://newcongress.tw/
 https://news.cnyes.com/
 https://news.ebc.net.tw/
-https://news.ftv.com.tw/
+https://www.ftv.com.tw/index.aspx
+https://www.ftvnews.com.tw
 https://news.ltn.com.tw/list/breakingnews
 https://news.now.com/
 https://news.pts.org.tw/
