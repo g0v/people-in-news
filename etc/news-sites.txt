@@ -158,3 +158,5 @@ http://www.taidaily.com/
 http://pacific-times.com/
 http://pingtungtimes.com.tw
 https://www.miaoli-news.com.tw/news.html
+https://www.coolloud.org.tw
+http://www.eventsinfocus.org
