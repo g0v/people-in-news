@@ -359,3 +359,4 @@ http://feeds.feedburner.com/cnaFirstNews
 https://tnntoday.com/feed
 http://www.peopo.org/rss-news
 http://www.peopo.org/rss-top10
+http://www.thinkingtaiwan.com/rss/new
