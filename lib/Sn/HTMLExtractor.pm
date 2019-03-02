@@ -58,43 +58,29 @@ package Sn::HTMLExtractor {
 
         my ($text, @paragraphs);
         @paragraphs = map {
-            s/\A\s+//;
-            s/\s+\z//;
-            $_;            
+            s/\A\s+//s;
+            s/\s+\z//s;
+            $_ ? $_ : ();
         } $content_dom->find('*')->map('text')->map(
             sub {
-                s/\t/ /g;
-                s/\r\n/\n/g;
+                $_ = decode('utf8', $_) unless Encode::is_utf8($_);
 
-                split /\n\s+\n/, $_;
+                s/[\t\x{3000}]/ /gs;
+                s/\r\n/\n/g;
+                split /\n\s+\n?/, $_;
             }
         )->each;
 
-        if (@paragraphs) {
-            say "<<< $_\n" for @paragraphs;
-            $text = join("\n\n", @paragraphs);
-        } else {
-            $text = $content_dom->all_text;
-            for ($text) {
-                s/\x{fffd}//g;
-                s/\t/ /gs;
-                s/\r\n/\n/gs;
-                s/\n +/\n/gsm;
-                s/ +\n/\n/gsm;
-                s/\n\n\n/\n\n/gsm;
-            }
-            @paragraphs = split /\n\n/, $text;
+        unless (@paragraphs) {
+            return;
         }
 
-        return undef unless @paragraphs;
-
-        my $maxl = max( map { length($_) } @paragraphs );
-        if ($maxl < 60) {
+        if (max( map { length($_) } @paragraphs ) < 30) {
             # err "[$$] Not enough contents";
             return undef;
         }
 
-        return $text;
+        return join "\n\n", @paragraphs;
     }
 };
 
