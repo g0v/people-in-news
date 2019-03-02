@@ -43,14 +43,14 @@ sub build_atom_feed {
         close($fh);
     }
 
-    @articles = shuffle grep { $freq{title}{$_->{title}} == 1 && $freq{content_text}{$_->{content_text}} == 1 } @articles;
+    @articles = grep { $freq{title}{$_->{title}} == 1 && $freq{content_text}{$_->{content_text}} == 1 } @articles;
 
     for my $article (@articles) {
         my $item = $feed->add_item(
             link => $article->{url},
             title => $article->{title},
         );
-        $item->set_value(content => markdown($article->{content_text}), type => "html");
+        $item->set_value(content => markdown(summarize($article->{content_text})), type => "html");
 
         my @categories;
         for (keys %{$article->{substrings}}) {
@@ -67,15 +67,32 @@ sub build_atom_feed {
     return $feed;
 }
 
+sub summarize {
+    my ($text) = @_;
+
+    my $summary = "";
+    my @paragraphs = split /\n\n+/, $text;
+    return $text if @paragraphs < 2;
+
+    @paragraphs = map {
+        s/\A\s+//s;
+        s/\s+\z//s;
+        s/\s+/ /g;
+        $_;
+    } uniq(@paragraphs);
+
+    return join "\r\n\r\n", @paragraphs;
+}
+
 sub write_atom_feed {
-    my $feed = build_atom_feed(@_);
+    my $feed = $_[0]->{feed};
     my $output = $_[0]->{output};
     unlink($output) if -f $output;
     $feed->to_file($output);
 }
 
 sub write_atom_feed_link_only {
-    my $feed = build_atom_feed(@_);
+    my $feed = $_[0]->{feed};
     my $output = $_[0]->{output};
 
     my $i = 0;
@@ -107,13 +124,14 @@ my @things = map {
 } glob("$opts{db}/articles-*.jsonl");
 
 if (@things) {
+    my $feed = build_atom_feed({ input => [map { $_->{input} } @things] });
     write_atom_feed({
-        input => [map { $_->{input} } @things],
+        feed => $feed,
         output => $opts{o} . "/articles-latest.atom",
     });
 
     write_atom_feed_link_only({
-        input => [map { $_->{input} } @things],
+        feed => $feed,
         output => $opts{o} . "/articles-latest-link-only.atom",
     });
 }
