@@ -74,7 +74,9 @@ sub summarize {
     my @paragraphs = split /\n\n+/, $text;
     return $text if @paragraphs < 2;
 
-    @paragraphs = map {
+    @paragraphs = grep {
+        /\p{Punct}/
+    } map {
         s/\A\s+//s;
         s/\s+\z//s;
         s/\s+/ /g;
