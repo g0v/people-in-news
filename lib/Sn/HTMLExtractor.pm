@@ -1,4 +1,5 @@
 package Sn::HTMLExtractor {
+    use v5.18;
     use Moo;
 
     use List::Util qw(max);
@@ -56,18 +57,21 @@ package Sn::HTMLExtractor {
         $content_dom->find('br')->each(sub { $_[0]->replace("\n<br>") });
 
         my ($text, @paragraphs);
-        @paragraphs = $content_dom->find('*')->map('text')->map(
+        @paragraphs = map {
+            s/\A\s+//;
+            s/\s+\z//;
+            $_;            
+        } $content_dom->find('*')->map('text')->map(
             sub {
                 s/\t/ /g;
                 s/\r\n/\n/g;
-                s/\A\s+//;
-                s/\s+\z//;
-                s/\n\n\n+/\n\n/;
-                $_ ? $_ : ()
+
+                split /\n\s+\n/, $_;
             }
         )->each;
 
         if (@paragraphs) {
+            say "<<< $_\n" for @paragraphs;
             $text = join("\n\n", @paragraphs);
         } else {
             $text = $content_dom->all_text;
