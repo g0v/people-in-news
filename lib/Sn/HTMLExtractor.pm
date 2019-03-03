@@ -44,9 +44,28 @@ package Sn::HTMLExtractor {
 
     sub dateline {
         my ($self) = @_;
-        my $dateline = "";
-        my $guess = $self->dom->at(".reporter time");
-        $dateline = $guess->text if $guess;
+        my $dateline;
+        my $guess;
+
+        if ($guess = $self->dom->at("time[itemprop=datePublished][datetime]")) {
+            $dateline = $guess->attr('datetime');
+        }
+        elsif ($guess = $self->dom->at(".reporter time")) {
+            $dateline = $guess->text
+        }
+        elsif ($guess = $self->dom->at("div#articles cite")) {
+            $guess->at("a")->remove;
+            $dateline = $guess->text;
+        }
+        elsif ($guess = $self->dom->at("span.time, span.viewtime")) {
+            $dateline = $guess->text;
+        }
+        elsif ($guess = $self->dom->at("header.article-desc time")) {
+            $dateline = $guess->text;
+        }
+        elsif ($guess = $self->dom->at("article.ndArticle_leftColumn div.ndArticle_creat")) {
+            ($dateline) = $guess->text =~ m#([0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2})#;
+        }
 
         if ($dateline) {
             $dateline = normalize_whitespace($dateline);
