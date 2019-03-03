@@ -85,6 +85,20 @@ package Sn::HTMLExtractor {
         elsif ($guess = $self->dom->at("article.entry-content div:nth-child(2)")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})#;
         }
+        else {
+        # Search ALL the DOM!
+            $self->dom->find('*')->each(
+                sub {
+                    my $el = $_[0];
+                    if ($el->text =~ m#( [0-9]{4} [\-/] [0-9]{1,2} [\-/] [0-9]{1,2} (\s+ [0-9]{2}:[0-9]{2}(:[0-9]{2})?)?)#sx) {
+                        $dateline = $1;
+                    }
+                    elsif ($el->text =~ m#( [0-9]{4} \s* 年 \s* [0-9]{1,2} \s* 月 \s* [0-9]{1,2} \s* 日 \s* ([0-9]{2}:[0-9]{2}(:[0-9]{2})?)?)#sx) {
+                        $dateline = $1;
+                    }
+                }
+            );
+        }
 
         if ($dateline) {
             $dateline = normalize_whitespace($dateline);
