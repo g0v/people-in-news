@@ -85,6 +85,9 @@ package Sn::HTMLExtractor {
         elsif ($guess = $self->dom->at("article.entry-content div:nth-child(2)")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})#;
         }
+        elsif ($guess = $self->dom->at("span.submitted-by")) {
+            ($dateline) = $guess->text =~ m#([0-9]{1,2}\s*月\s*[0-9]{1,2}(\s*日\s*)?,\s*[0-9]{4})#x;
+        }
         else {
         # Search ALL the DOM!
             $self->dom->find('*')->each(
