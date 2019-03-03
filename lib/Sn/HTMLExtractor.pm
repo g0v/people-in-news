@@ -47,19 +47,36 @@ package Sn::HTMLExtractor {
         my $dateline;
         my $guess;
 
-        if ($guess = $self->dom->at("time[itemprop=datePublished][datetime]")) {
+        if ($guess = $self->dom->at("time[itemprop=datePublished][datetime], h1 time[datetime]")) {
             $dateline = $guess->attr('datetime');
         }
-        elsif ($guess = $self->dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span")) {
+        elsif ($guess = $self->dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime")) {
             $dateline = $guess->text;
         }
         elsif ($guess = $self->dom->at("div#articles cite")) {
             $guess->at("a")->remove;
             $dateline = $guess->text;
         }
-        elsif ($guess = $self->dom->at("article.ndArticle_leftColumn div.ndArticle_creat")) {
+        elsif ($guess = $self->dom->at("article.ndArticle_leftColumn div.ndArticle_creat, ul.info li.date, .cpInfo .cp, .nsa3 .tt27")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2})#;
         }
+        elsif ($guess = $self->dom->at(".news-toolbar .news-toolbar__cell")) {
+            ($dateline) = $guess->text =~ m#([0-9]{4}/[0-9]{2}/[0-9]{2})#;
+        }
+        elsif ($guess = $self->dom->at(".content .writer span:nth-child(2)")) {
+            ($dateline) = $guess->text =~ m#([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2})#;
+        }
+        elsif ($guess = $self->dom->at("div.contentBox div.content_date")) {
+            ($dateline) = $guess->text =~ m#([0-9]{4}\.[0-9]{2}\.[0-9]{2} \| [0-9]{2}:[0-9]{2})#;
+        }
+        elsif ($guess = $self->dom->at("div.content-wrapper-right > div > div > div:nth-child(4)")) {
+            ($dateline) = $guess->text =~ m#([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})#;
+        }
+        elsif ($guess = $self->dom->at("span#ctl00_ContentPlaceHolder1_News_Label")) {
+            ($dateline) = $guess->text =~ m#([0-9]{4}/[0-9]{1,2}/[0-9]{1,2})#;
+        }
+
+        
 
         if ($dateline) {
             $dateline = normalize_whitespace($dateline);
