@@ -51,7 +51,7 @@ package Sn::HTMLExtractor {
         if ($guess = $self->dom->at("meta[property='article:modified_time'], meta[property='article:published_time']")) {
             $dateline = $guess->attr('content');
         }
-        elsif ($guess = $self->dom->at("time[itemprop=datePublished][datetime], h1 time[datetime]")) {
+        elsif ($guess = $self->dom->at("time[itemprop=datePublished][datetime], h1 time[datetime], .func_time time[pubdate]")) {
             $dateline = $guess->attr('datetime');
         }
         elsif ($guess = $self->dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime, article p.date, .post-meta > .icon-clock > span, .article_info_content span.info_time, .content time.page-date, .c_time")) {
@@ -81,6 +81,9 @@ package Sn::HTMLExtractor {
         }
         elsif ($guess = $self->dom->at(".news-info dd.date:nth-child(6)")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日[0-9]{2}:[0-9]{2})#;
+        }
+        elsif ($guess = $self->dom->at("article.entry-content div:nth-child(2)")) {
+            ($dateline) = $guess->text =~ m#([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})#;
         }
 
         if ($dateline) {
