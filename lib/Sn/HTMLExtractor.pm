@@ -50,7 +50,7 @@ package Sn::HTMLExtractor {
         if ($guess = $self->dom->at("time[itemprop=datePublished][datetime], h1 time[datetime]")) {
             $dateline = $guess->attr('datetime');
         }
-        elsif ($guess = $self->dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime, article p.date, .post-meta > .icon-clock > span, .article_info_content span.info_time")) {
+        elsif ($guess = $self->dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime, article p.date, .post-meta > .icon-clock > span, .article_info_content span.info_time, .content time.page-date")) {
             $dateline = $guess->text;
         }
         elsif ($guess = $self->dom->at("div#articles cite")) {
