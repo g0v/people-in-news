@@ -62,7 +62,7 @@ package Sn::HTMLExtractor {
             $dateline = $guess->text;
         }
         elsif ($guess = $self->dom->at("article.ndArticle_leftColumn div.ndArticle_creat, ul.info li.date, .cpInfo .cp, .nsa3 .tt27")) {
-            ($dateline) = $guess->text =~ m#([0-9]{4}/[0-9]{2}/[0-9]{2} [0-9]{2}:[0-9]{2})#;
+            ($dateline) = $guess->text =~ m#([0-9]{4}[\-/][0-9]{2}[\-/][0-9]{2} [0-9]{2}:[0-9]{2})#;
         }
         elsif ($guess = $self->dom->at(".news-toolbar .news-toolbar__cell")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}/[0-9]{2}/[0-9]{2})#;
