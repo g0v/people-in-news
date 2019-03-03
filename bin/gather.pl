@@ -85,6 +85,7 @@ sub extract_info {
     $info{content_text} = "". $text;
     $info{substrings}   = Sn::extract_substrings([ $title, $text ]);
     $info{t_extracted}  = (0+ time());
+    $info{dateline}     = $extractor->dateline;
 
     say "[$$] extracted: $info{url}";
     return \%info;

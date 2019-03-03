@@ -31,10 +31,11 @@ sub extract_feed_entries {
         sub {
             my $el = $_;
             my %o;
-            for (["link", "url"], ["origLink", "url"], ["title", "title"], ["description", "content"]) {
+            for (["link", "url"], ["origLink", "url"], ["title", "title"], ["description", "content"], ["pubDate", "dateline"]]) {
                 my $x = $el->at($_->[0]) or next;
                 $o{ $_->[1] } = $x->all_text;
             }
+
             push @articles, \%o if $o{url};
         }
     );
@@ -53,6 +54,12 @@ sub extract_feed_entries {
             }
             if ($x = $el->at("content")) {
                 $o{content} = $x->all_text;
+            }
+
+            if ($x = $el->at("updated")) {
+                $o{dateline} = $x->all_text;
+            } elsif($x = $el->at("published")) {
+                $o{dateline} = $x->all_text;
             }
 
             push @articles, \%o if $o{url};
@@ -117,11 +124,13 @@ sub fetch_and_extract_full_text {
                 my $charset = Sn::tx_guess_charset($tx);
                 if ($charset) {
                     my $html = decode($charset, $tx->res->body);
-                    my $text = Sn::HTMLExtractor->new(html => $html)->content_text;
+                    my $ex = Sn::HTMLExtractor->new(html => $html);
+                    my $text = $ex->content_text;
                     if ($text && length($text) > length($article->{content_text})) {
                         # $article->{feed_content_text} = $article->{content_text};
                         $article->{content_text} = "" . $text;
                         # say "Extracted: " . encode_utf8(substr($text, 0, 40)) . "...";
+                        $article->{dateline} = $ex->dateline;
                     }
                 }
 
