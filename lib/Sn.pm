@@ -187,8 +187,13 @@ sub tx_guess_charset {
     }
     $charset = 'utf-8-strict' if $charset && $charset =~ /utf-?8/i;
 
+    my $resbody = $tx->res->body;
     if (!$charset) {
-        my $enc = guess_encoding($tx->res->body, qw/big5 utf8/);
+        if (!defined($resbody) || $resbody eq '') {
+            return;
+        }
+
+        my $enc = guess_encoding($resbody, qw/big5 utf8/);
         $charset = $enc->name if $enc;
     }
 
