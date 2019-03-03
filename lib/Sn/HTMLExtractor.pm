@@ -6,7 +6,7 @@ package Sn::HTMLExtractor {
     use HTML::ExtractContent;
     use Mojo::DOM;
     use Types::Standard qw(Str InstanceOf);
-    use Encode qw(decode);
+    use Sn::TextUtil qw(normalize_whitespace);
 
     has html => (
         is => 'ro',
@@ -42,6 +42,18 @@ package Sn::HTMLExtractor {
         return $title;
     }
 
+    sub dateline {
+        my ($self) = @_;
+        my $dateline = "";
+        my $guess = $self->dom->at(".reporter time");
+        $dateline = $guess->text if $guess;
+
+        if ($dateline) {
+            $dateline = normalize_whitespace($dateline);
+        }
+        return $dateline;
+    }
+
     sub content_text {
         my ($self) = @_;
 
@@ -63,9 +75,7 @@ package Sn::HTMLExtractor {
             $_ ? $_ : ();
         } $content_dom->find('*')->map('text')->map(
             sub {
-                $_ = decode('utf8', $_) unless Encode::is_utf8($_);
-
-                s/[\t\x{3000}]/ /gs;
+                $_ = normalize_whitespace($_);
                 s/\r\n/\n/g;
                 split /\n\s+\n?/, $_;
             }
