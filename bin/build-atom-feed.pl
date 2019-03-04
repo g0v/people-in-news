@@ -47,6 +47,7 @@ sub build_atom_feed {
 
     @articles = grep { $freq{title}{$_->{title}} == 1 && $freq{content_text}{$_->{content_text}} == 1 } @articles;
 
+    my $now = time();
     for my $article (@articles) {
         my $item = $feed->add_item(
             link => $article->{url},
@@ -54,10 +55,10 @@ sub build_atom_feed {
         );
         $item->set_value(content => markdown(summarize($article->{content_text})), type => "html");
 
-        if ($article->{dateline}) {
-            if (my $t = Sn::parse_dateline($article->{dateline})) {
-                $item->pubDate($t);
-            }
+        if ($article->{dateline} && (my $t = Sn::parse_dateline($article->{dateline}))) {
+            $item->pubDate($t);
+        } else {
+            $item->pubDate($now);
         }
 
         my @categories;
