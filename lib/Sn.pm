@@ -44,7 +44,7 @@ sub urls_get_all {
             sub {
                 my ($tx) = @_;
                 unless ($tx->res->is_success) {
-                    say 'NOT SUCCESSFUL: ' . $url;
+                    say 'NOT SUCCESSFUL: ' . $tx->res->code . ': '. $url;
                     return;
                 }
                 # say STDERR "SUCCESSFUL: $url";
