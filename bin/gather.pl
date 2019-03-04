@@ -87,7 +87,14 @@ sub extract_info {
     $info{t_extracted}  = (0+ time());
     $info{dateline}     = $extractor->dateline;
 
-    say "[$$] extracted: $info{url}";
+    unless ($info{dateline}) {
+        if ($info{content_text} && $info{title}) {
+            say STDERR "Faild to extract dateline: $info{url}\n";
+        }
+        return;
+    }
+
+    # say "[$$] extracted: $info{url}";
     return \%info;
 }
 

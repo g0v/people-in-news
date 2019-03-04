@@ -13,6 +13,8 @@ use MCE::Loop;
 use XML::FeedPP;
 use List::Util qw(uniq shuffle);
 
+use Sn;
+
 sub build_atom_feed {
     my $input = $_[0]->{input};
     return unless $input;
@@ -51,6 +53,12 @@ sub build_atom_feed {
             title => $article->{title},
         );
         $item->set_value(content => markdown(summarize($article->{content_text})), type => "html");
+
+        if ($article->{dateline}) {
+            if (my $t = Sn::parse_dateline($article->{dateline})) {
+                $item->pubDate($t);
+            }
+        }
 
         my @categories;
         for (keys %{$article->{substrings}}) {

@@ -7,7 +7,9 @@ use Encode::Guess;
 use Encode qw(decode_utf8);
 use List::Util qw(uniqstr);
 use Mojo::Promise;
-
+use Time::Moment;
+use HTTP::Date ();
+use Try::Tiny;
 use Sn::TX;
 
 sub promise_loop {
@@ -203,6 +205,23 @@ sub tx_guess_charset {
     }
 
     return $charset;
+}
+
+sub parse_dateline {
+    my ($dateline) = @_;
+    my $tm = try { Time::Moment->from_string($dateline, lenient => 1) };
+    if (!$tm) {
+        if (my $ts = HTTP::Date::str2time($dateline, '+0800')) {
+            $tm = try {
+                Time::Moment->from_epoch($ts);
+            }
+        }
+    }
+
+    if ($tm) {
+        return $tm->strftime('%FT%X%Z');
+    }
+    return
 }
 
 1;

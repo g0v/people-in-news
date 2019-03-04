@@ -11,6 +11,8 @@ requires 'Moo';
 requires 'Regexp::Trie';
 requires 'Text::Markdown';
 requires 'Text::Markdown::Discount';
+requires 'Time::Moment';
+requires 'HTTP::Date';
 requires 'Try::Tiny';
 requires 'Type::Tiny';
 requires 'Types::URI';
