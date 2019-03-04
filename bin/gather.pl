@@ -24,7 +24,7 @@ use Sn::Extractor;
 use Sn::HTMLExtractor;
 
 ## global
-my $PROCESS_STARTED = time();
+my $PROCESS_START = time();
 my $STOP = 0;
 local $SIG{INT} = sub { $STOP = 1 };
 
@@ -101,8 +101,6 @@ sub extract_info {
 
 sub process {
     my ($urls, $url_seen, $out) = @_;
-
-    my $process_start = time();
 
     open my $fh, '>', $out;
     $fh->autoflush(1);
