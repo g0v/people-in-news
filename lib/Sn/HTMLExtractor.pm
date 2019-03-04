@@ -113,6 +113,8 @@ package Sn::HTMLExtractor {
 
         $content_dom->find('br')->map(replace => "\n");
 
+        $content_dom->find('strong,em,it,tt,a')->map(sub { $_->replace($_->all_text) });
+
         my ($text, @paragraphs);
         @paragraphs = map {
             s/\A\s+//s;
