@@ -31,7 +31,7 @@ sub extract_feed_entries {
         sub {
             my $el = $_;
             my %o;
-            for (["link", "url"], ["origLink", "url"], ["title", "title"], ["description", "content"], ["pubDate", "dateline"]]) {
+            for (["link", "url"], ["origLink", "url"], ["title", "title"], ["description", "content"], ["pubDate", "dateline"]) {
                 my $x = $el->at($_->[0]) or next;
                 $o{ $_->[1] } = $x->all_text;
             }
