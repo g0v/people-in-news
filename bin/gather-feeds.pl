@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use URI;
-use MCE::Loop;
+use Mojo::Promise;
 use Mojo::UserAgent;
 use JSON qw(encode_json);
 use Getopt::Long qw(GetOptions);
@@ -19,7 +19,6 @@ use Sn::HTMLExtractor;
 ## global
 my $STOP = 0;
 local $SIG{INT} = sub { $STOP = 1 };
-MCE::Loop::init { max_workers => 3 };
 
 sub extract_feed_entries {
     my ($tx) = @_;
@@ -79,79 +78,70 @@ sub extract_feed_entries {
 }
 
 sub gather_feed_links {
-    my ($urls) = @_;
+    my ($urls, $cb) = @_;
 
-    my @articles = mce_loop {
-        my $urls = $_;
-        my $ua = Mojo::UserAgent->new()->max_redirects(3);
+    my $ua = Mojo::UserAgent->new()->max_redirects(3);
 
-        my @articles;
+    Sn::urls_get_all(
+        $urls,
+        sub {
+            my ($tx, $url) = @_;
+            my $articles = extract_feed_entries($tx);
 
-        Sn::urls_get_all(
-            $urls,
-            sub {
-                my ($tx, $url) = @_;
-                push @articles, @{ extract_feed_entries($tx) };
-                return $STOP ? 0 : 1;
-            },
-            sub {
-                my ($error, $url) = @_;
-                say STDERR "ERROR:\t$error\t$url";
-                return $STOP ? 0 : 1;
-            }
-        );
+            $cb->($articles);
 
-        MCE->gather(@articles);
-    } @$urls;
-
-    return \@articles;
+            return $STOP ? 0 : 1;
+        },
+        sub {
+            my ($error, $url) = @_;
+            say STDERR "ERROR:\t$error\t$url";
+            return $STOP ? 0 : 1;
+        }
+    );
+    return;
 }
 
 sub fetch_and_extract_full_text {
-    my ($articles) = @_;
+    my ($articles, $cb) = @_;
 
-    my @o = mce_loop {
-        my @articles = @$_;
-        my @urls = map { $_->{url} } @articles;
-        my %u2a  = map { $_->{url} => $_ } @articles;
+    my @urls = map { $_->{url} } @$articles;
+    my %u2a  = map { $_->{url} => $_ } @$articles;
 
-        Sn::urls_get_all(
-            \@urls,
-            sub {
-                my ($tx, $url) = @_;
-                my $article = $u2a{$url};
+    Sn::urls_get_all(
+        \@urls,
+        sub {
+            my ($tx, $url) = @_;
+            my $article = $u2a{$url};
 
-                my $charset = Sn::tx_guess_charset($tx);
-                if ($charset) {
-                    my $html = decode($charset, $tx->res->body);
-                    my $ex = Sn::HTMLExtractor->new(html => $html);
-                    my $text = $ex->content_text;
-                    if ($text && length($text) > length($article->{content_text})) {
-                        # $article->{feed_content_text} = $article->{content_text};
-                        $article->{content_text} = "" . $text;
-                        # say "Extracted: " . encode_utf8(substr($text, 0, 40)) . "...";
-                        $article->{dateline} = $ex->dateline;
-                    }
+            my $charset = Sn::tx_guess_charset($tx);
+            if ($charset) {
+                my $html = decode($charset, $tx->res->body);
+                my $ex = Sn::HTMLExtractor->new(html => $html);
+                my $text = $ex->content_text;
+                if ($text && length($text) > length($article->{content_text})) {
+                    # $article->{feed_content_text} = $article->{content_text};
+                    $article->{content_text} = "" . $text;
+                    # say "Extracted: " . encode_utf8(substr($text, 0, 40)) . "...";
+                    $article->{dateline} = $ex->dateline;
                 }
-
-                $article->{substrings} = Sn::extract_substrings([ $article->{title}, $article->{content_text} ]);
-                $article->{t_extracted} = (0+ time());
-
-                MCE->gather([ $article, $tx->req->url ]);
-                return 1;
-            },
-            sub {
-                my ($error, $url) = @_;
-                say STDERR "ERROR: $url $error";
-                return 1;
             }
-        );
-    } @$articles;
 
-    my @new_articles = map { $_->[0] } @o;
-    my @new_urls = map { $_->[1] } @o;
-    return \@new_articles, \@new_urls;
-}
+            $article->{substrings} = Sn::extract_substrings([ $article->{title}, $article->{content_text} ]);
+            $article->{t_extracted} = (0+ time());
+
+            $cb->($article, $tx->req->url);
+
+            return $STOP ? 0 : 1;
+        },
+        sub {
+            my ($error, $url) = @_;
+            say STDERR "ERROR: $url $error";
+            return $STOP ? 0 : 1;
+        }
+    );
+
+    return;
+ }
 
 ## main
 my %opts;
@@ -171,21 +161,28 @@ if (@ARGV) {
 
 my $url_seen = Sn::Seen->new( store => ($opts{db} . "/url-seen.bloomfilter") );
 
-my $articles = gather_feed_links(\@initial_urls);
+my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
+open my $fh_articles_jsonl, '>', $output;
 
-@$articles = grep { ! $url_seen->test($_->{url}) } @$articles;
+gather_feed_links(
+    \@initial_urls,
+    sub {
+        my $articles = $_[0];
+        @$articles = grep { ! $url_seen->test($_->{url}) } @$articles;
+        return unless @$articles;
 
-if (@$articles) {
-    $url_seen->add(map { $_->{url} } @$articles);
-    ($articles, my $new_urls) = fetch_and_extract_full_text($articles);
+        fetch_and_extract_full_text(
+            $articles,
+            sub {
+                my ($article, $url) = @_;
 
-    $url_seen->add(@$new_urls);
-    $url_seen->save;
-
-    my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
-    open my $fh, '>', $output;
-    for (@$articles) {
-        print $fh encode_json($_) . "\n";
+                print $fh_articles_jsonl encode_json($article) . "\n";
+                $url_seen->add($article->{url});
+                $url_seen->add($url);
+            }
+        );
     }
-    close($fh);
-}
+);
+
+$url_seen->save;
+close($fh_articles_jsonl);
