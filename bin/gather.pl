@@ -24,6 +24,7 @@ use Sn::Extractor;
 use Sn::HTMLExtractor;
 
 ## global
+my $PROCESS_STARTED = time();
 my $STOP = 0;
 local $SIG{INT} = sub { $STOP = 1 };
 
@@ -101,6 +102,8 @@ sub extract_info {
 sub process {
     my ($urls, $url_seen, $out) = @_;
 
+    my $process_start = time();
+
     open my $fh, '>', $out;
     $fh->autoflush(1);
 
@@ -112,6 +115,8 @@ sub process {
 
     my $round = 0;
     while (!$STOP && @links && $round++ < 3) {
+        $STOP = 1 if time() - $PROCESS_START > 1200;
+
         my (@discovered_links, @processed_links);
 
         say "[$$] TODO: " . (0 + @links) . " urls";
@@ -196,6 +201,7 @@ mce_loop {
         sleep 1;
         $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
     }
+    $STOP = 1 if time() - $PROCESS_START > 3000;
     process($_, $url_seen, $output);
 } shuffle @initial_urls;
 
