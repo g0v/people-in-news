@@ -61,7 +61,7 @@ sub urls_get_all {
             }
         );
 
-        if (@promises > 3) {
+        if (@promises > 2) {
             Mojo::Promise->all(@promises)->wait;
             @promises = ();
         }
