@@ -76,7 +76,7 @@ package Sn::HTMLExtractor {
         elsif ($guess = $self->dom->at("div.content-wrapper-right > div > div > div:nth-child(4)")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})#;
         }
-        elsif ($guess = $self->dom->at("span#ctl00_ContentPlaceHolder1_News_Label")) {
+        elsif ($guess = $self->dom->at("span#ctl00_ContentPlaceHolder1_News_Label, #ctl00_ContentPlaceHolder1_UpdatePanel2 font[color=darkred]")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}/[0-9]{1,2}/[0-9]{1,2})#;
         }
         elsif ($guess = $self->dom->at(".news-info dd.date:nth-child(6)")) {
@@ -87,20 +87,6 @@ package Sn::HTMLExtractor {
         }
         elsif ($guess = $self->dom->at("span.submitted-by")) {
             ($dateline) = $guess->text =~ m#([0-9]{1,2}\s*月\s*[0-9]{1,2}(\s*日\s*)?,\s*[0-9]{4})#x;
-        }
-        else {
-        # Search ALL the DOM!
-            $self->dom->find('*')->each(
-                sub {
-                    my $el = $_[0];
-                    if ($el->text =~ m#( [0-9]{4} [\-/] [0-9]{1,2} [\-/] [0-9]{1,2} (\s+ [0-9]{2}:[0-9]{2}(:[0-9]{2})?)?)#sx) {
-                        $dateline = $1;
-                    }
-                    elsif ($el->text =~ m#( [0-9]{4} \s* 年 \s* [0-9]{1,2} \s* 月 \s* [0-9]{1,2} \s* 日 \s* ([0-9]{2}:[0-9]{2}(:[0-9]{2})?)?)#sx) {
-                        $dateline = $1;
-                    }
-                }
-            );
         }
 
         if ($dateline) {
