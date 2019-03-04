@@ -107,7 +107,11 @@ package Sn::HTMLExtractor {
             $html = $extractor->extract($self->html)->as_html;
         }
         $content_dom = Mojo::DOM->new('<body>' . $html . '</body>');
-        $content_dom->find('br')->each(sub { $_[0]->replace("\n<br>") });
+
+        # Remove the generic elements that somehow passed the ExtractContent filter.
+        $content_dom->find('p.appE1121')->map('remove');
+
+        $content_dom->find('br')->map(replace => "\n");
 
         my ($text, @paragraphs);
         @paragraphs = map {
