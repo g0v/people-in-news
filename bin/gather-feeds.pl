@@ -19,7 +19,7 @@ use Sn::HTMLExtractor;
 ## global
 my $STOP = 0;
 local $SIG{INT} = sub { $STOP = 1 };
-MCE::Loop::init { max_workers => 4 };
+MCE::Loop::init { max_workers => 3 };
 
 sub extract_feed_entries {
     my ($tx) = @_;
