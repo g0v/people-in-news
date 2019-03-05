@@ -109,7 +109,7 @@ package Sn::HTMLExtractor {
         $content_dom = Mojo::DOM->new('<body>' . $html . '</body>');
 
         # Remove the generic elements that somehow passed the ExtractContent filter.
-        $content_dom->find('p.appE1121')->map('remove');
+        $content_dom->find('p.appE1121, div.sexmask')->map('remove');
 
         $content_dom->find('br')->map(replace => "\n");
 
