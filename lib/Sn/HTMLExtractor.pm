@@ -48,7 +48,7 @@ package Sn::HTMLExtractor {
         my $dateline;
         my $guess;
 
-        if ($guess = $self->dom->at("meta[property='article:modified_time'], meta[property='article:published_time']")) {
+        if ($guess = $self->dom->at("meta[property='article:modified_time'], meta[property='article:published_time'], meta[itemprop=dateModified][content], meta[itemprop=datePublished][content]")) {
             $dateline = $guess->attr('content');
         }
         elsif ($guess = $self->dom->at("time[itemprop=datePublished][datetime], h1 time[datetime], .func_time time[pubdate]")) {
