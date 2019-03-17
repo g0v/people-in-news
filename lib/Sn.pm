@@ -10,6 +10,7 @@ use Mojo::Promise;
 use Time::Moment;
 use HTTP::Date ();
 use Try::Tiny;
+use Path::Tiny qw(path);
 use Sn::TX;
 
 sub promise_loop {
@@ -125,6 +126,12 @@ sub read_string_list {
     } @{ readlines_utf8($fn) };
 
     return \@lines;
+}
+
+sub load_substr_file {
+    my ($fn) = @_;
+    my @token = uniqstr map { split /\t+/ } @{ read_string_list($fn) };
+    return \@token;
 }
 
 sub extract_substrings {
