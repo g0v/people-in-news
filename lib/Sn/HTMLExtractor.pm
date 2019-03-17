@@ -4,9 +4,10 @@ package Sn::HTMLExtractor {
     use Moo;
 
     use List::Util qw(max);
+    use Encode qw(decode);
     use HTML::ExtractContent;
     use Mojo::DOM;
-    use Types::Standard qw(Str InstanceOf);
+    use Types::Standard qw(Str InstanceOf Maybe);
     use Sn::TextUtil qw(normalize_whitespace);
 
     has html => (
@@ -20,6 +21,11 @@ package Sn::HTMLExtractor {
         isa => InstanceOf['Mojo::DOM'],
     );
 
+    has site_name => (
+        is => "lazy",
+        isa => Maybe[Str],
+    );
+
     no Moo;
 
     sub _build_dom {
@@ -27,15 +33,35 @@ package Sn::HTMLExtractor {
         return Mojo::DOM->new($self->html);
     }
 
+    sub _build_site_name {
+        my ($self) = @_;
+
+        my $el = $self->dom->at("meta[property='og:site_name']");
+        if ($el) {
+            return $el->attr('content');
+        }
+
+        return undef;
+    }
+
     sub title {
         my ($self) = @_;
-        my $title_el = $self->dom->find("title");
-        unless ($title_el->[0]) {
+
+        my $site_name = $self->site_name;
+        my ($title, $el);
+
+        if ($el = $self->dom->at("meta[property='og:title']")) {
+            $title = $el->attr("content");
+        } elsif ($el = $self->dom->at("title")) {
+            $title = $el->text . "";
+            return;
+        } else {
             return;
         }
 
-        my $title;
-        $title = $title_el->[0]->text."";
+        if ($site_name) {
+            $title =~ s/\s* \p{Punct} \s* $site_name \s* \z//x;
+        }
         $title =~ s/\r\n/\n/g;
         $title =~ s/\A\s+//;
         $title =~ s/\s+\z//;
@@ -130,6 +156,13 @@ package Sn::HTMLExtractor {
 
         unless (@paragraphs) {
             return;
+        }
+
+        if (my $site_name = $self->site_name) {
+            $paragraphs[-1] =~ s/\A \s* \p{Punct}? \s* ${site_name} \s* \p{Punct}? \s* \z//x;
+            $paragraphs[-1] =~ s/${site_name}//x;
+
+            pop @paragraphs if $paragraphs[-1] eq '';
         }
 
         if (max( map { length($_) } @paragraphs ) < 30) {
