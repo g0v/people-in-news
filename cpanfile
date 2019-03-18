@@ -22,3 +22,4 @@ requires 'String::Trim';
 requires 'PerlIO::via::gzip';
 requires 'Chart::Plotly';
 requires 'Net::Graphite';
+requires 'JSON::Feed';
