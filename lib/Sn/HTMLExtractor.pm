@@ -9,6 +9,7 @@ package Sn::HTMLExtractor {
     use Mojo::DOM;
     use Types::Standard qw(Str InstanceOf Maybe);
     use Sn::TextUtil qw(normalize_whitespace);
+    use Sn::Constants qw(%SNRE);
 
     has html => (
         is => 'ro',
@@ -62,6 +63,9 @@ package Sn::HTMLExtractor {
         if ($site_name) {
             $title =~ s/\s* \p{Punct} \s* $site_name \s* \z//x;
         }
+
+        $title  =~ s/\p{Punct} \s* $SNRE{newspaper_names} \s* \z//x;
+
         $title =~ s/\r\n/\n/g;
         $title =~ s/\A\s+//;
         $title =~ s/\s+\z//;
@@ -161,9 +165,11 @@ package Sn::HTMLExtractor {
         if (my $site_name = $self->site_name) {
             $paragraphs[-1] =~ s/\A \s* \p{Punct}? \s* ${site_name} \s* \p{Punct}? \s* \z//x;
             $paragraphs[-1] =~ s/${site_name}//x;
-
-            pop @paragraphs if $paragraphs[-1] eq '';
         }
+
+        $paragraphs[-1] =~ s/\A \s* \p{Punct}? \s* $SNRE{newspaper_names} \s* \p{Punct}? \s* \z//x;
+
+        pop @paragraphs if $paragraphs[-1] eq '';
 
         if (max( map { length($_) } @paragraphs ) < 30) {
             # err "[$$] Not enough contents";
