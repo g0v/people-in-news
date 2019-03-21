@@ -84,7 +84,7 @@ package Sn::HTMLExtractor {
         elsif ($guess = $self->dom->at("time[itemprop=datePublished][datetime], h1 time[datetime], .func_time time[pubdate]")) {
             $dateline = $guess->attr('datetime');
         }
-        elsif ($guess = $self->dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime, article p.date, .post-meta > .icon-clock > span, .article_info_content span.info_time, .content time.page-date, .c_time, .newsContent p.time, .story_bady_info_author span:nth-child(1)")) {
+        elsif ($guess = $self->dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, .author .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime, article p.date, .post-meta > .icon-clock > span, .article_info_content span.info_time, .content time.page-date, .c_time, .newsContent p.time, .story_bady_info_author span:nth-child(1)")) {
             $dateline = $guess->text;
         }
         elsif ($guess = $self->dom->at("div#articles cite")) {
@@ -131,19 +131,21 @@ package Sn::HTMLExtractor {
         my $extractor = HTML::ExtractContent->new;
 
         my ($content_dom, $el, $html);
+
+
         if ($el = $self->dom->at('article')) {
             $html = $extractor->extract("$el")->as_html;
         } else {
-            $html = $extractor->extract($self->html)->as_html;
+            # Remove the generic elements that somehow passed the ExtractContent filter.
+            $self->dom->find('p.appE1121, div.sexmask')->map('remove');
+
+            $html = $extractor->extract( $self->dom->to_string )->as_html;
         }
+
         $content_dom = Mojo::DOM->new('<body>' . $html . '</body>');
 
-        # Remove the generic elements that somehow passed the ExtractContent filter.
-        $content_dom->find('p.appE1121, div.sexmask')->map('remove');
-
         $content_dom->find('br')->map(replace => "\n");
-
-        $content_dom->find('strong,em,it,tt,a')->map(sub { $_->replace($_->all_text) });
+        $content_dom->find('span,strong,em,it,tt,a')->map(sub { $_->replace($_->all_text) });
 
         my ($text, @paragraphs);
         @paragraphs = map {
