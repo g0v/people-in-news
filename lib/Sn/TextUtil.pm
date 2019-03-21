@@ -11,6 +11,7 @@ package Sn::TextUtil {
     sub normalize_whitespace {
         local $_ = $_[0];
         s/[\t\x{3000} ]+/ /g;
+        s/\r\n/\n/g;
         s/\A\s+//;
         s/\s+\z//;
         return $_;

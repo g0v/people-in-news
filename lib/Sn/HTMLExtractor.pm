@@ -129,40 +129,23 @@ package Sn::HTMLExtractor {
         my ($self) = @_;
 
         my $extractor = HTML::ExtractContent->new;
-
         my ($content_dom, $el, $html);
-
-
         if ($el = $self->dom->at('article')) {
             $html = $extractor->extract("$el")->as_html;
         } else {
             # Remove the generic elements that somehow passed the ExtractContent filter.
-            $self->dom->find('p.appE1121, div.sexmask')->map('remove');
+            $self->dom->find('p.appE1121, div.sexmask, div.cat-list')->map('remove');
 
             $html = $extractor->extract( $self->dom->to_string )->as_html;
         }
 
         $content_dom = Mojo::DOM->new('<body>' . $html . '</body>');
-
+        $content_dom->find('script')->map('remove');
         $content_dom->find('br')->map(replace => "\n");
-        $content_dom->find('span,strong,em,it,tt,a')->map(sub { $_->replace($_->all_text) });
+        $content_dom->find('div,p')->map(append => "\n\n");
 
-        my ($text, @paragraphs);
-        @paragraphs = map {
-            s/\A\s+//s;
-            s/\s+\z//s;
-            $_ ? $_ : ();
-        } $content_dom->find('*')->map('text')->map(
-            sub {
-                $_ = normalize_whitespace($_);
-                s/\r\n/\n/g;
-                split /\n\s+\n?/, $_;
-            }
-        )->each;
-
-        unless (@paragraphs) {
-            return;
-        }
+        my @paragraphs = map { normalize_whitespace($_) } split /\n\n+/, $content_dom->all_text;
+        return unless @paragraphs;
 
         if (my $site_name = $self->site_name) {
             $paragraphs[-1] =~ s/\A \s* \p{Punct}? \s* ${site_name} \s* \p{Punct}? \s* \z//x;
