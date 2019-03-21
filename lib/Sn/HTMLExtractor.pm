@@ -103,7 +103,7 @@ package Sn::HTMLExtractor {
         elsif ($guess = $self->dom->at("div.contentBox div.content_date")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}\.[0-9]{2}\.[0-9]{2} \| [0-9]{2}:[0-9]{2})#;
         }
-        elsif ($guess = $self->dom->at("div.content-wrapper-right > div > div > div:nth-child(4)")) {
+        elsif ($guess = $self->dom->at("div.content-wrapper-right > div > div > div:nth-child(4), span.f12_15a_g2")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})#;
         }
         elsif ($guess = $self->dom->at("span#ctl00_ContentPlaceHolder1_News_Label, #ctl00_ContentPlaceHolder1_UpdatePanel2 font[color=darkred]")) {
