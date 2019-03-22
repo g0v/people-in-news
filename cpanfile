@@ -23,3 +23,4 @@ requires 'PerlIO::via::gzip';
 requires 'Chart::Plotly';
 requires 'Net::Graphite';
 requires 'JSON::Feed';
+requires 'Text::Util::Chinese', '0.04';
