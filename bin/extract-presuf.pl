@@ -3,15 +3,10 @@ use v5.26;
 use strict;
 use warnings;
 
-use Getopt::Long qw(GetOptions);
-use JSON::PP qw(encode_json decode_json);
-use Try::Tiny;
+use Getopt::Long qw< GetOptions >;
 use Encode qw< encode_utf8 >;
 use Text::Util::Chinese qw< extract_presuf >; ;
 
-use Sn;
-use Sn::Seen;
-use Sn::Extractor;
 use Sn::ArticleIterator;
 
 my %opts;
@@ -29,6 +24,7 @@ my $articles = Sn::ArticleIterator->new(
 
 my $threshold = $opts{threshold} || 42;      # an arbitrary choice.
 
+open my $fh_out, '>', $opts{db} . "/presuf.txt";
 extract_presuf(
     sub {
         if (my $article = $articles->next) {
@@ -37,8 +33,8 @@ extract_presuf(
         return undef;
     },
     sub {
-        my ($txt) = @_;
-        say encode_utf8($txt);
+        my ($tok) = @_;
+        say $fh_out encode_utf8("$tok");
     },
     +{
         threshold => $threshold,
