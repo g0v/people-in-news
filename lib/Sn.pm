@@ -4,7 +4,7 @@ use v5.18;
 use strict;
 use warnings;
 use Encode::Guess;
-use Encode qw(decode_utf8);
+use Encode qw(encode_utf8 decode_utf8);
 use List::Util qw(uniqstr);
 use Mojo::Promise;
 use Time::Moment;
@@ -189,9 +189,11 @@ sub tx_guess_charset {
     my $dom;
     if (!$charset) {
         $dom = $tx->res->dom;
-        if (my $meta_el = $dom->find("meta[http-equiv=Content-Type]")->first) {
-            ($charset) = $meta_el->{content} =~ m{charset=([^\s;]+)};
+        if (my $meta_el = $dom->at("meta[http-equiv=Content-Type]")) {
+            ($charset) = $meta_el->attr('content') =~ m{charset=([^\s;]+)};
             $charset = lc($charset) if defined($charset);
+        } else {
+            say $dom;
         }
     }
     $charset = 'utf-8-strict' if $charset && $charset =~ /utf-?8/i;
@@ -229,6 +231,24 @@ sub parse_dateline {
         return $tm->strftime('%FT%X%Z');
     }
     return
+}
+
+sub print_full_article {
+    my ($fh, $article) = @_;
+    my $out = "";
+
+    $out .= "# BEGIN ARTICLE\n";
+    $out .= "Title: $article->{title}\n";
+    $out .= "Dateline: " . ($article->{dateline} // "") . "\n";
+    $out .= "URL: $article->{url}\n";
+    for my $type (keys %{$article->{substrings}}) {
+        my @tokens = @{$article->{substrings}{$type}} or next;
+        $out .= "Token-${type}: " . join(" ", @tokens) . "\n";
+    }
+    $out .= "\n$article->{content_text}\n\n";
+    $out .= "# END ARTICLE\n";
+
+    say $fh encode_utf8($out);
 }
 
 1;
