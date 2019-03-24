@@ -24,7 +24,7 @@ has filter_file => (
     is => 'ro',
     isa => CodeRef,
     required => 1,
-    default => sub { 1 },
+    default => sub { return sub { 1 } },
 );
 
 has _file_iter => (
