@@ -192,8 +192,6 @@ sub tx_guess_charset {
         if (my $meta_el = $dom->at("meta[http-equiv=Content-Type]")) {
             ($charset) = $meta_el->attr('content') =~ m{charset=([^\s;]+)};
             $charset = lc($charset) if defined($charset);
-        } else {
-            say $dom;
         }
     }
     $charset = 'utf-8-strict' if $charset && $charset =~ /utf-?8/i;
