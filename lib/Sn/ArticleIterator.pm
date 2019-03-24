@@ -66,10 +66,7 @@ sub reify {
         }
     }
 
-    $self->reified(\@objs);
-    $self->_cursor(0);
-
-    return $self;
+    return \@objs;
 }
 
 1;

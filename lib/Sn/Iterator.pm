@@ -22,16 +22,14 @@ use overload '&{}' => sub {
 sub next {
     my ($self) = @_;
 
-    $self->reify unless $self->_has_cursor;
+    if ( !$self->_has_cursor || $self->_cursor == @{$self->reified}) {
+        $self->reified( $self->reify );
+        $self->_cursor(0);
+    }
 
     my $i = $self->_cursor;
-    if ($i == @{$self->reified}) {
-        $self->reify;
-        $i = $self->_cursor;
-    }
     $self->_cursor($i+1);
     return $self->reified->[$i];
 }
-
 
 1;
