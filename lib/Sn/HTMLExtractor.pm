@@ -53,9 +53,10 @@ package Sn::HTMLExtractor {
 
         if ($el = $self->dom->at("meta[property='og:title']")) {
             $title = $el->attr("content");
+        } elsif ($el = $self->dom->at("meta[name='title']")) {
+            $title = $el->attr('content') . "";
         } elsif ($el = $self->dom->at("title")) {
             $title = $el->text . "";
-            return;
         } else {
             return;
         }
