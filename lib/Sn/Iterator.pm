@@ -14,6 +14,11 @@ has reified => (
     default => sub { [ ] }
 );
 
+use overload '&{}' => sub {
+    my $self = $_[0];
+    return sub { $self->next() }
+};
+
 sub next {
     my ($self) = @_;
 
