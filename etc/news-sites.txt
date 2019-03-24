@@ -180,3 +180,4 @@ https://food.ltn.com.tw
 https://health.ltn.com.tw
 https://estate.ltn.com.tw
 https://news.ltn.com.tw/project
+https://www.singpao.com.hk/
