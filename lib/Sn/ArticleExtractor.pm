@@ -21,8 +21,6 @@ package Sn::ArticleExtractor {
         $article{t_fetched} = (0+ time());
         $article{url}       = "". $tx->req->url->to_abs;
 
-        my $charset = Sn::tx_guess_charset($tx) or return;
-
         my (%seen, @links);
         my $uri = URI->new( "". $tx->req->url->to_abs );
         for my $e ($tx->res->dom->find('a[href]')->each) {
@@ -40,6 +38,7 @@ package Sn::ArticleExtractor {
         }
         $article{links} = [keys %seen];
 
+        my $charset = Sn::tx_guess_charset($tx) or return;
         my $html = decode($charset, $res->body);
 
         my $extractor = Sn::HTMLExtractor->new( html => $html );

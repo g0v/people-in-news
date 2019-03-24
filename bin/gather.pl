@@ -22,6 +22,7 @@ use Sn;
 use Sn::Seen;
 use Sn::Extractor;
 use Sn::HTMLExtractor;
+use Sn::ArticleExtractor;
 
 ## global
 my $PROCESS_START = time();
@@ -38,65 +39,6 @@ sub looks_like_similar_host {
     my $rhost1 = reverse($host1);
     my $rhost2 = reverse($host2);
     return ( 0 == index($rhost2, $rhost1) );
-}
-
-sub extract_info {
-    my ($tx) = @_;
-    my %info;
-
-    my $res = $tx->res;
-    unless ($res->body) {
-        # err "[$$] NO BODY";
-        return;
-    }
-    $info{t_fetched} = (0+ time());
-    $info{url}       = "". $tx->req->url->to_abs;
-
-    my $charset = Sn::tx_guess_charset($tx) or return;
-
-    my (%seen, @links);
-    my $uri = URI->new( "". $tx->req->url->to_abs );
-    for my $e ($tx->res->dom->find('a[href]')->each) {
-        my $href = $e->attr("href") or next;
-        my $u = URI->new_abs("$href", $uri);
-        $u->fragment("");
-        $u = URI->new($u->as_string =~ s/#$//r);
-        next unless (
-            $u->scheme =~ /^http/
-            && $u->host
-            && ($u !~ /\.(?: jpe?g|gif|png|wmv|mp[g234]|web[mp]|pdf|zip|docx?|xls|apk )\z/ix)
-            && looks_like_similar_host($u->host, $uri->host)
-            && (! defined($seen{"$u"}))
-        );
-        $seen{$u} = 1;
-    }
-    $info{links} = [keys %seen];
-
-    my $html = decode($charset, $res->body);
-
-    my $extractor = Sn::HTMLExtractor->new( html => $html );
-
-    my $title = $extractor->title;
-    return \%info unless $title;
-
-    my $text = $extractor->content_text;
-    return \%info unless $text;
-
-    $info{title}        = "". $title;
-    $info{content_text} = "". $text;
-    $info{substrings}   = Sn::extract_substrings([ $title, $text ]);
-    $info{t_extracted}  = (0+ time());
-    $info{dateline}     = $extractor->dateline;
-
-    unless ($info{dateline}) {
-        if ($info{content_text} && $info{title}) {
-            say STDERR "Faild to extract dateline: $info{url}\n";
-        }
-        return;
-    }
-
-    # say "[$$] extracted: $info{url}";
-    return \%info;
 }
 
 sub process {
@@ -122,18 +64,21 @@ sub process {
             \@links,
             sub {
                 my ($tx, $url) = @_;
-                my $info = extract_info($tx);
-                if ($info) {
-                    for my $url (@{$info->{links} //[]}) {
-                        unless ($seen{$url}) {
-                            push @discovered_links, $url;
-                            $seen{$url} = 1;
+                my $host_old = URI->new($url)->host;
+                my $article = Sn::ArticleExtractor->new( tx => $tx )->extract;
+
+                if ($article) {
+                    for my $url_new (@{$article->{links} //[]}) {
+                        my $host_new = URI->new($url_new)->host;
+                        unless ($seen{$url_new} || !looks_like_similar_host($host_new, $host_old)) {
+                            push @discovered_links, $url_new;
+                            $seen{$url_new} = 1;
                         }
                     }
-                    delete $info->{links};
+                    delete $article->{links};
 
-                    if ($info->{title}) {
-                        my $line = encode_json($info) . "\n";
+                    if ($article->{title}) {
+                        my $line = encode_json($article) . "\n";
                         print $fh $line;
                         $extracted_count++;
                         push @processed_links, $url;
