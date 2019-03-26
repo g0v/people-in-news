@@ -225,10 +225,7 @@ sub parse_dateline {
         }
     }
 
-    if ($tm) {
-        return $tm->strftime('%FT%X%Z');
-    }
-    return
+    return $tm;
 }
 
 sub print_full_article {

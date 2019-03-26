@@ -9,9 +9,9 @@ use Encode qw(decode_utf8 encode_utf8);
 use File::Slurp qw(read_file write_file);
 use JSON qw(decode_json);
 use Try::Tiny;
-use MCE::Loop;
 use XML::FeedPP;
 use List::Util qw(uniq shuffle);
+use Time::Moment;
 
 use Sn;
 use Sn::ArticleIterator;
@@ -35,10 +35,10 @@ sub produce_atom_feed {
             $item->set_value(content => markdown($article->{content_text}), type => "html");
         }
 
-        if ($article->{dateline} && (my $t = Sn::parse_dateline($article->{dateline}))) {
-            $item->pubDate($t);
+        if (my $t = $article->{dateline_parsed}) {
+            $item->pubDate( $t->epoch );
         } else {
-            $item->pubDate($now);
+            $item->pubDate( $now );
         }
 
         my @categories;
@@ -81,13 +81,22 @@ my $iter = Sn::ArticleIterator->new(
     filter_file => sub { /\.jsonl$/ },
 );
 
+my $now = Time::Moment->now;
 my %seen;
 my @articles;
 while ( my $article = $iter->() ) {
     next unless defined($article->{t_fetched}) && $article->{t_fetched} > TWO_HOURS_AGO && !( $seen{$article->{url}}++ );
     push @articles, $article;
+
+    if ($article->{dateline} && (my $t = Sn::parse_dateline($article->{dateline}))) {
+        $article->{dateline_parsed} = $t;
+    } else {
+        $article->{dateline_parsed} = $now;
+    }
 }
 %seen = ();
+
+@articles = sort { $b->{dateline_parsed}->compare( $a->{dateline_parsed} ) } @articles;
 
 produce_atom_feed(
     [ map { my %a = %$_; delete $a{content_text}; \%a } @articles ],
