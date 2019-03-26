@@ -14,46 +14,26 @@ use XML::FeedPP;
 use List::Util qw(uniq shuffle);
 
 use Sn;
+use Sn::ArticleIterator;
 
-sub build_atom_feed {
-    my $input = $_[0]->{input};
-    return unless $input;
+use constant TWO_HOURS_AGO => time - 7200;
+
+sub produce_atom_feed {
+    my ($articles, $output) = @_;
 
     my $feed = XML::FeedPP::Atom::Atom10->new(
         title => "Articles",
     );
 
-    my (%freq, @articles);
-    for my $input (@$input) {
-        open my $fh, '<', $input;
-        my $line_num = 0;
-        while (<$fh>) {
-            $line_num++;
-            chomp;
-            my $article = try { decode_json($_) };
-            unless ($article) {
-                say STDERR "decode_json failed at: $input line $line_num";
-                next;
-            }
-
-            next if $freq{url}{$article->{url}}++;
-
-            $freq{title}{$article->{title}}++;
-            $freq{content_text}{$article->{content_text}}++;
-            push @articles, $article;
-        }
-        close($fh);
-    }
-
-    @articles = grep { $freq{title}{$_->{title}} == 1 && $freq{content_text}{$_->{content_text}} == 1 } @articles;
-
     my $now = time();
-    for my $article (@articles) {
+    for my $article (@$articles) {
         my $item = $feed->add_item(
             link => $article->{url},
             title => $article->{title},
         );
-        $item->set_value(content => markdown(summarize($article->{content_text})), type => "html");
+        if (defined $article->{content_text}) {
+            $item->set_value(content => markdown($article->{content_text}), type => "html");
+        }
 
         if ($article->{dateline} && (my $t = Sn::parse_dateline($article->{dateline}))) {
             $item->pubDate($t);
@@ -73,46 +53,16 @@ sub build_atom_feed {
         }
     }
 
-    return $feed;
+    $feed->to_file( $output );
 }
 
 sub summarize {
     my ($text) = @_;
 
-    my $summary = "";
     my @paragraphs = split /\n\n+/, $text;
     return $text if @paragraphs < 2;
 
-    @paragraphs = grep {
-        /\p{Punct}/
-    } map {
-        s/\A\s+//s;
-        s/\s+\z//s;
-        s/\s+/ /g;
-        $_;
-    } uniq(@paragraphs);
-
-    return join "\r\n\r\n", @paragraphs;
-}
-
-sub write_atom_feed {
-    my $feed = $_[0]->{feed};
-    my $output = $_[0]->{output};
-    unlink($output) if -f $output;
-    $feed->to_file($output);
-}
-
-sub write_atom_feed_link_only {
-    my $feed = $_[0]->{feed};
-    my $output = $_[0]->{output};
-
-    my $i = 0;
-    while (my $item = $feed->get_item($i++) ) {
-        delete $item->{content};
-    }
-
-    unlink($output) if -f $output;
-    $feed->to_file($output);
+    return join "\n\n", @paragraphs[0, -1];
 }
 
 ## main
@@ -126,23 +76,30 @@ GetOptions(
 die "--db <DIR> is needed" unless -d $opts{db};
 die "-o <DIR> is needed" unless -d $opts{o};
 
-my @things = map {
-    my $input = $_;
-    my ($ts) = basename($input) =~ m/articles-([0-9]{14})\.jsonl\z/g;
-    $ts ? +{ input => $input, ts => $ts } : ()
-} grep {
-    (stat($_))[7] > 0
-} glob("$opts{db}/articles-*.jsonl");
+my $iter = Sn::ArticleIterator->new(
+    db_path => $opts{db},
+    filter_file => sub { /\.jsonl$/ },
+);
 
-if (@things) {
-    my $feed = build_atom_feed({ input => [map { $_->{input} } @things] });
-    write_atom_feed({
-        feed => $feed,
-        output => $opts{o} . "/articles-latest.atom",
-    });
-
-    write_atom_feed_link_only({
-        feed => $feed,
-        output => $opts{o} . "/articles-latest-link-only.atom",
-    });
+my %seen;
+my @articles;
+while ( my $article = $iter->() ) {
+    next unless defined($article->{t_fetched}) && $article->{t_fetched} > TWO_HOURS_AGO && !( $seen{$article->{url}}++ );
+    push @articles, $article;
 }
+%seen = ();
+
+produce_atom_feed(
+    [ map { my %a = %$_; delete $a{content_text}; \%a } @articles ],
+    $opts{o} . "/articles-links.atom",
+);
+
+produce_atom_feed(
+    [ map { my %a = %$_; $a{content_text} = summarize($a{content_text}); \%a } @articles ],
+    $opts{o} . "/articles-summarized.atom",
+);
+
+produce_atom_feed(
+    \@articles,
+    $opts{o} . "/articles-full.atom",
+);
