@@ -66,6 +66,7 @@ package Sn::HTMLExtractor {
         }
 
         $title  =~ s/\p{Punct} \s* $SNRE{newspaper_names} \s* \z//x;
+        $title  =~ s/\A $SNRE{newspaper_names} \s* \p{Punct} \s* //x;
 
         $title =~ s/\r\n/\n/g;
         $title =~ s/\A\s+//;
