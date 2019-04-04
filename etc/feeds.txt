@@ -1,3 +1,4 @@
+http://www.taipeitimes.com/xml/index.rss
 http://titv.ipcf.org.tw/inews/getRSS
 https://newtalk.tw/rss/all
 https://www.twreporter.org/rss2.xml
