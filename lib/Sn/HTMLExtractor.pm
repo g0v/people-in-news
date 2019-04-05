@@ -146,7 +146,7 @@ package Sn::HTMLExtractor {
         $content_dom->find('br')->map(replace => "\n");
         $content_dom->find('div,p')->map(append => "\n\n");
 
-        my @paragraphs = map { normalize_whitespace($_) } split /\n\n+/, $content_dom->all_text;
+        my @paragraphs = grep { $_ ne '' } map { normalize_whitespace($_) } split /\n\n+/, $content_dom->all_text;
         return unless @paragraphs;
 
         if (my $site_name = $self->site_name) {
