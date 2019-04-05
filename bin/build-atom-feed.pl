@@ -73,8 +73,8 @@ GetOptions(
     "db=s",
     "o=s",
 );
-die "--db <DIR> is needed" unless -d $opts{db};
-die "-o <DIR> is needed" unless -d $opts{o};
+die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
+die "-o <DIR> is needed" unless $opts{o} && -d $opts{o};
 
 my $iter = Sn::ArticleIterator->new(
     db_path => $opts{db},
@@ -96,7 +96,13 @@ while ( my $article = $iter->() ) {
 }
 %seen = ();
 
-@articles = sort { $b->{dateline_parsed}->compare( $a->{dateline_parsed} ) } @articles;
+@articles = grep {
+    my $digest = $_->{title} . "\n" . $_->{content_text};
+
+    ! $seen{$digest}++;
+} sort {
+    $b->{dateline_parsed}->compare( $a->{dateline_parsed} ) ||  length($a->{url}) <=> length($b->{url})
+} @articles;
 
 produce_atom_feed(
     [ map { my %a = %$_; delete $a{content_text}; \%a } @articles ],
