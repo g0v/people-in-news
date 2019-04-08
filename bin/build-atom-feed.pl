@@ -17,12 +17,14 @@ use Sn;
 use Sn::ArticleIterator;
 
 use constant TWO_HOURS_AGO => time - 7200;
+# use constant TWO_HOURS_AGO => 0;
 
 sub produce_atom_feed {
-    my ($articles, $output) = @_;
+    my ($articles, $output, $feed_opts) = @_;
 
     my $feed = XML::FeedPP::Atom::Atom10->new(
         title => "Articles",
+        %$feed_opts,
     );
 
     my $now = time();
@@ -118,3 +120,18 @@ produce_atom_feed(
     \@articles,
     $opts{o} . "/articles-full.atom",
 );
+
+# The maximum is 9, because we have 9 files named "etc/substr-*.txt"
+for my $score (0..9) {
+    produce_atom_feed(
+        +[
+            grep {
+                $score == keys(%{ $_->{substrings} })
+            } @articles,
+        ],
+        $opts{o} . "/articles-score-${score}.atom",
+        +{
+            title => "Articles scored ${score}",
+        }
+    );
+}
