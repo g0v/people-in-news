@@ -80,8 +80,6 @@ sub extract_feed_entries {
 sub gather_feed_links {
     my ($urls, $cb) = @_;
 
-    my $ua = Mojo::UserAgent->new()->max_redirects(3);
-
     Sn::urls_get_all(
         $urls,
         sub {
