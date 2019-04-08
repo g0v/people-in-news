@@ -5,8 +5,10 @@ package Sn::FFUA {
     use warnings;
 
     use Firefox::Marionette;
+    use Encode qw< encode_utf8 >;
+    use Mojo::Message::Request;
+    use Mojo::Message::Response;
     use Mojo::DOM;
-
     use Moo;
 
     has firefox => (
@@ -30,10 +32,18 @@ package Sn::FFUA {
         return unless $firefox->interactive();
 
         my $html = $firefox->html();
+
+        my $req = Mojo::Message::Request->new;
+        $req->url->parse($url);
+        $req->method('GET');
+
+        my $res = Mojo::Message::Response->new;
+        $res->headers->content_type('text/html');
+        $res->body( encode_utf8 $html );
+
         return Sn::TX->new(
-            uri => $firefox->uri(),
-            title => $firefox->title(),
-            dom => Mojo::DOM->new($html),
+            req => $req,
+            res => $res,
         )
     }
 };

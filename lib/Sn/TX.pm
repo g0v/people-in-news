@@ -1,32 +1,18 @@
 package Sn::TX {
     use Moo;
-    use Types::Standard qw(Str Bool InstanceOf);
-    use Types::URI -all;
+    use Types::Standard qw(InstanceOf);
 
-    use Mojo::DOM;
-
-    has uri => (
+    has req => (
         is => 'ro',
-        isa => Uri,
+        isa => InstanceOf['Mojo::Message::Request'],
         required => 1
     );
 
-    has title => (
+    has res => (
         is => 'ro',
-        isa => Str,
-        required => 1,
-    );
-
-    has dom => (
-        is => 'ro',
-        isa => InstanceOf['Mojo::DOM'],
+        isa => InstanceOf['Mojo::Message::Response'],
         required => 1
     );
-
-    sub no_content {
-        my ($self) = @_;
-        return $self->dom->find('html')->first->text eq "";
-    }
 };
 
 1;
