@@ -18,7 +18,7 @@ package Sn::FFUA {
     no Moo;
 
     sub _build_firefox {
-        return Firefox::Marionette->new( visible => 1 );
+        return Firefox::Marionette->new( visible => 0 );
     }
 
     sub fetch {
