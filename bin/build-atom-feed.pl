@@ -16,9 +16,6 @@ use Time::Moment;
 use Sn;
 use Sn::ArticleIterator;
 
-use constant TWO_HOURS_AGO => time - 7200;
-# use constant TWO_HOURS_AGO => 0;
-
 sub produce_atom_feed {
     my ($articles, $output, $feed_opts) = @_;
 
@@ -87,7 +84,7 @@ my $now = Time::Moment->now;
 my %seen;
 my @articles;
 while ( my $article = $iter->() ) {
-    next unless defined($article->{t_fetched}) && $article->{t_fetched} > TWO_HOURS_AGO && !( $seen{$article->{url}}++ );
+    next unless defined($article->{t_fetched}) && !( $seen{$article->{url}}++ );
     push @articles, $article;
 
     if ($article->{dateline} && (my $t = Sn::parse_dateline($article->{dateline}))) {
