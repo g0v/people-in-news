@@ -127,6 +127,19 @@ package Sn::HTMLExtractor {
         return $dateline;
     }
 
+    sub journalist {
+        my ($self) = @_;
+
+        my $dom = $self->dom;
+        my ($ret, $guess);
+
+        if ( $guess = $dom->at('div.story_bady_info_author a') ) {
+            $ret = $guess->text;
+        }
+
+        return $ret;
+    }
+
     sub content_text {
         my ($self) = @_;
 

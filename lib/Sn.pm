@@ -235,6 +235,7 @@ sub print_full_article {
     $out .= "# BEGIN ARTICLE\n";
     $out .= "Title: $article->{title}\n";
     $out .= "Dateline: " . ($article->{dateline} // "") . "\n";
+    $out .= "Journalist: " . ($article->{journalist} // "") . "\n";
     $out .= "URL: $article->{url}\n";
     for my $type (keys %{$article->{substrings}}) {
         my @tokens = @{$article->{substrings}{$type}} or next;

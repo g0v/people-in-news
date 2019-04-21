@@ -54,6 +54,7 @@ package Sn::ArticleExtractor {
         $article{substrings}   = Sn::extract_substrings([ $title, $text ]);
         $article{t_extracted}  = (0+ time());
         $article{dateline}     = $extractor->dateline;
+        $article{journalist}   = $extractor->journalist;
 
         unless ($article{dateline}) {
             if ($article{content_text} && $article{title}) {
