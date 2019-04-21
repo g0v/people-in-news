@@ -181,3 +181,6 @@ https://health.ltn.com.tw
 https://estate.ltn.com.tw
 https://news.ltn.com.tw/project
 https://www.singpao.com.hk/
+http://xinhuanet.com/
+http://www.hkcna.hk/index.shtml
+http://www.people.com.cn/
