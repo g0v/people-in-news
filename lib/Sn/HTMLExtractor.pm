@@ -133,13 +133,18 @@ package Sn::HTMLExtractor {
         my $dom = $self->dom;
         my ($ret, $guess);
 
-        if ( $guess = $dom->at('div.story_bady_info_author a') ) {
+        if ( $guess = $dom->at('div.story_bady_info_author a, div.content_reporter a[itemprop=author]') ) {
             $ret = $guess->text;
         } elsif ($guess = $dom->at('span.f12_15a_g2')) {
             ($ret) = $guess->text =~ m{／記者 (.+?)／};
         }
-        else {
-            ($ret) = $self->content_text =~ m{記者(.+?)／(?:.+)報導};
+
+        unless ($ret) {
+            my $content_text = $self->content_text;
+            ($ret) = $content_text =~ m{記者(.+?)／(?:.+)報導};
+            unless ($ret) {
+                ($ret) = $content_text =~ m{（(中央社記者.+?日電)）};
+            }
         }
 
         return $ret;
