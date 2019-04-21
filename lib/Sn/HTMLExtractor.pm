@@ -64,14 +64,13 @@ package Sn::HTMLExtractor {
         if ($site_name) {
             $title =~ s/\s* \p{Punct} \s* $site_name \s* \z//x;
         }
-
-        $title  =~ s/\p{Punct} \s* $SNRE{newspaper_names} \s* \z//x;
-        $title  =~ s/\A $SNRE{newspaper_names} \s* \p{Punct} \s* //x;
-
-        $title =~ s/\r\n/\n/g;
-        $title =~ s/\A\s+//;
-        $title =~ s/\s+\z//;
-
+        if (defined($title)) {
+            $title  =~ s/\p{Punct} \s* $SNRE{newspaper_names} \s* \z//x;
+            $title  =~ s/\A $SNRE{newspaper_names} \s* \p{Punct} \s* //x;
+            $title =~ s/\r\n/\n/g;
+            $title =~ s/\A\s+//;
+            $title =~ s/\s+\z//;
+        }
         return $title;
     }
 
