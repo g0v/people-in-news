@@ -136,6 +136,8 @@ package Sn::HTMLExtractor {
             $ret = $guess->text;
         } elsif ($guess = $dom->at('span.f12_15a_g2')) {
             ($ret) = $guess->text =~ m{／記者 (.+?)／};
+        } elsif ($guess = $dom->at('div#yt_container_placeholder + p')) {
+            ($ret) = $guess->text =~ m{\A \s* (.+) \s+ 報導 \s+ / }x;
         }
 
         unless ($ret) {
