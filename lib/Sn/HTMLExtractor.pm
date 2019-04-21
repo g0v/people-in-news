@@ -135,6 +135,11 @@ package Sn::HTMLExtractor {
 
         if ( $guess = $dom->at('div.story_bady_info_author a') ) {
             $ret = $guess->text;
+        } elsif ($guess = $dom->at('span.f12_15a_g2')) {
+            ($ret) = $guess->text =~ m{／記者 (.+?)／};
+        }
+        else {
+            ($ret) = $self->content_text =~ m{記者(.+?)／(?:.+)報導};
         }
 
         return $ret;
