@@ -35,7 +35,8 @@ package Sn::PhantomJSUA {
         $req->method('GET');
 
         my $html = $ua->content();
-        
+
+        my $res = Mojo::Message::Response->new;
         $res->headers->content_type('text/html');
         $res->body( encode_utf8 $html );
 
