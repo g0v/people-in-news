@@ -30,12 +30,11 @@ sub gather_links {
     my @links;
 
     my $tx = $ua->fetch($url) or return;
-    return if $tx->no_content;
 
-    $seen{$tx->uri} = 1;
+    $seen{$url} = 1;
 
     my $uri = URI->new($url);
-    for my $e ($tx->dom->find('a[href]')->each) {
+    for my $e ($tx->res->dom->find('a[href]')->each) {
         my $href = $e->attr("href");
         my $u = URI->new_abs("$href", $uri);
         if (!$seen{$u}  && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)\.com\z/ ) {
@@ -53,10 +52,9 @@ sub extract_info {
     my %info;
 
     my $tx = $ua->fetch($url) or return;
-    return if $tx->no_content;
 
-    my $dom = $tx->dom;
-    my $title = $tx->title;
+    my $dom = $tx->res->dom;
+    my $title = $dom->at('title')->all_text;
     return unless $title;
 
     $info{title} = $title;
@@ -65,7 +63,7 @@ sub extract_info {
     $info{title} =~ s/\s+\z//;
 
     my $extractor = HTML::ExtractContent->new;
-    my $html = $tx->dom . "";
+    my $html = $tx->res->dom . "";
     my $text = $extractor->extract($html)->as_text;
     $text =~ s/\t/ /g;
     $text =~ s/\r\n/\n/g;
@@ -83,7 +81,7 @@ sub extract_info {
     my $maxl = max( map { length($_) } @paragraphs );
     return if $maxl < 60;
 
-    $info{url} = "". $tx->uri;
+    $info{url} = "". $url;
 
     $info{names} = [ map { s/\t/ /g; $_ }  grep { index($title, $_) >= 0 || index($text, $_) >= 0 } @$known_names ];
 
