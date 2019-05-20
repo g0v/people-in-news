@@ -85,7 +85,7 @@ package Sn::HTMLExtractor {
         elsif ($guess = $self->dom->at("time[itemprop=datePublished][datetime], h1 time[datetime], .func_time time[pubdate]")) {
             $dateline = $guess->attr('datetime');
         }
-        elsif ($guess = $self->dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, .author .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime, article p.date, .post-meta > .icon-clock > span, .article_info_content span.info_time, .content time.page-date, .c_time, .newsContent p.time, .story_bady_info_author span:nth-child(1)")) {
+        elsif ($guess = $self->dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, .author .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime, article p.date, .post-meta > .icon-clock > span, .article_info_content span.info_time, .content time.page-date, .c_time, .newsContent p.time, .story_bady_info_author span:nth-child(1), div.title > div.time")) {
             $dateline = $guess->text;
         }
         elsif ($guess = $self->dom->at("div#articles cite")) {
@@ -138,6 +138,8 @@ package Sn::HTMLExtractor {
             ($ret) = $guess->text =~ m{／記者 (.+?)／};
         } elsif ($guess = $dom->at('div#yt_container_placeholder + p')) {
             ($ret) = $guess->text =~ m{\A \s* (.+) \s+ 報導 \s+ / }x;
+        } elsif ($guess = $dom->at('h4.font_color5')) {
+            ($ret) = $guess->all_text =~ m{\A \s* 編輯 \s* (.+) \s+ 報導 }x;
         }
 
         unless ($ret) {
