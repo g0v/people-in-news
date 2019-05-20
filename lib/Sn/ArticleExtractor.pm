@@ -56,13 +56,6 @@ package Sn::ArticleExtractor {
         $article{dateline}     = $extractor->dateline;
         $article{journalist}   = $extractor->journalist;
 
-        unless ($article{dateline}) {
-            if ($article{content_text} && $article{title}) {
-                say STDERR "Faild to extract dateline: $article{url}\n";
-            }
-            return;
-        }
-
         return \%article;
     }
 
