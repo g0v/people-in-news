@@ -5,7 +5,6 @@ use warnings;
 
 use URI;
 use Mojo::Promise;
-use Mojo::UserAgent;
 use JSON qw(encode_json);
 use Getopt::Long qw(GetOptions);
 use FindBin '$Bin';
