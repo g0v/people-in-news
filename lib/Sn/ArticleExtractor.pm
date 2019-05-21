@@ -1,4 +1,5 @@
 package Sn::ArticleExtractor {
+    use utf8;
     use Sn;
     use URI;
     use Encode qw(decode);
@@ -7,19 +8,33 @@ package Sn::ArticleExtractor {
     use Moo;
     has 'tx' => ( is => 'ro', required => 1 );
 
+    sub looks_like_article_page {
+        my ($self) = @_;
+        my $res = $self->tx->res;
+        return 0 unless $res->body;
+
+        my $dom = $res->dom;
+
+        do {
+            $dom->at('div[data-desc="新聞列表"] ul.searchlist') or
+            $dom->find('div.part_list_2 h3')->size > 3
+        } and return 0;
+
+        return 1;
+    }
+
     sub extract {
         my ($self) = @_;
 
-        my %article;
+        return unless $self->looks_like_article_page;
 
-        my $tx = $self->tx;
+        my $tx  = $self->tx;
         my $res = $tx->res;
-        unless ($res->body) {
-            # err "[$$] NO BODY";
-            return;
-        }
-        $article{t_fetched} = (0+ time());
-        $article{url}       = "". $tx->req->url->to_abs;
+
+        my %article = (
+            t_fetched => (0+ time()),
+            url       => ("". $tx->req->url->to_abs),
+        );
 
         my (%seen, @links);
         my $uri = URI->new( "". $tx->req->url->to_abs );

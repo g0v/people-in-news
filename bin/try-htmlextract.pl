@@ -32,4 +32,9 @@ if ($opts{firefox}) {
 }
 
 my $article = Sn::ArticleExtractor->new( tx => $tx )->extract;
-Sn::print_full_article( \*STDOUT, $article );
+
+if ($article) {
+    Sn::print_full_article( \*STDOUT, $article );
+} else {
+    print "No Article\n";
+}
