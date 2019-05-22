@@ -4,6 +4,7 @@ prog=$0
 cd $(dirname $0)/../
 
 ts_begin=$(date +%s)
+perl -Ilib bin/post-to-wayback-machine.pl --atom var/www/articles-links.atom &
 
 perl -Ilib bin/gather-feeds.pl --db var/db
 perl -Ilib bin/gather.pl --db var/db
@@ -19,8 +20,7 @@ perl -Ilib bin/atom2rss.pl var/www/articles-summarized.atom var/www/articles-sum
 perl -Ilib bin/build-dailystats.pl --db var/db -o var/db
 perl -Ilib bin/emit-hourly-stats.pl --db var/db
 
-perl -Ilib bin/post-to-wayback-machine.pl --atom var/www/articles-links.atom
-
+wait
 ts_end=$(date +%s)
 
 echo "DONE:" $(( $ts_end - $ts_begin )) 'seconds'
