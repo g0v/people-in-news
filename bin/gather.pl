@@ -41,6 +41,11 @@ sub looks_like_similar_host {
     return ( 0 == index($rhost2, $rhost1) );
 }
 
+sub looks_like_xml {
+    my ($url) = @_;
+    return $url =~ m{ \com/tag/(?:.+)\.xml \z};
+}
+
 sub process {
     my ($urls, $url_seen, $out) = @_;
 
@@ -70,7 +75,7 @@ sub process {
                 if ($article) {
                     for my $url_new (@{$article->{links} //[]}) {
                         my $host_new = URI->new($url_new)->host;
-                        unless ($seen{$url_new} || !looks_like_similar_host($host_new, $host_old)) {
+                        unless ($seen{$url_new} || !looks_like_similar_host($host_new, $host_old) || looks_like_xml($url_new) ) {
                             push @discovered_links, $url_new;
                             $seen{$url_new} = 1;
                         }
