@@ -22,6 +22,10 @@ package Sn::ArticleExtractor {
             ($dom->find('div.part_list_2 h3')->size > 3)
         } and return 0;
 
+        if ($_ = $dom->at('h1.entry-title > span')) {
+            return 0 if $_->content() =~ /^Tag:/;
+        }
+
         return 1;
     }
 
