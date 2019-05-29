@@ -20,7 +20,8 @@ package Sn::ArticleExtractor {
             $dom->at('div[data-desc="新聞列表"] ul.searchlist') or
             $dom->at('dl#author_article_list_list') or
             (!$dom->at('.news-artical') && $dom->find('div.newslist-page div.newslist-container a p.newstitle')->size > 3) or
-            ($dom->find('div.part_list_2 h3')->size > 3)
+            ($dom->find('div.part_list_2 h3')->size > 3) or
+            ($dom->find('div[role=main] article.post')->size > 1)
         } and return 0;
 
         if ($_ = $dom->at('h1.entry-title > span')) {
