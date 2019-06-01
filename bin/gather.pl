@@ -23,6 +23,7 @@ use Sn::Seen;
 use Sn::Extractor;
 use Sn::HTMLExtractor;
 use Sn::ArticleExtractor;
+use Sn::FTVScraper;
 
 ## global
 my $PROCESS_START = time();
@@ -110,6 +111,34 @@ sub process {
     close($fh);
 }
 
+sub process_ftv {
+    my ($url_seen, $out) = @_;
+
+    open my $fh, '>', $out;
+    $fh->autoflush(1);
+
+    my @processed_links;
+    my %seen;
+    my $o = Sn::FTVScraper->discover;
+    for my $url (@{ $o->{links} }) {
+        next if $seen{$url};
+        $seen{$url} = 1;
+
+        my $article = Sn::FTVScraper->scrape($url) or next;
+        if ($article->{title}) {
+            my $line = encode_json($article) . "\n";
+            print $fh $line;
+            push @processed_links, $url;
+        }
+        last if @processed_links > 999;
+    }
+    if (@processed_links) {
+        add_to_url_seen(\@processed_links);
+    }
+
+    close($fh);
+}
+
 my $url_seen;
 sub add_to_url_seen {
     my ($urls) = @_;
@@ -140,17 +169,31 @@ if (@ARGV) {
     );
 }
 
-MCE::Loop::init { chunk_size => 'auto' };
+my @special = grep { /ftv\.com|ftvnews\.com/ } @initial_urls;
+@initial_urls = grep { ! /ftv\.com|ftvnews\.com/ } @initial_urls;
 
-mce_loop {
-    # jsonl => http://jsonlines.org/
+# jsonl => http://jsonlines.org/
+
+if (@special) {
     my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
     while (-f $output) {
         sleep 1;
         $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
     }
-    $STOP = 1 if time() - $PROCESS_START > 3000;
-    process($_, $url_seen, $output);
-} shuffle @initial_urls;
+    process_ftv($url_seen, $output);
+}
+
+if (@initial_urls) {
+    MCE::Loop::init { chunk_size => 'auto' };
+    mce_loop {
+        my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
+        while (-f $output) {
+            sleep 1;
+            $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
+        }
+        $STOP = 1 if time() - $PROCESS_START > 3000;
+        process($_, $url_seen, $output);
+    } shuffle @initial_urls;
+}
 
 $url_seen->save;
