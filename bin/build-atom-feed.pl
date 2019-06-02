@@ -118,8 +118,8 @@ produce_atom_feed(
     $opts{o} . "/articles-full.atom",
 );
 
-# The maximum is 9, because we have 9 files named "etc/substr-*.txt"
-for my $score (0..9) {
+# The maximum is 8, because we have 8 files named "etc/substr-*.txt"
+for my $score (0..8) {
     produce_atom_feed(
         +[
             grep {
