@@ -16,6 +16,7 @@ package Sn::ArticleExtractor {
         my $dom = $res->dom;
 
         do {
+            $dom->at('div#content section.mod_search-result') or
             $dom->at('body.tag main div.posts_list') or
             $dom->at('div#result_list') or
             $dom->at('div[data-desc="新聞列表"] ul.searchlist') or
