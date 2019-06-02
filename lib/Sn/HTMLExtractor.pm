@@ -122,10 +122,10 @@ package Sn::HTMLExtractor {
 
         if ($dateline) {
             $dateline = normalize_whitespace($dateline);
-        }
-        if ($dateline =~ /^([0-9]{4})[^0-9]/) {
-            if ($1 > ((localtime)[5] + 1900)) {
-                $dateline = undef;
+            if ($dateline =~ /^([0-9]{4})[^0-9]/) {
+                if ($1 > ((localtime)[5] + 1900)) {
+                    $dateline = undef;
+                }
             }
         }
 
