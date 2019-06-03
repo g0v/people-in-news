@@ -16,6 +16,7 @@ package Sn::ArticleExtractor {
         my $dom = $res->dom;
 
         do {
+            $dom->at('#aspnetForm .newsimg-area-item-2') or
             $dom->at('ol.breadcrumb span.glyphicon-tags') or
             $dom->at('div#content section.mod_search-result') or
             $dom->at('body.tag main div.posts_list') or
