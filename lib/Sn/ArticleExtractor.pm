@@ -25,6 +25,7 @@ package Sn::ArticleExtractor {
             $dom->at('dl#author_article_list_list') or
             (!$dom->at('.news-artical') && $dom->find('div.newslist-page div.newslist-container a p.newstitle')->size > 3) or
             ($dom->find('div.part_list_2 h3')->size > 3) or
+            ($dom->find('main#content div.listing article.type-post')->size > 3) or
             ($dom->find('div[role=main] article.post')->size > 1)
         } and return 0;
 
