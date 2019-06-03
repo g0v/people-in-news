@@ -119,6 +119,9 @@ package Sn::HTMLExtractor {
         elsif ($guess = $self->dom->at("span.submitted-by")) {
             ($dateline) = $guess->text =~ m#([0-9]{1,2}\s*月\s*[0-9]{1,2}(\s*日\s*)?,\s*[0-9]{4})#x;
         }
+        elsif ($guess = $self->dom->at('#news_author')) {
+            ($dateline) = $guess->all_text =~ m{\A 【記者.+ 】 (.+) \z}x;
+        }
 
         if ($dateline) {
             $dateline = normalize_whitespace($dateline);
@@ -146,6 +149,8 @@ package Sn::HTMLExtractor {
             ($ret) = $guess->text =~ m{\A \s* (.+) \s+ 報導 \s+ / }x;
         } elsif ($guess = $dom->at('h4.font_color5')) {
             ($ret) = $guess->all_text =~ m{\A \s* 編輯 \s* (.+) \s+ 報導 }x;
+        } elsif ($guess = $dom->at('#news_author')) {
+            ($ret) = $guess->all_text =~ m{\A 【記者 (.+) ／}x;
         }
 
         unless ($ret) {
