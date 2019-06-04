@@ -87,7 +87,7 @@ package Sn::HTMLExtractor {
         elsif ($guess = $self->dom->at("time[itemprop=datePublished][datetime], h1 time[datetime], .func_time time[pubdate]")) {
             $dateline = $guess->attr('datetime');
         }
-        elsif ($guess = $self->dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, .author .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime, article p.date, .post-meta > .icon-clock > span, .article_info_content span.info_time, .content time.page-date, .c_time, .newsContent p.time, .story_bady_info_author span:nth-child(1), div.title > div.time, div.article-meta div.article-date")) {
+        elsif ($guess = $self->dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, .author .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime, article p.date, .post-meta > .icon-clock > span, .article_info_content span.info_time, .content time.page-date, .c_time, .newsContent p.time, .story_bady_info_author span:nth-child(1), div.title > div.time, div.article-meta div.article-date, address.authorInfor time")) {
             $dateline = $guess->text;
         }
         elsif ($guess = $self->dom->at("div#articles cite")) {
@@ -143,8 +143,8 @@ package Sn::HTMLExtractor {
         my $dom = $self->dom;
         my ($ret, $guess);
 
-        if ( $guess = $dom->at('div.field-item a[href^=/author/], div.story_bady_info_author a, div.content_reporter a[itemprop=author], span[itemprop=author] a, div.author a, div.article-author > h5 > a, div.article-meta > div.article-author > a') ) {
-            $ret = $guess->text;
+        if ( $guess = $dom->at('div.field-item a[href^=/author/], div.story_bady_info_author a, div.content_reporter a[itemprop=author], span[itemprop=author] a, div.author a, div.article-author > h5 > a, div.article-meta > div.article-author > a, div.authorInfo li.authorName > a') ) {
+            $ret = normalize_whitespace( $guess->text );
         } elsif ($guess = $dom->at('span.f12_15a_g2')) {
             ($ret) = $guess->text =~ m{／記者 (.+?)／};
         } elsif ($guess = $dom->at('div#yt_container_placeholder + p')) {
