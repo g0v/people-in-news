@@ -30,6 +30,11 @@ sub produce_atom_feed {
             link => $article->{url},
             title => $article->{title},
         );
+
+        if ($article->{journalist}) {
+            $item->author( $article->{journalist} );
+        }
+
         if (defined $article->{content_text}) {
             $item->set_value(content => markdown($article->{content_text}), type => "html");
         }
