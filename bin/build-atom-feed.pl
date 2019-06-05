@@ -137,3 +137,21 @@ for my $score (0..8) {
         }
     );
 }
+
+produce_atom_feed(
+    +[
+        grep {
+            defined($_->{dateline})   &&
+            defined($_->{journalist}) &&
+            defined($_->{content_text}) &&
+            defined($_->{title}) &&
+            (keys(%{ $_->{substrings} }) > 3) &&
+            length($_->{content_text}) > 140 &&
+            length($_->{title}) > 4
+        } @articles,
+    ],
+    $opts{o} . "/articles-good.atom",
+    +{
+        title => "Articles (Good)",
+    }
+);
