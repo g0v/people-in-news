@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 use v5.26;
+use utf8;
 use strict;
 use warnings;
 use File::Basename qw(basename);
@@ -138,6 +139,7 @@ for my $score (0..8) {
     );
 }
 
+
 produce_atom_feed(
     +[
         grep {
@@ -147,7 +149,9 @@ produce_atom_feed(
             defined($_->{title}) &&
             (keys(%{ $_->{substrings} }) > 3) &&
             length($_->{content_text}) > 140 &&
-            length($_->{title}) > 4
+            length($_->{title}) > 4 &&
+            ( $_->{content_text} !~ /網友/ ) &&
+            ( $_->{title} !~ /網友/ )
         } @articles,
     ],
     $opts{o} . "/articles-good.atom",
