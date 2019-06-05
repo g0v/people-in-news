@@ -49,7 +49,7 @@ package Sn::FTVScraper {
 
         my $article = {
             t_fetched    => (0+ time()),
-            url          => $url,
+            url          => "https://www.ftvnews.com.tw/news/detail/" . $id,
         };
 
         my $o = $tx->result->json('/ITEM/0');
