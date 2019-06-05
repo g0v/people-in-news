@@ -157,7 +157,7 @@ package Sn::HTMLExtractor {
 
         unless ($ret) {
             my $content_text = $self->content_text;
-            ($ret) = $content_text =~ m{記者\s*(.+?)\s*[/╱／]\s*(?:.+)報導};
+            ($ret) = $content_text =~ m{記者\s*([\s\p{Letter}、]+?)\s*[/╱／]\s*(?:.+)報導};
             unless ($ret) {
                 ($ret) = $content_text =~ m{（(中央社記者.+?日電)）};
             }
