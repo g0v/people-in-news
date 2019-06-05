@@ -145,7 +145,7 @@ package Sn::HTMLExtractor {
 
         if ( $guess = $dom->at('meta[property="og:article:author"]') ) {
             $ret = $guess->attr('content');
-        } elsif ( $guess = $dom->at('div.field-item a[href^=/author/], div.story_bady_info_author a, div.content_reporter a[itemprop=author], span[itemprop=author] a, div.author a, div.article-author > h5 > a, div.article-meta > div.article-author > a, div.authorInfo li.authorName > a, .article .writer > p') ) {
+        } elsif ( $guess = $dom->at('div.field-item a[href^=/author/], div.story_bady_info_author a, div.content_reporter a[itemprop=author], span[itemprop=author] a, div.author a, div.article-author > h5 > a, div.article-meta > div.article-author > a, div.authorInfo li.authorName > a, .article .writer > p, .info_author') ) {
             $ret = normalize_whitespace( $guess->text );
         } elsif ($guess = $dom->at('span.f12_15a_g2')) {
             ($ret) = $guess->text =~ m{／記者 (.+?)／};
@@ -159,9 +159,9 @@ package Sn::HTMLExtractor {
 
         unless ($ret) {
             my $content_text = $self->content_text;
-            ($ret) = $content_text =~ m{記者\s*([\s\p{Letter}、]+?)\s*[/╱／]\s*(?:.+)報導};
+            ($ret) = $content_text =~ m{[记記]者\s*([\s\p{Letter}、]+?)\s*[/╱／]\s*(?:.+)(?:報導|报导)};
             unless ($ret) {
-                ($ret) = $content_text =~ m{（(中央社記者.+?日電)）};
+                ($ret) = $content_text =~ m{（(中央社記者.+?日電 | 大纪元记者\p{Letter}+报导)）}x;
             }
         }
 
