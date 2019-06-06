@@ -170,12 +170,14 @@ package Sn::HTMLExtractor {
 
     sub content_text {
         my ($self) = @_;
+        my ($content_dom, $el, $html);
 
         # Cleanup some noisy elements that are known to interfere.
-        $self->dom->at('div#marquee')->remove;
+        if ($el = $self->dom->at('div#marquee')) {
+            $el->remove
+        }
 
         my $extractor = HTML::ExtractContent->new;
-        my ($content_dom, $el, $html);
         if ($el = $self->dom->at('article')) {
             $html = $extractor->extract("$el")->as_html;
         } else {
