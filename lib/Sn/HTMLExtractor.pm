@@ -171,6 +171,9 @@ package Sn::HTMLExtractor {
     sub content_text {
         my ($self) = @_;
 
+        # Cleanup some noisy elements that are known to interfere.
+        $self->dom->at('div#marquee')->remove;
+
         my $extractor = HTML::ExtractContent->new;
         my ($content_dom, $el, $html);
         if ($el = $self->dom->at('article')) {
