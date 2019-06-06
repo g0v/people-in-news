@@ -139,23 +139,32 @@ for my $score (0..8) {
     );
 }
 
+sub looks_good {
+    my ($article) = @_;
+
+    defined($article->{dateline})           &&
+    defined($article->{journalist})         &&
+    defined($article->{content_text})       &&
+    defined($article->{title})              &&
+    (keys(%{ $article->{substrings} }) > 3) &&
+    length($article->{content_text}) > 140  &&
+    length($article->{title}) > 4           &&
+    ( $article->{content_text} !~ /網友/ )  &&
+    ( $article->{title} !~ /網友/ )
+}
 
 produce_atom_feed(
-    +[
-        grep {
-            defined($_->{dateline})   &&
-            defined($_->{journalist}) &&
-            defined($_->{content_text}) &&
-            defined($_->{title}) &&
-            (keys(%{ $_->{substrings} }) > 3) &&
-            length($_->{content_text}) > 140 &&
-            length($_->{title}) > 4 &&
-            ( $_->{content_text} !~ /網友/ ) &&
-            ( $_->{title} !~ /網友/ )
-        } @articles,
-    ],
+    +[ grep { looks_good($_) } @articles ],
     $opts{o} . "/articles-good.atom",
     +{
         title => "Articles (Good)",
+    }
+);
+
+produce_atom_feed(
+    +[ grep { ! looks_good($_) } @articles ],
+    $opts{o} . "/articles-ng.atom",
+    +{
+        title => "Articles (NG)",
     }
 );
