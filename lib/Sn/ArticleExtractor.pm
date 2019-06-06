@@ -29,7 +29,8 @@ package Sn::ArticleExtractor {
             (!$dom->at('.news-artical') && $dom->find('div.newslist-page div.newslist-container a p.newstitle')->size > 3) or
             ($dom->find('div.part_list_2 h3')->size > 3) or
             ($dom->find('main#content div.listing article.type-post')->size > 3) or
-            ($dom->find('div[role=main] article.post')->size > 1)
+            ($dom->find('div[role=main] article.post')->size > 1) or
+            $dom->at('body.archive.tag div.post_list')
         } and return 0;
 
         if ($_ = $dom->at('h1.entry-title > span')) {
