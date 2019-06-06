@@ -146,7 +146,6 @@ sub looks_good {
     defined($article->{journalist})         &&
     defined($article->{content_text})       &&
     defined($article->{title})              &&
-    (keys(%{ $article->{substrings} }) > 3) &&
     length($article->{content_text}) > 140  &&
     length($article->{title}) > 4           &&
     ( $article->{content_text} !~ /網友/ )  &&
