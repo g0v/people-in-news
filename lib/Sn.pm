@@ -167,6 +167,10 @@ sub extract_substrings {
         }
     }
 
+    for my $t (keys %extracts) {
+        @{$extracts{$t}} = uniqstr @{$extracts{$t}};
+    }
+
     return \%extracts;
 }
 
