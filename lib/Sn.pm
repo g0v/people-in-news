@@ -149,11 +149,13 @@ sub load_tokens {
 sub extract_substrings {
     my ($texts) = @_;
 
-    state %token;
-    %token = %{ load_tokens() } unless %token;
+    state (%token, @tokens);
+    unless (%token) {
+        %token = %{ load_tokens() };
+        @tokens = sort { length($b) <=> length($a) } keys %token;
+    }
 
     my %extracts;
-    my @tokens = sort { length($b) <=> length($a) } keys %token;
     for my $text (@$texts) {
         my (%matched, %cov);
         for my $tok (@tokens) {
