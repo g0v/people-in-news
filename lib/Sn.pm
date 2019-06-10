@@ -136,8 +136,8 @@ sub load_substr_file {
 
 sub load_tokens {
     my %token;
-    for my $fn ( app_root->child('etc')->children(qr{substr-.+\.txt\z}) ) {
-        my $token_type = substr($fn, 11, -4);
+    for my $fn ( sort { $a cmp $b } app_root->child('etc')->children(qr{substr-.+\.txt\z}) ) {
+        my ($token_type) = $fn =~ m{substr-(.+)\.txt$};
         my @tokens = uniqstr map { split /\t+/ } @{ read_string_list($fn) };
         for (@tokens) {
             push @{$token{$_}}, $token_type;
