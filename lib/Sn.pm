@@ -13,6 +13,8 @@ use Try::Tiny;
 use Path::Tiny qw(path);
 use Sn::TX;
 
+use constant app_root => path(__FILE__)->parent->parent;
+
 sub promise_loop {
     my ($works, $promiser, $thener, $catcher) = @_;
 
@@ -132,21 +134,25 @@ sub load_substr_file {
     return \@token;
 }
 
-sub extract_substrings {
-    my ($texts) = @_;
-    my %extracts;
-
-    state %token;
-    unless (%token) {
-        for my $fn (glob('etc/substr-*.txt')) {
-            my $token_type = substr($fn, 11, -4);
-            my @tokens = uniqstr map { split /\t+/ } @{ read_string_list($fn) };
-            for (@tokens) {
-                push @{$token{$_}}, $token_type;
-            }
+sub load_tokens {
+    my %token;
+    for my $fn ( app_root->child('etc')->children(qr{substr-.+\.txt\z}) ) {
+        my $token_type = substr($fn, 11, -4);
+        my @tokens = uniqstr map { split /\t+/ } @{ read_string_list($fn) };
+        for (@tokens) {
+            push @{$token{$_}}, $token_type;
         }
     }
+    return \%token;
+}
 
+sub extract_substrings {
+    my ($texts) = @_;
+
+    state %token;
+    %token = %{ load_tokens() } unless %token;
+
+    my %extracts;
     my @tokens = sort { length($b) <=> length($a) } keys %token;
     for my $text (@$texts) {
         my (%matched, %cov);
