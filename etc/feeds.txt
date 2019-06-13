@@ -271,3 +271,8 @@ https://www.peoplenews.tw/rss/%EF%BC%A7%EF%BC%AF%EF%BC%81%E9%87%8C%E7%B4%84
 https://www.rti.org.tw/rss
 https://www.twreporter.org/rss2.xml
 https://zht.globalvoices.org/feed/
+https://rthk.hk/rthk/news/rss/c_expressnews_clocal.xml
+https://rthk.hk/rthk/news/rss/c_expressnews_greaterchina.xml
+https://rthk.hk/rthk/news/rss/c_expressnews_cinternational.xml
+https://rthk.hk/rthk/news/rss/c_expressnews_cfinance.xml
+https://rthk.hk/rthk/news/rss/c_expressnews_csport.xml
