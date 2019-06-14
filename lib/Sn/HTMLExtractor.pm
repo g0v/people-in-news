@@ -125,6 +125,12 @@ package Sn::HTMLExtractor {
         elsif ($guess = $self->dom->at('#story #news_author')) {
             ($dateline) = $guess->all_text =~ m{\A 【記者.+ 】 (.+) \z}x;
         }
+        elsif ($guess = $self->dom->at('.data_midlle_news_box01 dl dd ul li:first-child')) {
+            ($dateline) = $guess->text;
+            my ($year, $mmdd) = $dateline =~ /\A ([0-9]{3}) - (.+) \z /x;
+            $year += 1911;
+            $dateline = $year . '-' . $mmdd;
+        }
 
         if ($dateline) {
             $dateline = normalize_whitespace($dateline);
