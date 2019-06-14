@@ -82,50 +82,51 @@ package Sn::HTMLExtractor {
         my $dateline;
         my $guess;
 
-        if ($guess = $self->dom->at("meta[property='article:modified_time'], meta[property='article:published_time'], meta[itemprop=dateModified][content], meta[itemprop=datePublished][content]")) {
+        my $dom = $self->dom;
+        if ($guess = $dom->at("meta[property='article:modified_time'], meta[property='article:published_time'], meta[itemprop=dateModified][content], meta[itemprop=datePublished][content]")) {
             $dateline = $guess->attr('content');
         }
-        elsif ($guess = $self->dom->at("time[itemprop=datePublished][datetime], h1 time[datetime], .func_time time[pubdate]")) {
+        elsif ($guess = $dom->at("time[itemprop=datePublished][datetime], h1 time[datetime], .func_time time[pubdate]")) {
             $dateline = $guess->attr('datetime');
         }
-        elsif ($guess = $self->dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, .author .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime, article p.date, .post-meta > .icon-clock > span, .article_info_content span.info_time, .content time.page-date, .c_time, .newsContent p.time, .story_bady_info_author span:nth-child(1), div.title > div.time, div.article-meta div.article-date, address.authorInfor time, .entry-meta .date a, .author-links .posts-date")) {
+        elsif ($guess = $dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, .author .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime, article p.date, .post-meta > .icon-clock > span, .article_info_content span.info_time, .content time.page-date, .c_time, .newsContent p.time, .story_bady_info_author span:nth-child(1), div.title > div.time, div.article-meta div.article-date, address.authorInfor time, .entry-meta .date a, .author-links .posts-date")) {
             $dateline = $guess->text;
         }
-        elsif ($guess = $self->dom->at("div#articles cite")) {
+        elsif ($guess = $dom->at("div#articles cite")) {
             $guess->at("a")->remove;
             $dateline = $guess->text;
         }
-        elsif ($guess = $self->dom->at("article.ndArticle_leftColumn div.ndArticle_creat, ul.info li.date, .cpInfo .cp, .nsa3 .tt27")) {
+        elsif ($guess = $dom->at("article.ndArticle_leftColumn div.ndArticle_creat, ul.info li.date, .cpInfo .cp, .nsa3 .tt27")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}[\-/][0-9]{2}[\-/][0-9]{2} [0-9]{2}:[0-9]{2})#;
         }
-        elsif ($guess = $self->dom->at(".news-toolbar .news-toolbar__cell")) {
+        elsif ($guess = $dom->at(".news-toolbar .news-toolbar__cell")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}/[0-9]{2}/[0-9]{2})#;
         }
-        elsif ($guess = $self->dom->at(".content .writer span:nth-child(2)")) {
+        elsif ($guess = $dom->at(".content .writer span:nth-child(2)")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2})#;
         }
-        elsif ($guess = $self->dom->at("div.contentBox div.content_date")) {
+        elsif ($guess = $dom->at("div.contentBox div.content_date")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}\.[0-9]{2}\.[0-9]{2} \| [0-9]{2}:[0-9]{2})#;
         }
-        elsif ($guess = $self->dom->at("div.content-wrapper-right > div > div > div:nth-child(4), span.f12_15a_g2")) {
+        elsif ($guess = $dom->at("div.content-wrapper-right > div > div > div:nth-child(4), span.f12_15a_g2")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2})#;
         }
-        elsif ($guess = $self->dom->at("span#ctl00_ContentPlaceHolder1_News_Label, #ctl00_ContentPlaceHolder1_UpdatePanel2 font[color=darkred]")) {
+        elsif ($guess = $dom->at("span#ctl00_ContentPlaceHolder1_News_Label, #ctl00_ContentPlaceHolder1_UpdatePanel2 font[color=darkred]")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}/[0-9]{1,2}/[0-9]{1,2})#;
         }
-        elsif ($guess = $self->dom->at(".news-info dd.date:nth-child(6)")) {
+        elsif ($guess = $dom->at(".news-info dd.date:nth-child(6)")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}年[0-9]{1,2}月[0-9]{1,2}日[0-9]{2}:[0-9]{2})#;
         }
-        elsif ($guess = $self->dom->at("article.entry-content div:nth-child(2)")) {
+        elsif ($guess = $dom->at("article.entry-content div:nth-child(2)")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}-[0-9]{1,2}-[0-9]{1,2})#;
         }
-        elsif ($guess = $self->dom->at("span.submitted-by")) {
+        elsif ($guess = $dom->at("span.submitted-by")) {
             ($dateline) = $guess->text =~ m#([0-9]{1,2}\s*月\s*[0-9]{1,2}(\s*日\s*)?,\s*[0-9]{4})#x;
         }
-        elsif ($guess = $self->dom->at('#story #news_author')) {
+        elsif ($guess = $dom->at('#story #news_author')) {
             ($dateline) = $guess->all_text =~ m{\A 【記者.+ 】 (.+) \z}x;
         }
-        elsif ($guess = $self->dom->at('.data_midlle_news_box01 dl dd ul li:first-child')) {
+        elsif ($guess = $dom->at('.data_midlle_news_box01 dl dd ul li:first-child')) {
             ($dateline) = $guess->text;
             my ($year, $mmdd) = $dateline =~ /\A ([0-9]{3}) - (.+) \z /x;
             $year += 1911;
