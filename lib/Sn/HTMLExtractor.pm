@@ -51,24 +51,25 @@ package Sn::HTMLExtractor {
         my $site_name = $self->site_name;
         my ($title, $el);
         my $dom = $self->dom;
-        if ($el = $dom->at("meta[property='og:title']")) {
+        if ($el = $dom->at("#story #news_title, #news_are .newsin_title, .data_midlle_news_box01 dl td:first-child")) {
+            $title = $el->text;
+        } elsif ($el = $dom->at("meta[property='og:title']")) {
             $title = $el->attr("content");
-        } elsif ($el = $dom->at("#story #news_title, #news_are .newsin_title")) {
-            $title = $el->text . "";
         } elsif ($el = $dom->at("meta[name='title']")) {
-            $title = $el->attr('content') . "";
+            $title = $el->attr('content');
         } elsif ($el = $dom->at("title")) {
-            $title = $el->text . "";
+            $title = $el->text;
         } else {
             return;
         }
+        $title .= "";
 
         if ($site_name) {
             $title =~ s/\s* \p{Punct} \s* $site_name \s* \z//x;
         }
         if (defined($title)) {
-            $title  =~ s/\p{Punct} \s* $SNRE{newspaper_names} \s* \z//x;
-            $title  =~ s/\A $SNRE{newspaper_names} \s* \p{Punct} \s* //x;
+            $title =~ s/\p{Punct} \s* $SNRE{newspaper_names} \s* \z//x;
+            $title =~ s/\A $SNRE{newspaper_names} \s* \p{Punct} \s* //x;
             $title =~ s/\r\n/\n/g;
             $title =~ s/\A\s+//;
             $title =~ s/\s+\z//;
