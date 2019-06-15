@@ -16,6 +16,7 @@ package Sn::ArticleExtractor {
         my $dom = $res->dom;
 
         do {
+            ($dom->at('.cate-title header') && ($dom->find('.list-container')->size > 1)) or
             $dom->at('body.channel section.search-result') or
             $dom->at('.clsGetMoreTopics') or
             $dom->at('#aspnetForm .newsimg-area-item-2') or
