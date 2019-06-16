@@ -132,6 +132,9 @@ package Sn::HTMLExtractor {
             $year += 1911;
             $dateline = $year . '-' . $mmdd;
         }
+        elsif ($guess = $dom->at('#details_block .left .date')) {
+            $dateline = normalize_whitespace $guess->text;
+        }
 
         if ($dateline) {
             $dateline = normalize_whitespace($dateline);
@@ -163,6 +166,8 @@ package Sn::HTMLExtractor {
             ($ret) = $guess->all_text =~ m{\A \s* 編輯 \s* (.+) \s+ 報導 }x;
         } elsif ($guess = $dom->at('#story #news_author')) {
             ($ret) = $guess->all_text =~ m{\A 【記者 (.+) ／}x;
+        } elsif ($guess = $dom->at('#details_block .left .name')) {
+            $ret = normalize_whitespace $guess->text;
         }
 
         unless ($ret) {
