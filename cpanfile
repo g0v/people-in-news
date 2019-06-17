@@ -27,3 +27,4 @@ requires 'Text::Util::Chinese', '0.04';
 requires 'Module::Functions';
 requires 'WWW::Mechanize::Chrome';
 requires 'WWW::Mechanize::PhantomJS';
+requires 'Elastijk';
