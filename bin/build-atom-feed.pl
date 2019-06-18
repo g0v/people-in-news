@@ -82,7 +82,7 @@ GetOptions(
 die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
 die "-o <DIR> is needed" unless $opts{o} && -d $opts{o};
 
-my $since = time - ($opt{since} || 7200);
+my $since = time - ($opts{since} || 7200);
 
 my $iter = Sn::ArticleIterator->new(
     db_path => $opts{db},
@@ -156,6 +156,20 @@ sub looks_good {
     ( $article->{title} !~ /網友/ )
 }
 
+sub looks_perfect {
+    my ($article) = @_;
+    return 0 unless looks_good($article);
+
+    my $substrs = $article->{substrings};
+
+    # people + {event|things} + {taiwan-subdivisions|countries}, 
+    return unless @{ $substrs->{people} };
+    return unless @{$substrs->{event}} > 0 || @{$substrs->{things}} > 0 ;
+    return unless @{$substrs->{countries}} > 0 || @{$substrs->{'taiwan-subdivisions'}} > 0 ;
+
+    return 1;
+}
+
 produce_atom_feed(
     +[ grep { looks_good($_) } @articles ],
     $opts{o} . "/articles-good.atom",
@@ -169,5 +183,13 @@ produce_atom_feed(
     $opts{o} . "/articles-ng.atom",
     +{
         title => "Articles (NG)",
+    }
+);
+
+produce_atom_feed(
+    +[ grep { looks_perfect($_) } @articles ],
+    $opts{o} . "/articles-subjectively-perfect.atom",
+    +{
+        title => "Articles (Good)",
     }
 );
