@@ -190,6 +190,6 @@ produce_atom_feed(
     +[ grep { looks_perfect($_) } @articles ],
     $opts{o} . "/articles-subjectively-perfect.atom",
     +{
-        title => "Articles (Good)",
+        title => "Articles (Subjectively Perfect)",
     }
 );
