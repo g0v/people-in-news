@@ -163,9 +163,9 @@ sub looks_perfect {
     my $substrs = $article->{substrings};
 
     # people + {event|things} + {taiwan-subdivisions|countries}, 
-    return unless $substrs->{people} && @{ $substrs->{people} } > 0;
-    return unless @{$substrs->{event} ||[]} > 0 || @{$substrs->{things} ||[]} > 0 ;
-    return unless @{$substrs->{countries} ||[]} > 0 || @{$substrs->{'taiwan-subdivisions'} ||[]} > 0 ;
+    return 0 unless $substrs->{people} && @{ $substrs->{people} } > 0;
+    return 0 unless @{$substrs->{event} ||[]} > 0 || @{$substrs->{things} ||[]} > 0 ;
+    return 0 unless @{$substrs->{countries} ||[]} > 0 || @{$substrs->{'taiwan-subdivisions'} ||[]} > 0 ;
 
     return 1;
 }
