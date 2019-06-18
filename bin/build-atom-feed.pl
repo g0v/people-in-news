@@ -77,9 +77,12 @@ GetOptions(
     "force|f",
     "db=s",
     "o=s",
+    "since=n",
 );
 die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
 die "-o <DIR> is needed" unless $opts{o} && -d $opts{o};
+
+my $since = time - ($opt{since} || 7200);
 
 my $iter = Sn::ArticleIterator->new(
     db_path => $opts{db},
@@ -91,6 +94,7 @@ my %seen;
 my @articles;
 while ( my $article = $iter->() ) {
     next unless defined($article->{t_fetched}) && !( $seen{$article->{url}}++ );
+    next unless $article->{t_fetched} > $since;
     push @articles, $article;
 
     if ($article->{dateline} && (my $t = Sn::parse_dateline($article->{dateline}))) {
