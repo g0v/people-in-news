@@ -4,6 +4,7 @@ prog=$0
 cd $(dirname $0)/../
 
 ts_begin=$(date +%s)
+cat etc/*sites*.txt | xargs -n1 -I{} curl --silent -o /dev/null https://web.archive.org/save/{} &
 perl -Ilib bin/post-to-wayback-machine.pl --atom var/www/articles-links.atom &
 
 perl -Ilib bin/gather-feeds.pl --db var/db
