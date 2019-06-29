@@ -16,6 +16,7 @@ package Sn::ArticleExtractor {
         my $dom = $res->dom;
 
         do {
+            $dom->at('div.td-big-grid-wrapper h3.td-module-title') or
             $dom->at("div.newsStyle03 dl.newsContent02") or
             $dom->at('#tagNews') or
             ($dom->at('.cate-title header') && ($dom->find('.list-container')->size > 1)) or
