@@ -16,6 +16,7 @@ package Sn::ArticleExtractor {
         my $dom = $res->dom;
 
         do {
+            $dom->at('#news-list .wrap dl dt a[href^=news_info]') or
             $dom->at('div.listContent ul#myMainList') or
             $dom->at('div.td-big-grid-wrapper h3.td-module-title') or
             $dom->at("div.newsStyle03 dl.newsContent02") or
