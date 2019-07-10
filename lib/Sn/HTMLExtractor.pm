@@ -180,6 +180,10 @@ package Sn::HTMLExtractor {
         unless ($ret) {
             my $content_text = $self->content_text;
             ($ret) = $content_text =~ m{[记記]者\s*([\s\p{Letter}、]+?)\s*[/╱／]\s*(?:.+)(?:報導|报导)};
+
+            unless ($ret) {
+                ($ret) = $content_text =~ m{【(記者.+?報導)】}x;
+            }
             unless ($ret) {
                 ($ret) = $content_text =~ m{（(中央社記者.+?日電 | 大纪元记者\p{Letter}+报导 | 記者.+?報導/.+?)）}x;
             }
