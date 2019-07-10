@@ -145,15 +145,12 @@ for my $score (0..8) {
 
 sub looks_good {
     my ($article) = @_;
-
     defined($article->{dateline})           &&
     defined($article->{journalist})         &&
     defined($article->{content_text})       &&
     defined($article->{title})              &&
     length($article->{content_text}) > 140  &&
-    length($article->{title}) > 4           &&
-    ( $article->{content_text} !~ /網友/ )  &&
-    ( $article->{title} !~ /網友/ )
+    length($article->{title}) > 4
 }
 
 sub looks_perfect {
@@ -166,6 +163,8 @@ sub looks_perfect {
     return 0 unless $substrs->{people} && @{ $substrs->{people} } > 0;
     return 0 unless @{$substrs->{event} ||[]} > 0 || @{$substrs->{things} ||[]} > 0 ;
     return 0 unless @{$substrs->{countries} ||[]} > 0 || @{$substrs->{'taiwan-subdivisions'} ||[]} > 0 ;
+    return 0 if $article->{title} =~ /網友/;
+    return 0 if $article->{content_text} =~ /網友/
 
     return 1;
 }
