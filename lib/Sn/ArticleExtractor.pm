@@ -16,7 +16,7 @@ package Sn::ArticleExtractor {
         my $dom = $res->dom;
 
         do {
-            $dom->at('li.Fst a') or
+            $dom->at('.Section .List .HeadlineTopImage-S a') or
             $dom->at('div.searchResultPanel .newsSearch') or
             $dom->at('#news-list .wrap dl dt a[href^=news_info]') or
             $dom->at('div.listContent ul#myMainList') or
