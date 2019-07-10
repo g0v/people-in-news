@@ -195,6 +195,10 @@ package Sn::HTMLExtractor {
             unless ($ret) {
                 ($ret) = $content_text =~ m# \( ( \p{Letter}+ ／ \p{Letter}+ 報導 ) \) #x;
             }
+
+            unless ($ret) {
+                ($ret) = $content_text =~ m#  （ (譯者：.+?/核稿：.+) ） \d+ \z #x;
+            }
         }
 
         return $ret;
