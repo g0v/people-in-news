@@ -164,7 +164,7 @@ sub looks_perfect {
     return 0 unless @{$substrs->{event} ||[]} > 0 || @{$substrs->{things} ||[]} > 0 ;
     return 0 unless @{$substrs->{countries} ||[]} > 0 || @{$substrs->{'taiwan-subdivisions'} ||[]} > 0 ;
     return 0 if $article->{title} =~ /網友/;
-    return 0 if $article->{content_text} =~ /網友/
+    return 0 if $article->{content_text} =~ /網友/;
 
     return 1;
 }
