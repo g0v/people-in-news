@@ -156,7 +156,7 @@ package Sn::HTMLExtractor {
 
         if ( $guess = $dom->at('meta[property="og:article:author"]') ) {
             $ret = $guess->attr('content');
-        } elsif ( $guess = $dom->at('div.field-item a[href^=/author/], div.content_reporter a[itemprop=author], span[itemprop=author] a, div.author a, div.article-author > h5 > a, div.article-meta > div.article-author > a, div.authorInfo li.authorName > a, .article .writer > p, .info_author, .news-info dd[itemprop=author], .content_reporter a, .top_title span.reporter_name') ) {
+        } elsif ( $guess = $dom->at('div.field-item a[href^=/author/], div.content_reporter a[itemprop=author], span[itemprop=author] a, div.author a, div.article-author > h5 > a, div.article-meta > div.article-author > a, div.authorInfo li.authorName > a, .article .writer > p, .info_author, .news-info dd[itemprop=author], .content_reporter a, .top_title span.reporter_name, .post-heading time span') ) {
             $ret = normalize_whitespace( $guess->text );
         } elsif ($guess = $dom->at('.story_bady_info_author')) {
             if ($guess->find('a')->size() == 0) {
@@ -164,8 +164,6 @@ package Sn::HTMLExtractor {
             } else {
                 $ret = $guess->find('a')->map(sub { normalize_whitespace( $_->text ) })->join(', ');
             }
-        } elsif ($guess = $dom->at('.post-heading time span')) {
-            ($ret) = $guess->text =~ m{\A 記者 (.+?) ╱.+報導 \z}x;
         } elsif ($guess = $dom->at('span.f12_15a_g2')) {
             ($ret) = $guess->text =~ m{／記者 (.+?)／};
         } elsif ($guess = $dom->at('div#yt_container_placeholder + p')) {
