@@ -164,6 +164,8 @@ package Sn::HTMLExtractor {
             } else {
                 $ret = $guess->find('a')->map(sub { normalize_whitespace( $_->text ) })->join(', ');
             }
+        } elsif ($guess = $dom->at('.post-heading time span')) {
+            ($ret) = $guess->text =~ m{\A 記者 (.+?) ╱.+報導 \z}x;
         } elsif ($guess = $dom->at('span.f12_15a_g2')) {
             ($ret) = $guess->text =~ m{／記者 (.+?)／};
         } elsif ($guess = $dom->at('div#yt_container_placeholder + p')) {
