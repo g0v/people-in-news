@@ -196,6 +196,10 @@ package Sn::HTMLExtractor {
                 ($ret) = $content_text =~ m#  （ (譯者：.+?/核稿：.+) ） \d+ \z #x;
             }
 
+            unless ($ret) {
+                ($ret) = $content_text =~ m# \(記者 (.+?) \) \z #x;
+            }
+
             $ret = normalize_whitespace($ret) if $ret;
         }
 
