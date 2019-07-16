@@ -16,6 +16,7 @@ package Sn::ArticleExtractor {
         my $dom = $res->dom;
 
         do {
+            $dom->at('ol.breadcrumb li:nth-child(2) a[href="/photocatalog.aspx"]') or
             $dom->at('div.tag-newslist .block_content div[itemtype="http://schema.org/NewsArticle"]') or
             $dom->at('.Section .List .HeadlineTopImage-S a') or
             $dom->at('div.searchResultPanel .newsSearch') or
