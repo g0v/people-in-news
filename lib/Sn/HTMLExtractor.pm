@@ -68,8 +68,9 @@ package Sn::HTMLExtractor {
             $title =~ s/\s* \p{Punct} \s* $site_name \s* \z//x;
         }
         if (defined($title)) {
-            $title =~ s/\p{Punct} \s* $SNRE{newspaper_names} \s* \z//x;
-            $title =~ s/\A $SNRE{newspaper_names} \s* \p{Punct} \s* //x;
+            my $delim = qr<(?: \p{Punct} | \| )>x;
+            $title =~ s/ \s* $delim \s* $SNRE{newspaper_names} \s* \z//x;
+            $title =~ s/\A $SNRE{newspaper_names} \s* $delim \s* //x;
             $title =~ s/\r\n/\n/g;
             $title =~ s/\A\s+//;
             $title =~ s/\s+\z//;

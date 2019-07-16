@@ -33,6 +33,7 @@ use constant {
         '蘋果日報',
         '鉅亨網',
         'NOWnews 今日新聞',
+        '三立新聞網  SETN.COM',
     ],
 
     CATEGORY_NAMES => [
@@ -42,9 +43,10 @@ use constant {
         '台灣政經',
         '社會',
         '娛樂',
+        '國際',
     ],
 };
 
-$SNRE{newspaper_names} = '(?:' . join('|', @{ NEWSPAPER_NAMES() }) . ')';
+$SNRE{newspaper_names} = '(?:' . join('|', map { qr($_) } @{ NEWSPAPER_NAMES() }) . ')';
 
 1;
