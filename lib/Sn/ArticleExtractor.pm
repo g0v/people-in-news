@@ -40,7 +40,8 @@ package Sn::ArticleExtractor {
             ($dom->find('main#content div.listing article.type-post')->size > 3) or
             ($dom->find('div[role=main] article.post')->size > 1) or
             ($dom->find('div.posts-holder article.post')->size > 1) or
-            $dom->at('body.archive.tag div.post_list')
+            $dom->at('body.archive.tag div.post_list') or
+            $dom->at('body.node-type-writer .breadcrumb .last a[href^=/author]')
         } and return 0;
 
         if ($_ = $dom->at('h1.entry-title > span')) {
