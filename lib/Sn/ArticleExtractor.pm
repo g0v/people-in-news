@@ -39,6 +39,7 @@ package Sn::ArticleExtractor {
             ($dom->find('div.part_list_2 h3')->size > 3) or
             ($dom->find('main#content div.listing article.type-post')->size > 3) or
             ($dom->find('div[role=main] article.post')->size > 1) or
+            ($dom->find('div.posts-holder article.post')->size > 1) or
             $dom->at('body.archive.tag div.post_list')
         } and return 0;
 
