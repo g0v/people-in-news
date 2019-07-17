@@ -34,6 +34,7 @@ use constant {
         '鉅亨網',
         'NOWnews 今日新聞',
         '三立新聞網  SETN.COM',
+        '青年日報',
     ],
 
     CATEGORY_NAMES => [
@@ -44,6 +45,7 @@ use constant {
         '社會',
         '娛樂',
         '國際',
+        '軍視界',
     ],
 };
 
