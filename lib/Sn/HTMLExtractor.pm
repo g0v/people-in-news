@@ -188,6 +188,9 @@ package Sn::HTMLExtractor {
                 ($ret) = $content_text =~ m{\A 中評社 .+? \d+ 月 \d+ 日電（記者(.+?)）}x;
             }
             unless ($ret) {
+                ($ret) = $content_text =~ m{\A ( 記者[^／]+／.+?電 )}x;
+            }
+            unless ($ret) {
                 ($ret) = $content_text =~ m{（(中央社[记記]者.+?日[電电] | 大纪元记者\p{Letter}+报导 | 記者.+?報導/.+?)）}x;
             }
             unless ($ret) {
