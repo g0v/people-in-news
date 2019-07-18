@@ -209,6 +209,13 @@ package Sn::HTMLExtractor {
                 ($ret) = $content_text =~ m{^(編譯[^／]+?／.+?報導)$}xsm;
             }
 
+            unless ($ret) {
+                my ($guess) = $content_text =~ m{（(\p{Letter}+)）\z}xsm;
+                if ($dom->descendant_nodes->first(sub { $_->type eq 'text' && $_->content =~ m<記者${guess}\b> })) {
+                    $ret = $guess
+                }
+            }
+
             $ret = normalize_whitespace($ret) if $ret;
         }
 
