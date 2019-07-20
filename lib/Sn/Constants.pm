@@ -36,6 +36,7 @@ use constant {
         '三立新聞網  SETN.COM',
         '青年日報',
         '風傳媒',
+        '妞新聞 niusnews',
     ],
 
     CATEGORY_NAMES => [
@@ -47,6 +48,7 @@ use constant {
         '娛樂',
         '國際',
         '軍視界',
+        '生活發現',
     ],
 };
 
