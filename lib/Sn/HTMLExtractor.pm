@@ -208,6 +208,9 @@ package Sn::HTMLExtractor {
             unless ($ret) {
                 ($ret) = $content_text =~ m{^(編譯[^／]+?／.+?報導)$}xsm;
             }
+            unless ($ret) {
+                ($ret) = $content_text =~ m{\A 文：記者(\p{Letter}+) \n}x
+            }
 
             unless ($ret) {
                 my ($guess) = $content_text =~ m{（(\p{Letter}+)）\z}xsm;
