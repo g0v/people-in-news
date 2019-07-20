@@ -38,6 +38,7 @@ use constant {
         '風傳媒',
         '妞新聞 niusnews',
         '阿波羅網手機版',
+        '數位台灣地方新聞',
     ],
 
     CATEGORY_NAMES => [
