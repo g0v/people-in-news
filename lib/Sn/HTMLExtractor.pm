@@ -180,7 +180,7 @@ package Sn::HTMLExtractor {
         unless ($ret) {
             my $content_text = $self->content_text;
             my @patterns = (
-                qr<\b [记記]者 \s* ([\s\p{Letter}、]+?) \s* [/╱／] \s* (?: 特稿 | .+(?:報導|报导)) \b>xs,
+                qr<\b [记記]者 \s* ([\s\p{Letter}、]+?) \s* [/╱／] \s* (?: 特稿 | 專訪 | .+(?:報導|报导)) \b>xs,
                 qr<\A 【(記者.+?報導)】>x,
                 qr<\A 中評社 .+? \d+ 月 \d+ 日電（記者(.+?)）>x,
                 qr<\A ( 記者[^／]+／.+?電 )>x,
