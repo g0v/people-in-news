@@ -179,37 +179,23 @@ package Sn::HTMLExtractor {
 
         unless ($ret) {
             my $content_text = $self->content_text;
-            ($ret) = $content_text =~ m{[记記]者\s*([\s\p{Letter}、]+?)\s*[/╱／]\s*(?:.+)(?:報導|报导)};
+            my @patterns = (
+                qr<{[记記]者\s*([\s\p{Letter}、]+?)\s*[/╱／]\s*(?:.+)(?:報導|报导)}>x,
+                qr<\A 【(記者.+?報導)】>x,
+                qr<\A 中評社 .+? \d+ 月 \d+ 日電（記者(.+?)）>x,
+                qr<\A ( 記者[^／]+／.+?電 )>x,
+                qr<（(中央社[记記]者.+?日[電电] | 大纪元记者\p{Letter}+报导 | 記者.+?報導/.+?)）>x,
+                qr< \( ( \p{Letter}+ ／ \p{Letter}+ 報導 ) \) >x,
+                qr<\A 文：記者(\p{Letter}+) \n>x,
+                qr<  （ (譯者：.+?/核稿：.+) ） \d+ \z >x,
+                qr< \(記者 (.+?) \) \z >x,
+                qr<^(編譯[^／]+?／.+?報導)$>xsm,
+                qr< （(編輯： .+)） \z >x,
+            );
 
-            unless ($ret) {
-                ($ret) = $content_text =~ m{\A 【(記者.+?報導)】}x;
-            }
-            unless ($ret) {
-                ($ret) = $content_text =~ m{\A 中評社 .+? \d+ 月 \d+ 日電（記者(.+?)）}x;
-            }
-            unless ($ret) {
-                ($ret) = $content_text =~ m{\A ( 記者[^／]+／.+?電 )}x;
-            }
-            unless ($ret) {
-                ($ret) = $content_text =~ m{（(中央社[记記]者.+?日[電电] | 大纪元记者\p{Letter}+报导 | 記者.+?報導/.+?)）}x;
-            }
-            unless ($ret) {
-                ($ret) = $content_text =~ m# \( ( \p{Letter}+ ／ \p{Letter}+ 報導 ) \) #x;
-            }
-            unless ($ret) {
-                ($ret) = $content_text =~ m#  （ (譯者：.+?/核稿：.+) ） \d+ \z #x;
-            }
-            unless ($ret) {
-                ($ret) = $content_text =~ m# \(記者 (.+?) \) \z #x;
-            }
-            unless ($ret) {
-                ($ret) = $content_text =~ m# （(編輯： .+)） \z #x;
-            }
-            unless ($ret) {
-                ($ret) = $content_text =~ m{^(編譯[^／]+?／.+?報導)$}xsm;
-            }
-            unless ($ret) {
-                ($ret) = $content_text =~ m{\A 文：記者(\p{Letter}+) \n}x
+            for my $pat (@patterns) {
+                ($ret) = $content_text =~ m/$pat/;
+                last if $ret;
             }
 
             unless ($ret) {
