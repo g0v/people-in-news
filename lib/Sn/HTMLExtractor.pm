@@ -200,7 +200,7 @@ package Sn::HTMLExtractor {
 
             unless ($ret) {
                 my ($guess) = $content_text =~ m{（(\p{Letter}+)）\z}xsm;
-                if ($dom->descendant_nodes->first(sub { $_->type eq 'text' && $_->content =~ m<記者${guess}\b> })) {
+                if ($guess && $dom->descendant_nodes->first(sub { $_->type eq 'text' && $_->content =~ m<記者${guess}\b> })) {
                     $ret = $guess
                 }
             }
