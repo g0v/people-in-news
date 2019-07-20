@@ -35,6 +35,7 @@ use constant {
         'NOWnews 今日新聞',
         '三立新聞網  SETN.COM',
         '青年日報',
+        '風傳媒',
     ],
 
     CATEGORY_NAMES => [
