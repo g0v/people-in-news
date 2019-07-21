@@ -157,7 +157,7 @@ package Sn::HTMLExtractor {
 
         if ( $guess = $dom->at('meta[property="og:article:author"]') ) {
             $ret = $guess->attr('content');
-        } elsif ( $guess = $dom->at('div.field-item a[href^=/author/], div.content_reporter a[itemprop=author], span[itemprop=author] a, div.author a, div.article-author > h5 > a, div.article-meta > div.article-author > a, div.authorInfo li.authorName > a, .article .writer > p, .info_author, .news-info dd[itemprop=author], .content_reporter a, .top_title span.reporter_name, .post-heading time span') ) {
+        } elsif ( $guess = $dom->at('div.field-item a[href^=/author/], div.content_reporter a[itemprop=author], span[itemprop=author] a, div.author a, div.article-author > h5 > a, div.article-meta > div.article-author > a, div.authorInfo li.authorName > a, .article .writer > p, .info_author, .news-info dd[itemprop=author], .content_reporter a, .top_title span.reporter_name, .post-heading time span, header .article-meta .article-author') ) {
             $ret = normalize_whitespace( $guess->text );
         } elsif ($guess = $dom->at('.story_bady_info_author')) {
             if ($guess->find('a')->size() == 0) {
