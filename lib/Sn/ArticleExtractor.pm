@@ -25,6 +25,7 @@ package Sn::ArticleExtractor {
             $dom->at('div.td-big-grid-wrapper h3.td-module-title') or
             $dom->at("div.newsStyle03 dl.newsContent02") or
             $dom->at('#tagNews') or
+            $dom->at('.author-section .list-container') or
             ($dom->at('.cate-title header') && ($dom->find('.list-container')->size > 1)) or
             $dom->at('body.channel section.search-result') or
             $dom->at('.clsGetMoreTopics') or
