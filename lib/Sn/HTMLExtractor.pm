@@ -188,6 +188,7 @@ package Sn::HTMLExtractor {
                 qr<\A 【(記者.+?報導)】>x,
                 qr<\A 中評社 .+? \d+ 月 \d+ 日電（記者(.+?)）>x,
                 qr<\A ( 記者[^／]+／.+?電 )>x,
+                qr<\A 匯流新聞網記者 (\p{Letter}+) ／綜合報導 >x,
                 qr<（(中央社[记記]者 \S+ 日 專?[電电] | 大纪元记者\p{Letter}+报导 | 記者.+?報導/.+?)）>x,
                 qr< \( ( \p{Letter}+ ／ \p{Letter}+ 報導 ) \) >x,
                 qr<\A 文：記者(\p{Letter}+) \n>x,
