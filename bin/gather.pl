@@ -121,7 +121,7 @@ sub process_ftv {
     my %seen;
     my $o = Sn::FTVScraper->discover;
     for my $url (@{ $o->{links} }) {
-        next if $seen{$url};
+        next if $seen{$url} || $url_seen->test($url);
         $seen{$url} = 1;
 
         my $article = Sn::FTVScraper->scrape($url) or next;

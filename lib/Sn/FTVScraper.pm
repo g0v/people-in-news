@@ -27,9 +27,7 @@ package Sn::FTVScraper {
             my $url = $tmpl =~ s/\{id\}/${id}/r;
             my $tx = $ua->get($url);
             my $items = $tx->result->json('/ITEM');
-            for (@$items) {
-                push @links, $_->{WebLink};
-            }
+            push @links, map { $_->{WebLink} } @$items;
         }
 
         return { links => \@links };
