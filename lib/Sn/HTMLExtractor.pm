@@ -90,7 +90,7 @@ package Sn::HTMLExtractor {
         elsif ($guess = $dom->at("time[itemprop=datePublished][datetime], h1 time[datetime], .func_time time[pubdate]")) {
             $dateline = $guess->attr('datetime');
         }
-        elsif ($guess = $dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, .author .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime, article p.date, .post-meta > .icon-clock > span, .article_info_content span.info_time, .content time.page-date, .c_time, .newsContent p.time, .story_bady_info_author span:nth-child(1), div.title > div.time, div.article-meta div.article-date, address.authorInfor time, .entry-meta .date a, .author-links .posts-date, .top_title span.post_time")) {
+        elsif ($guess = $dom->at(".reporter time, span.time, span.viewtime, header.article-desc time, .timeBox .updatetime span, .caption div.label-date, .contents_page span.date, .main-content span.date, .newsin_date, .news .date, .author .date, ul.info > li.date > span:nth-child(2), #newsHeadline span.datetime, article p.date, .post-meta > .icon-clock > span, .article_info_content span.info_time, .content time.page-date, .c_time, .newsContent p.time, .story_bady_info_author span:nth-child(1), div.title > div.time, div.article-meta div.article-date, address.authorInfor time, .entry-meta .date a, .author-links .posts-date, .top_title span.post_time, .mid-news > .m-left-side > .maintype-wapper > h2")) {
             $dateline = $guess->text;
         }
         elsif ($guess = $dom->at("div#articles cite")) {
@@ -160,11 +160,11 @@ package Sn::HTMLExtractor {
 
         if ( $guess = $dom->at('meta[property="og:article:author"]') ) {
             $ret = $guess->attr('content');
-        } elsif ( $guess = $dom->at('div.field-item a[href^=/author/], div.content_reporter a[itemprop=author], span[itemprop=author] a, div.author a, div.article-author > h5 > a, div.article-meta > div.article-author > a, div.authorInfo li.authorName > a, .article .writer > p, .info_author, .news-info dd[itemprop=author], .content_reporter a, .top_title span.reporter_name, .post-heading time span, header .article-meta .article-author,  .article_header > .author > span:first-child') ) {
-            $ret = normalize_whitespace( $guess->text );
+        } elsif ( $guess = $dom->at('div.field-item a[href^=/author/], div.content_reporter a[itemprop=author], span[itemprop=author] a, div.author a, div.article-author > h5 > a, div.article-meta > div.article-author > a, div.authorInfo li.authorName > a, .article .writer > p, .info_author, .news-info dd[itemprop=author], .content_reporter a, .top_title span.reporter_name, .post-heading time span, header .article-meta .article-author,  .article_header > .author > span:first-child, .mid-news > .m-left-side > .maintype-wapper > .subtype-sort') ) {
+            $ret = $guess->text;
         } elsif ($guess = $dom->at('.story_bady_info_author')) {
             if ($guess->find('a')->size() == 0) {
-                $ret = normalize_whitespace( $guess->text );
+                $ret = $guess->text;
             } else {
                 $ret = $guess->find('a')->map(sub { normalize_whitespace( $_->text ) })->join(', ');
             }
@@ -177,7 +177,7 @@ package Sn::HTMLExtractor {
         } elsif ($guess = $dom->at('#story #news_author')) {
             ($ret) = $guess->all_text =~ m{\A 【記者 (.+) ／}x;
         } elsif ($guess = $dom->at('#details_block .left .name, .articleMain .article-author a.author-title, .article__credit a[href^="/author/"], span[itemprop=author] span[itemprop=name], .post-header-additional .post-meta-info a.nickname')) {
-            $ret = normalize_whitespace $guess->text;
+            $ret = $guess->text;
         }
 
         unless ($ret) {
@@ -208,9 +208,9 @@ package Sn::HTMLExtractor {
                     $ret = $guess
                 }
             }
-
-            $ret = normalize_whitespace($ret) if $ret;
         }
+
+        $ret = normalize_whitespace($ret) if $ret;
 
         return $ret;
     }
