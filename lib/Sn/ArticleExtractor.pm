@@ -16,6 +16,7 @@ package Sn::ArticleExtractor {
         my $dom = $res->dom;
 
         do {
+            ($dom->at('body > #tnl-author')) or
             ($dom->at('div#main article.articles') && $dom->find('div#main > *')->size == 1) or
             $dom->at('ol.breadcrumb li:nth-child(2) a[href="/photocatalog.aspx"]') or
             $dom->at('div.tag-newslist .block_content div[itemtype="http://schema.org/NewsArticle"]') or
