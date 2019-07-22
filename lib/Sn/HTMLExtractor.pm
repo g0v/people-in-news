@@ -197,6 +197,8 @@ package Sn::HTMLExtractor {
                 qr<^(編譯[^／]+?／.+?報導)$>xsm,
                 qr<（( (?:譯者|編輯)：.+) ） (?:[0-9]{7})? \z >x,
                 qr<（記者 (\p{Letter}+) ） \z>x,
+                qr< （記者 (\p{Letter}+) 綜合報導）\s+ （ (責任編輯：\p{Letter}+) ） \z>x,
+                qr< （ (責任編輯：\p{Letter}+) ）\z>x
             );
 
             for my $pat (@patterns) {
