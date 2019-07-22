@@ -97,7 +97,7 @@ package Sn::HTMLExtractor {
             $guess->at("a")->remove;
             $dateline = $guess->text;
         }
-        elsif ($guess = $dom->at("article.ndArticle_leftColumn div.ndArticle_creat, ul.info li.date, .cpInfo .cp, .nsa3 .tt27")) {
+        elsif ($guess = $dom->at("article.ndArticle_leftColumn div.ndArticle_creat, ul.info li.date, .cpInfo .cp, .nsa3 .tt27, .fncnews-content > .info > span.small-gray-text")) {
             ($dateline) = $guess->text =~ m#([0-9]{4}[\-/][0-9]{2}[\-/][0-9]{2} [0-9]{2}:[0-9]{2})#;
         }
         elsif ($guess = $dom->at(".news-toolbar .news-toolbar__cell")) {
@@ -178,6 +178,8 @@ package Sn::HTMLExtractor {
             ($ret) = $guess->all_text =~ m{\A 【 (記者 .+) 】}x;
         } elsif ($guess = $dom->at('#details_block .left .name, .articleMain .article-author a.author-title, .article__credit a[href^="/author/"], span[itemprop=author] span[itemprop=name], .post-header-additional .post-meta-info a.nickname')) {
             $ret = $guess->text;
+        } elsif ($guess = $dom->at('.fncnews-content > .info > span.small-gray-text')) {
+            ($ret) = $guess->text =~ m<(責任編輯.+)\z>x;
         }
 
         unless ($ret) {
