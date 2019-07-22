@@ -224,9 +224,7 @@ package Sn::HTMLExtractor {
         my ($content_dom, $el, $html);
 
         # Cleanup some noisy elements that are known to interfere.
-        if ($el = $self->dom->at('div#marquee')) {
-            $el->remove
-        }
+        $self->dom->find('div#marquee, #setting_weather')->map('remove');
 
         my $extractor = HTML::ExtractContent->new;
         if ($el = $self->dom->at('article')) {
