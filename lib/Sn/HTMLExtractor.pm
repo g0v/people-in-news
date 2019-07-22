@@ -224,20 +224,16 @@ package Sn::HTMLExtractor {
         my ($content_dom, $el, $html);
 
         # Cleanup some noisy elements that are known to interfere.
-        $self->dom->find('div#marquee, #setting_weather')->map('remove');
+        $self->dom->find('script, style, p.appE1121, div.sexmask, div.cat-list, div#marquee, #setting_weather')->map('remove');
 
         my $extractor = HTML::ExtractContent->new;
         if ($el = $self->dom->at('article')) {
             $html = $extractor->extract("$el")->as_html;
         } else {
-            # Remove the generic elements that somehow passed the ExtractContent filter.
-            $self->dom->find('p.appE1121, div.sexmask, div.cat-list')->map('remove');
-
             $html = $extractor->extract( $self->dom->to_string )->as_html;
         }
 
         $content_dom = Mojo::DOM->new('<body>' . $html . '</body>');
-        $content_dom->find('script')->map('remove');
         $content_dom->find('br')->map(replace => "\n");
         $content_dom->find('div,p')->map(append => "\n\n");
 
