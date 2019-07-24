@@ -166,7 +166,7 @@ package Sn::HTMLExtractor {
             if ($guess->find('a')->size() == 0) {
                 $ret = $guess->text;
             } else {
-                $ret = $guess->find('a')->map(sub { normalize_whitespace( $_->text ) })->join(', ');
+                $ret = $guess->find('a')->map(sub { normalize_whitespace( $_->text ) })->join(', ') . "";
             }
         } elsif ($guess = $dom->at('span.f12_15a_g2')) {
             ($ret) = $guess->text =~ m{／記者 (.+?)／};
