@@ -14,8 +14,9 @@ package Sn::ArticleExtractor {
         return 0 unless $res->body;
 
         my $dom = $res->dom;
-
+        my $it;
         do {
+            ($it = $dom->at('div.search .large-8 .bigtitle') and do { $it->text =~ /SEARCH/ }) or
             ($dom->at('body > #tnl-author')) or
             ($dom->at('div#main article.articles') && $dom->find('div#main > *')->size == 1) or
             $dom->at('ol.breadcrumb li:nth-child(2) a[href="/photocatalog.aspx"]') or
