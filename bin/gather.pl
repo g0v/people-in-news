@@ -42,11 +42,8 @@ sub encode_article_as_json {
 }
 
 sub looks_like_similar_host {
-    my ($host1, $host2) = @_;
-    return 1 if $host1 eq $host2;
-    my $rhost1 = reverse($host1);
-    my $rhost2 = reverse($host2);
-    return ( 0 == index($rhost2, $rhost1) );
+    my @host = map { s/.+\.([^\.]+)$/$1/r } map { s/\.((com|org|net)(\.tw)?|(co|ne|or)\.(jp|uk))$//r } @_;
+    return $host[0] eq $host[1]
 }
 
 sub looks_like_xml {
