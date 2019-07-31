@@ -29,3 +29,4 @@ requires 'URI';
 requires 'WWW::Mechanize::Chrome';
 requires 'WWW::Mechanize::PhantomJS';
 requires 'XML::FeedPP';
+requires 'Importer';
