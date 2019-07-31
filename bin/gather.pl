@@ -25,6 +25,8 @@ use Sn::HTMLExtractor;
 use Sn::ArticleExtractor;
 use Sn::FTVScraper;
 
+use Importer 'Sn' => qw(looks_like_similar_host);
+
 use constant CUTOFF => $ENV{CUTOFF} || 999;
 
 ## global
@@ -39,11 +41,6 @@ sub err {
 sub encode_article_as_json {
     state $json = JSON->new->utf8->canonical;
     $json->encode($_[0]);
-}
-
-sub looks_like_similar_host {
-    my @host = map { s/.+\.([^\.]+)$/$1/r } map { s/\.((com|org|net)(\.tw)?|(co|ne|or)\.(jp|uk))$//r } @_;
-    return $host[0] eq $host[1]
 }
 
 sub looks_like_xml {
