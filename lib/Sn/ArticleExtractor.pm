@@ -60,8 +60,6 @@ package Sn::ArticleExtractor {
     sub extract {
         my ($self) = @_;
 
-        return unless $self->looks_like_article_page;
-
         my $tx  = $self->tx;
         my $res = $tx->res;
 
@@ -85,18 +83,19 @@ package Sn::ArticleExtractor {
             );
             $seen{$u} = 1;
         }
-        $article{links} = [keys %seen];
+        @links = keys %seen;
 
-        my $charset = Sn::tx_guess_charset($tx) or return;
+        return (undef, \@links) unless $self->looks_like_article_page;
+
+        my $charset = Sn::tx_guess_charset($tx) or return(undef, \@links);
         my $html = decode($charset, $res->body);
 
         my $extractor = Sn::HTMLExtractor->new( html => $html );
 
         my $title = $extractor->title;
-        return \%article unless $title;
-
         my $text = $extractor->content_text;
-        return \%article unless $text;
+
+        return (undef, \@links) unless $title && $text;
 
         $article{title}        = "". $title;
         $article{content_text} = "". $text;
@@ -105,7 +104,7 @@ package Sn::ArticleExtractor {
         $article{dateline}     = $extractor->dateline;
         $article{journalist}   = $extractor->journalist;
 
-        return \%article;
+        return (\%article, \@links);
     }
 
 };

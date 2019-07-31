@@ -74,26 +74,27 @@ sub process_generic {
             sub {
                 my ($tx, $url) = @_;
                 my $host_old = URI->new($url)->host;
-                my $article = Sn::ArticleExtractor->new( tx => $tx )->extract;
+                my ($article, $links) = Sn::ArticleExtractor->new( tx => $tx )->extract;
 
                 if ($article) {
-                    for my $url_new (@{$article->{links} //[]}) {
-                        my $host_new = URI->new($url_new)->host;
-                        unless ($seen{$url_new} || !looks_like_similar_host($host_new, $host_old) || looks_like_xml($url_new) ) {
-                            push @discovered_links, $url_new;
-                            $seen{$url_new} = 1;
-                        }
-                    }
-                    delete $article->{links};
+                    my $line = encode_article_as_json($article) . "\n";
+                    print $fh $line;
+                    push @processed_links, $url;
+                }
 
-                    if ($article->{title}) {
-                        my $line = encode_article_as_json($article) . "\n";
-                        print $fh $line;
-                        $extracted_count++;
-                        push @processed_links, $url;
-                    }
+                push @discovered_links, grep {
+                    my $host_new = URI->new($_)->host;
+                    !( $seen{$_} || looks_like_xml($_) || !looks_like_similar_host($host_new, $host_old) )
+                } @$links;
+
+                $extracted_count++;
+                $seen{$url} = 1;
+                if ($article) {
+                    say "... ${extracted_count} -- article extracted from: $url";
+                } elsif (@$links) {
+                    say "... ${extracted_count} -- ". (0+ @$links) . " links extracted from: $url";
                 } else {
-                    say "[$$] Fail to extract from $url";
+                    say "... ${extracted_count} -- nothing extracted from: $url";
                 }
                 return ($STOP || ($extracted_count > CUTOFF)) ? 0 : 1;
             },
