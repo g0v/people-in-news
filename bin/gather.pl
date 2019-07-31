@@ -188,6 +188,7 @@ if (@initial_urls) {
             $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
         }
         $STOP = 1 if time() - $PROCESS_START > 3000;
+        return if $STOP;
 
         if ($url =~ /ftv\.com|ftvnews\.com/) {
             process_ftv($url_seen, $output);
