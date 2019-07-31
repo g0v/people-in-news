@@ -14,7 +14,7 @@ requires 'Module::Functions';
 requires 'Mojo::UserAgent';
 requires 'Moo';
 requires 'Net::Graphite';
-requires 'NewsExtractor', '0.02';
+requires 'NewsExtractor', 'v0.0.2';
 requires 'PerlIO::via::gzip';
 requires 'Regexp::Trie';
 requires 'String::Trim';
