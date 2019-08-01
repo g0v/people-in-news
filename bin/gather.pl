@@ -73,7 +73,6 @@ sub process_generic {
             \@links,
             sub {
                 my ($tx, $url) = @_;
-                my $host_old = URI->new($url)->host;
                 my ($article, $links) = Sn::ArticleExtractor->new( tx => $tx )->extract;
 
                 if ($article) {
@@ -82,13 +81,15 @@ sub process_generic {
                     push @processed_links, $url;
                 }
 
+                $extracted_count++;
+                $seen{$url} = 1;
+
+                my $host_old = URI->new($url)->host;
                 push @discovered_links, grep {
                     my $host_new = URI->new($_)->host;
                     !( $seen{$_} || $url_seen->test("$_") || looks_like_xml($_) || !looks_like_similar_host($host_new, $host_old) )
                 } @$links;
 
-                $extracted_count++;
-                $seen{$url} = 1;
                 if ($article) {
                     say "... ${extracted_count} -- article extracted from: $url";
                 } elsif (@$links) {
@@ -96,6 +97,7 @@ sub process_generic {
                 } else {
                     say "... ${extracted_count} -- nothing extracted from: $url";
                 }
+
                 return ($STOP || ($extracted_count > CUTOFF)) ? 0 : 1;
             },
             sub {
