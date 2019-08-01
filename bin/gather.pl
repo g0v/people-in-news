@@ -1,6 +1,5 @@
 #!/usr/bin/env perl
 use v5.26;
-use strict;
 use warnings;
 
 use URI;
@@ -14,7 +13,7 @@ use Encode::Guess;
 use Getopt::Long qw(GetOptions);
 use Algorithm::BloomFilter;
 
-use List::Util qw(uniqstr max shuffle);
+use List::Util qw(any shuffle);
 use JSON ();
 use FindBin '$Bin';
 
@@ -49,9 +48,7 @@ sub looks_like_xml {
 }
 
 sub process_generic {
-    my ($url, $url_seen, $out) = @_;
-
-    say "[$$] Process generically: $url";
+    my ($urls, $url_seen, $out) = @_;
 
     open my $fh, '>', $out;
     $fh->autoflush(1);
@@ -59,61 +56,57 @@ sub process_generic {
     my $error_count = 0;
     my $extracted_count = 0;
 
-    my @links = ($url);
+    my @links = @$urls;
     my %seen = map { $_ => 1 } @links;
 
-    my $round = 0;
-    while (!$STOP && @links && $round++ < 3) {
-        $STOP = 1 if time() - $PROCESS_START > 1200;
-
-        my (@discovered_links, @processed_links);
+    while (!$STOP && @links) {
+        my @processed_links;
 
         say "[$$] TODO: " . (0 + @links) . " urls";
-        Sn::urls_get_all(
-            \@links,
-            sub {
-                my ($tx, $url) = @_;
-                my ($article, $links) = Sn::ArticleExtractor->new( tx => $tx )->extract;
+        while(my @batch = splice(@links, 0, 4)) {
+            Sn::urls_get_all(
+                \@batch,
+                sub {
+                    my ($tx, $url) = @_;
+                    my ($article, $links) = Sn::ArticleExtractor->new( tx => $tx )->extract;
 
-                if ($article) {
-                    my $line = encode_article_as_json($article) . "\n";
-                    print $fh $line;
-                    push @processed_links, $url;
+                    if ($article) {
+                        my $line = encode_article_as_json($article) . "\n";
+                        print $fh $line;
+                        push @processed_links, $url;
+                    }
+
+                    $extracted_count++;
+                    $seen{$url} = 1;
+
+                    my $host_old = URI->new($url)->host;
+
+                    my @discovered_links = grep {
+                        my $host_new = URI->new($_)->host;
+                        !( $seen{$_} || $url_seen->test("$_") || looks_like_xml($_) || !looks_like_similar_host($host_new, $host_old) )
+                    } @$links;
+
+                    if (@discovered_links) {
+                        MCE->do('urls_enqueue', \@discovered_links);
+                    }
+
+                    return 1;
+                },
+                sub {
+                    my ($error, $url) = @_;
+                    say STDERR "ERROR:\t$error\t$url";
+                    return $STOP ? 0 : 1;
                 }
+            );
 
-                $extracted_count++;
-                $seen{$url} = 1;
-
-                my $host_old = URI->new($url)->host;
-                push @discovered_links, grep {
-                    my $host_new = URI->new($_)->host;
-                    !( $seen{$_} || $url_seen->test("$_") || looks_like_xml($_) || !looks_like_similar_host($host_new, $host_old) )
-                } @$links;
-
-                if ($article) {
-                    say "... ${extracted_count} -- article extracted from: $url";
-                } elsif (@$links) {
-                    say "... ${extracted_count} -- ". (0+ @$links) . " links extracted from: $url";
-                } else {
-                    say "... ${extracted_count} -- nothing extracted from: $url";
-                }
-
-                return ($STOP || ($extracted_count > CUTOFF)) ? 0 : 1;
-            },
-            sub {
-                my ($error, $url) = @_;
-                say STDERR "ERROR:\t$error\t$url";
-                return $STOP ? 0 : 1;
+            if (@processed_links) {
+                MCE->do('add_to_url_seen', \@processed_links);
             }
-        );
 
-        if (@processed_links) {
-            MCE->do('add_to_url_seen', \@processed_links);
+            $STOP = 1 if time() - $PROCESS_START > 1200;
+            last if ($STOP || ($extracted_count > CUTOFF));
         }
-
-        say "[$$] " . (0+ @links) . " links are processed, " . (0+ @discovered_links) . " to go";
-        @links = @discovered_links;
-    }
+    }(
 
     close($fh);
 }
@@ -152,8 +145,16 @@ my $url_seen;
 sub add_to_url_seen {
     my ($urls) = @_;
     $url_seen->add(@$urls);
-    say "Added " . (0+ @$urls) . " more urls";
+    say "Seen " . (0+ @$urls) . " more urls";
     $url_seen->save;
+}
+
+my @urls_queue;
+sub urls_enqueue {
+    my ($urls) = @_;
+    push @urls_queue, @$urls;
+    say "Queue size: " . (0+ @urls_queue) . " urls";
+    return;
 }
 
 ## main
@@ -169,23 +170,21 @@ chdir($Bin . '/../');
 
 $url_seen = Sn::Seen->new( store => ($opts{db} . "/url-seen.bloomfilter") );
 
-my @initial_urls;
-
 if (@ARGV) {
-    @initial_urls = @ARGV;
+    @urls_queue = @ARGV;
 } else {
-    @initial_urls =  shuffle(
+    @urls_queue =  shuffle(
         @{ Sn::read_string_list('etc/news-sites.txt') },
         @{ Sn::read_string_list('etc/news-aggregation-sites.txt') },
     );
 }
 
 # jsonl => http://jsonlines.org/
-if (@initial_urls) {
-    MCE::Loop::init { chunk_size => 1 };
-    mce_loop {
-        my $url = $_;
 
+MCE::Loop::init { chunk_size => 4000 };
+while (@urls_queue) {
+    mce_loop {
+        my $urls = $_;
         my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
         while (-f $output) {
             sleep 1;
@@ -194,11 +193,11 @@ if (@initial_urls) {
         $STOP = 1 if time() - $PROCESS_START > 3000;
         return if $STOP;
 
-        if ($url =~ /ftv\.com|ftvnews\.com/) {
+        if (any { /ftv\.com|ftvnews\.com/ } @$urls) {
+            @$urls = grep { ! /ftv\.com|ftvnews\.com/ } @$urls;
             process_ftv($url_seen, $output);
-        } else {
-            process_generic($url, $url_seen, $output);
         }
-    } @initial_urls;
+        process_generic($urls, $url_seen, $output);
+    } shuffle( splice(@urls_queue) );
 }
 
