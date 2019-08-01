@@ -84,7 +84,7 @@ sub process_generic {
 
                 push @discovered_links, grep {
                     my $host_new = URI->new($_)->host;
-                    !( $seen{$_} || looks_like_xml($_) || !looks_like_similar_host($host_new, $host_old) )
+                    !( $seen{$_} || $url_seen->test("$_") || looks_like_xml($_) || !looks_like_similar_host($host_new, $host_old) )
                 } @$links;
 
                 $extracted_count++;
@@ -109,7 +109,8 @@ sub process_generic {
             MCE->do('add_to_url_seen', \@processed_links);
         }
 
-        @links = grep { ( ! m{^https://twitter.com/} ) && (! $url_seen->test("$_")) } @discovered_links;
+        say "[$$] " . (0+ @links) . " links are processed, " . (0+ @discovered_links) . " to go";
+        @links = @discovered_links;
     }
 
     close($fh);
@@ -150,9 +151,10 @@ sub add_to_url_seen {
     my ($urls) = @_;
     $url_seen->add(@$urls);
     say "Added " . (0+ @$urls) . " more urls";
+    $url_seen->save;
 }
 
-# main
+## main
 
 my %opts;
 GetOptions(
@@ -198,4 +200,3 @@ if (@initial_urls) {
     } @initial_urls;
 }
 
-$url_seen->save;
