@@ -4,7 +4,8 @@ use warnings;
 
 use URI;
 use Try::Tiny;
-use MCE::Loop;
+use MCE;
+use MCE::Queue;
 use Mojo::UserAgent;
 use Mojo::Promise;
 use HTML::ExtractContent;
@@ -26,16 +27,18 @@ use Sn::FTVScraper;
 
 use Importer 'Sn' => qw(looks_like_similar_host);
 
-use constant CUTOFF => $ENV{CUTOFF} || 999;
-
 ## global
+my $queue_urls = MCE::Queue->new();
+my $queue_ftv  = MCE::Queue->new();
+
 my $PROCESS_START = time();
 my $STOP = 0;
-local $SIG{INT} = sub { $STOP = 1 };
+local $SIG{INT} = sub {
+    $queue_urls->clear;
+    $queue_urls->end;
 
-sub err {
-    say STDERR @_;
-}
+    $STOP = 1;
+};
 
 sub encode_article_as_json {
     state $json = JSON->new->utf8->canonical;
@@ -48,37 +51,35 @@ sub looks_like_xml {
 }
 
 sub process_generic {
-    my ($urls, $url_seen, $out) = @_;
+    my ($url_seen, $out) = @_;
 
     open my $fh, '>', $out;
-    $fh->autoflush(1);
+    # $fh->autoflush(1);
 
-    my $error_count = 0;
     my $extracted_count = 0;
 
-    my @links = @$urls;
-    my %seen = map { $_ => 1 } @links;
+    my %seen;
 
-    while (!$STOP && @links) {
-        my @processed_links;
+    my @processed_links;
 
-        say "[$$] TODO: " . (0 + @links) . " urls";
-        while(my @batch = splice(@links, 0, 4)) {
-            Sn::urls_get_all(
-                \@batch,
-                sub {
-                    my ($tx, $url) = @_;
-                    my ($article, $links) = Sn::ArticleExtractor->new( tx => $tx )->extract;
+    while(my @batch = $queue_urls->dequeue(4)) {
+        Sn::urls_get_all(
+            \@batch,
+            sub {
+                my ($tx, $url) = @_;
+                my ($article, $links) = Sn::ArticleExtractor->new( tx => $tx )->extract;
 
-                    if ($article) {
-                        my $line = encode_article_as_json($article) . "\n";
-                        print $fh $line;
-                        push @processed_links, $url;
-                    }
+                if ($article) {
+                    MCE->say("ARTICLE $url");
 
-                    $extracted_count++;
-                    $seen{$url} = 1;
+                    my $line = encode_article_as_json($article) . "\n";
+                    print $fh $line;
+                    push @processed_links, $url;
+                }
 
+                $seen{$url} = 1;
+
+                if ( defined $queue_urls->pending ) {
                     my $host_old = URI->new($url)->host;
 
                     my @discovered_links = grep {
@@ -87,34 +88,35 @@ sub process_generic {
                     } @$links;
 
                     if (@discovered_links) {
-                        MCE->do('urls_enqueue', \@discovered_links);
+                        $queue_urls->enqueue(@discovered_links);
                     }
-
-                    return 1;
-                },
-                sub {
-                    my ($error, $url) = @_;
-                    say STDERR "ERROR:\t$error\t$url";
-                    return $STOP ? 0 : 1;
                 }
-            );
 
-            if (@processed_links) {
-                MCE->do('add_to_url_seen', \@processed_links);
+                return 1;
+            },
+            sub {
+                my ($error, $url) = @_;
+                MCE->say("ERROR:\t$error\t$url");
+                return $STOP ? 0 : 1;
             }
+        );
 
-            $STOP = 1 if time() - $PROCESS_START > 1200;
-            last if ($STOP || ($extracted_count > CUTOFF));
-        }
-    }(
+        last if $STOP;
+    }
 
     close($fh);
+
+    if (@processed_links) {
+        MCE->do('add_to_url_seen', \@processed_links);
+    }
+
+    return;
 }
 
 sub process_ftv {
     my ($url_seen, $out) = @_;
 
-    say "[$$] Process specially: ftv";
+    MCE->say("[$$] Process specially: ftv");
 
     open my $fh, '>', $out;
     $fh->autoflush(1);
@@ -128,11 +130,12 @@ sub process_ftv {
 
         my $article = Sn::FTVScraper->scrape($url) or next;
         if ($article->{title}) {
+            MCE->say("ARTICLE $url");
+
             my $line = encode_article_as_json($article) . "\n";
             print $fh $line;
             push @processed_links, $url;
         }
-        last if @processed_links > CUTOFF;
     }
     if (@processed_links) {
         add_to_url_seen(\@processed_links);
@@ -141,20 +144,28 @@ sub process_ftv {
     close($fh);
 }
 
+my $dirtiness = 0;
 my $url_seen;
 sub add_to_url_seen {
     my ($urls) = @_;
     $url_seen->add(@$urls);
-    say "Seen " . (0+ @$urls) . " more urls";
-    $url_seen->save;
+    MCE->say( "Seen " . (0+ @$urls) . " more urls" );
+
+    if ($dirtiness++ > 100) {
+        $url_seen->save;
+        $dirtiness = 0;
+    }
 }
 
-my @urls_queue;
-sub urls_enqueue {
-    my ($urls) = @_;
-    push @urls_queue, @$urls;
-    say "Queue size: " . (0+ @urls_queue) . " urls";
-    return;
+sub accquire_output_filename {
+    my $db_path = $_[0];
+    my $t = Sn::ts_now();
+    my $output = $db_path . "/articles-" . $t . ".jsonl";
+    while (-f $output) {
+        $t += 1;
+        $output = $db_path . "/articles-" . $t . ".jsonl";
+    }
+    return $output;
 }
 
 ## main
@@ -162,42 +173,70 @@ sub urls_enqueue {
 my %opts;
 GetOptions(
     \%opts,
-    "db|d=s"
+    "db|d=s",
+    "time-limit=n",
 );
 die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
+
+$opts{'time-limit'} //= 1200;
 
 chdir($Bin . '/../');
 
 $url_seen = Sn::Seen->new( store => ($opts{db} . "/url-seen.bloomfilter") );
 
+my @initial_urls;
 if (@ARGV) {
-    @urls_queue = @ARGV;
+    @initial_urls = @ARGV;
 } else {
-    @urls_queue =  shuffle(
+    @initial_urls = shuffle(
         @{ Sn::read_string_list('etc/news-sites.txt') },
         @{ Sn::read_string_list('etc/news-aggregation-sites.txt') },
     );
 }
 
-# jsonl => http://jsonlines.org/
-
-MCE::Loop::init { chunk_size => 4000 };
-while (@urls_queue) {
-    mce_loop {
-        my $urls = $_;
-        my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
-        while (-f $output) {
-            sleep 1;
-            $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
-        }
-        $STOP = 1 if time() - $PROCESS_START > 3000;
-        return if $STOP;
-
-        if (any { /ftv\.com|ftvnews\.com/ } @$urls) {
-            @$urls = grep { ! /ftv\.com|ftvnews\.com/ } @$urls;
-            process_ftv($url_seen, $output);
-        }
-        process_generic($urls, $url_seen, $output);
-    } shuffle( splice(@urls_queue) );
+for my $it (@initial_urls) {
+    if ( $it =~ m/ftv/ ) {
+        $queue_ftv->enqueue($it);
+    } else {
+        $queue_urls->enqueue($it)
+    }
 }
 
+my $mce = MCE->new(
+    user_tasks => [{
+        task_name => "supervisor",
+        user_func => sub {
+            sleep 2;
+            my $pending;
+            while (defined( $pending = $queue_urls->pending() ))  {
+                MCE->say('[Monitor] queue_urls /pending: ' . $pending );
+
+                if ( time() - $PROCESS_START > $opts{'time-limit'} ) {
+                    $queue_urls->end;
+                    $queue_urls->clear;
+                }
+
+                sleep 2;
+            }
+        }
+    }, {
+        max_workers => 'auto',
+        task_name => "generic",
+        user_func => sub {
+            my $depth = 0;
+            my $output = accquire_output_filename($opts{db});
+            process_generic($url_seen, $output);
+            MCE->say("OUTPUT $output");
+        }
+    }, {
+        task_name => "ftv",
+        user_func => sub {
+            while (my $url = $queue_ftv->dequeue_nb) {
+                my $output = accquire_output_filename($opts{db});
+                process_ftv($url_seen, $output);
+            }
+        }
+    }],
+);
+$mce->run;
+$url_seen->save();
