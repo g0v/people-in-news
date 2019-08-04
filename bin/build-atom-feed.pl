@@ -201,7 +201,7 @@ my %articles_by_news_source;
 for my $it (@articles) {
     my $x = URI->new($it->{url})->host;
     $x =~ s/\.(tw|pl|jp|uk|ee|cn|cc|fr|hk|io|me|nl)$//;
-    $x =~ s/\.(com|org|net|co|ne|or)$//;
+    $x =~ s/\.(com|org|net|edu|gov|co|ne|or)$//;
     $x =~ s/.+\.([^\.]+)$/$1/;
     push @{$articles_by_news_source{$x}}, $it;
 }
