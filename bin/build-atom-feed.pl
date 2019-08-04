@@ -11,6 +11,7 @@ use File::Slurp qw(read_file write_file);
 use JSON qw(decode_json);
 use List::Util qw(uniq shuffle);
 use URI;
+use URI::Escape qw(uri_escape_utf8);
 use Try::Tiny;
 use XML::FeedPP;
 use Time::Moment;
@@ -209,8 +210,24 @@ for my $it (keys %articles_by_news_source) {
     produce_atom_feed(
         +[ @{$articles_by_news_source{$it}} ],
         $opts{o} . "/articles-news-source-${it}.atom",
-        +{
-            title => "Articles from $it",
+        +{ title => "Articles from $it" }
+    );
+}
+%articles_by_news_source = ();
+
+my %articles_by_keyword;
+for my $it (@articles) {
+    for my $k (keys %{ $it->{substrings} }) {
+        for my $x (@{ $it->{substrings}{$k} }) {
+            push @{$articles_by_keyword{$x}}, $it;
         }
+    }
+}
+for my $it (keys %articles_by_keyword) {
+    my $out = $opts{o} . "/articles-keyword-" . uri_escape_utf8($it) . ".atom";
+    produce_atom_feed(
+        +[ @{$articles_by_keyword{$it}} ],
+        $out,
+        +{ title => "Articles mentioned: $it" }
     );
 }
