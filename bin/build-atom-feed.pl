@@ -197,37 +197,3 @@ produce_atom_feed(
         title => "Articles (No Author)",
     }
 );
-
-my %articles_by_news_source;
-for my $it (@articles) {
-    my $x = URI->new($it->{url})->host;
-    $x =~ s/\.(tw|pl|jp|uk|ee|cn|cc|fr|hk|io|me|nl)$//;
-    $x =~ s/\.(com|org|net|edu|gov|co|ne|or)$//;
-    $x =~ s/.+\.([^\.]+)$/$1/;
-    push @{$articles_by_news_source{$x}}, $it;
-}
-for my $it (keys %articles_by_news_source) {
-    produce_atom_feed(
-        +[ @{$articles_by_news_source{$it}} ],
-        $opts{o} . "/articles-news-source-${it}.atom",
-        +{ title => "Articles from $it" }
-    );
-}
-%articles_by_news_source = ();
-
-my %articles_by_keyword;
-for my $it (@articles) {
-    for my $k (keys %{ $it->{substrings} }) {
-        for my $x (@{ $it->{substrings}{$k} }) {
-            push @{$articles_by_keyword{$x}}, $it;
-        }
-    }
-}
-for my $it (keys %articles_by_keyword) {
-    my $out = $opts{o} . "/articles-keyword-" . uri_escape_utf8($it) . ".atom";
-    produce_atom_feed(
-        +[ @{$articles_by_keyword{$it}} ],
-        $out,
-        +{ title => "Articles mentioned: $it" }
-    );
-}
