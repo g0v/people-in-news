@@ -181,7 +181,6 @@ https://news.ltn.com.tw/project
 https://www.singpao.com.hk/
 http://xinhuanet.com/
 http://www.hkcna.hk/index.shtml
-http://www.people.com.cn/
 http://www.cctv.com/
 http://hk.crntt.com/
 https://news.cts.com.tw/
