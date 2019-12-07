@@ -262,10 +262,6 @@ sub print_full_article {
     }
     $out .= "\n$article->{content_text}\n\n";
 
-    $out .= "Links:\n";
-    for my $link (@{ $article->{links} }) {
-        $out .= "- $link\n";
-    }
     $out .= "# END ARTICLE\n";
 
     say $fh encode_utf8($out);

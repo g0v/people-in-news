@@ -31,10 +31,14 @@ if ($opts{firefox}) {
     $tx = Sn::ua()->get($url);
 }
 
-my $article = Sn::ArticleExtractor->new( tx => $tx )->extract;
+my ($article, $links) = Sn::ArticleExtractor->new( tx => $tx )->extract;
 
 if ($article) {
     Sn::print_full_article( \*STDOUT, $article );
 } else {
-    print "No Article\n";
+    say "# No Article\n";
+}
+if ($links) {
+    say "# Links";
+    say "- $_" for @$links;
 }
