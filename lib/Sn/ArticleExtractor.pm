@@ -3,7 +3,7 @@ package Sn::ArticleExtractor {
     use Sn;
     use URI;
     use Encode qw(decode);
-    use Sn::HTMLExtractor;
+    use NewsExtractor::Extractor;
 
     use Moo;
     has 'tx' => ( is => 'ro', required => 1 );
@@ -12,6 +12,8 @@ package Sn::ArticleExtractor {
         my ($self) = @_;
         my $res = $self->tx->res;
         return 0 unless $res->body;
+
+        return 0 if $self->tx->req->url->path() eq '/';
 
         my $dom = $res->dom;
         my $it;
@@ -90,9 +92,9 @@ package Sn::ArticleExtractor {
         my $charset = Sn::tx_guess_charset($tx) or return(undef, \@links);
         my $html = decode($charset, $res->body);
 
-        my $extractor = Sn::HTMLExtractor->new( html => $html );
+        my $extractor = NewsExtractor::Extractor->new( tx => $tx );
 
-        my $title = $extractor->title;
+        my $title = $extractor->headline;
         my $text = $extractor->content_text;
 
         return (undef, \@links) unless $title && $text;
