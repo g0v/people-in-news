@@ -79,7 +79,8 @@ sub process_generic {
 
                 $seen{$url} = 1;
 
-                if ( defined $queue_urls->pending ) {
+                my $pending = $queue_urls->pending();
+                if (defined($pending) && $pending < 1000) {
                     my $host_old = URI->new($url)->host;
 
                     my @discovered_links = grep {
