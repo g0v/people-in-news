@@ -139,7 +139,7 @@ sub process_ftv {
         }
     }
     if (@processed_links) {
-        add_to_url_seen(\@processed_links);
+        MCE->do('add_to_url_seen', \@processed_links);
     }
 
     close($fh);
