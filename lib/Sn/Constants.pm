@@ -3,12 +3,10 @@ use utf8;
 use strict;
 use warnings;
 
-use Exporter 'import';
-
 use Module::Functions;
+our @EXPORT = ('%SNRE', get_public_functions());
 
 our %SNRE;
-our @EXPORT = ('%SNRE', get_public_functions());
 
 use constant {
     NEWSPAPER_NAMES => [

@@ -10,7 +10,7 @@ use Encode qw(encode_utf8 decode_utf8);
 use JSON qw(decode_json);
 use MCE::Loop;
 
-use Sn::TextUtil qw(segmentation_by_script);
+use Importer 'Sn::TextUtil' => qw(segmentation_by_script);
 
 sub sort_by(&@) {
     my ($cb, $things);

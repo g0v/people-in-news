@@ -8,8 +8,8 @@ package Sn::HTMLExtractor {
     use HTML::ExtractContent;
     use Mojo::DOM;
     use Types::Standard qw(Str InstanceOf Maybe);
-    use Sn::TextUtil qw(normalize_whitespace);
-    use Sn::Constants qw(%SNRE);
+    use Importer 'Sn::TextUtil' => qw(normalize_whitespace);
+    use Importer 'Sn::Constants' => qw(%SNRE);
 
     has html => (
         is => 'ro',

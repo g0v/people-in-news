@@ -3,9 +3,9 @@ package Sn::TextUtil {
     use warnings;
 
     use Unicode::UCD qw(charscript);
-    use Exporter 'import';
-    use Module::Functions;
-    our @EXPORT = get_public_functions();
+
+    use Module::Functions ();
+    our @EXPORT = Module::Functions::get_public_functions();
     
     sub normalize_whitespace {
         local $_ = $_[0];
