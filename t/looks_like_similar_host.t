@@ -1,7 +1,7 @@
 use v5.18;
 use warnings;
 use Test2::V0;
-use Importer 'Sn' => qw(looks_like_similar_host);
+use Importer 'Sn::TextUtil' => qw(looks_like_similar_host);
 
 my @positive_tests = (
     ['uuu.co.jp', 'www.uuu.co.jp'],

@@ -25,7 +25,7 @@ use Sn::HTMLExtractor;
 use Sn::ArticleExtractor;
 use Sn::FTVScraper;
 
-use Importer 'Sn' => qw(looks_like_similar_host);
+use Importer 'Sn::TextUtil' => qw(looks_like_similar_host);
 
 ## global
 my $queue_urls = MCE::Queue->new();

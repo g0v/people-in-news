@@ -25,6 +25,8 @@ use Sn::Seen;
 use Sn::Extractor;
 use Sn::HTMLExtractor;
 
+use Importer 'Sn::TextUtil' => 'looks_like_similar_host';
+
 ## global
 Log::Log4perl->easy_init($ERROR);
 my $STOP = 0;
@@ -32,14 +34,6 @@ local $SIG{INT} = sub { $STOP = 1 };
 
 sub err {
     say STDERR @_;
-}
-
-sub looks_like_similar_host {
-    my ($host1, $host2) = @_;
-    return 1 if $host1 eq $host2;
-    my $rhost1 = reverse($host1);
-    my $rhost2 = reverse($host2);
-    return ( 0 == index($rhost2, $rhost1) );
 }
 
 sub ua_fetch {

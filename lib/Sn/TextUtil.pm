@@ -3,7 +3,6 @@ package Sn::TextUtil {
     use warnings;
 
     use Unicode::UCD qw(charscript);
-
     use Exporter 'import';
     use Module::Functions;
     our @EXPORT = get_public_functions();
@@ -41,6 +40,15 @@ package Sn::TextUtil {
         }
         push @tokens, $t;
         return remove_spaces map { $_ = normalize_whitespace($_) } @tokens;
+    }
+
+    sub looks_like_similar_host {
+        my @host = map {
+            s/.+\.([^\.]+)$/$1/r
+        } map {
+            s/\.((com|org|net)(\.tw)?|(co|ne|or)\.(jp|uk))$//r
+        } @_;
+        return $host[0] eq $host[1]
     }
 }
 1;

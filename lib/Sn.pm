@@ -17,13 +17,6 @@ use Sn::TX;
 
 use constant app_root => path(__FILE__)->parent->parent;
 
-our @EXPORT_OK = qw( looks_like_similar_host );
-
-sub looks_like_similar_host {
-    my @host = map { s/.+\.([^\.]+)$/$1/r } map { s/\.((com|org|net)(\.tw)?|(co|ne|or)\.(jp|uk))$//r } @_;
-    return $host[0] eq $host[1]
-}
-
 sub promise_loop {
     my ($works, $promiser, $thener, $catcher) = @_;
 
