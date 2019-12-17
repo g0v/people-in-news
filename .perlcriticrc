@@ -1,0 +1,6 @@
+only=1
+include=ProhibitUnusedCapture ProhibitUnusedPrivateSubroutines ProhibitUnusedConstant ProhibitUnusedImport ProhibitUnusedInclude ProhibitUnusedVariables
+
+
+[Subroutines::ProhibitUnusedPrivateSubroutines]
+allow_name_regex = _build_\w+
