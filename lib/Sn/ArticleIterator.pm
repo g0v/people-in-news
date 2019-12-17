@@ -1,7 +1,6 @@
 package Sn::ArticleIterator;
 use Moo;
 use Types::Standard qw(Str CodeRef);
-use Types::Common::Numeric qw(PositiveOrZeroNum);
 use File::Next;
 use JSON qw(decode_json);
 use Try::Tiny;

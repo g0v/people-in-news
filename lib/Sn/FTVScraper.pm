@@ -3,7 +3,6 @@ package Sn::FTVScraper {
     use Moo;
     use Mojo::UserAgent;
     use Mojo::DOM;
-    use Mojo::JSON qw(encode_json);
     use Sn;
 
     use constant URL_APIBASE => 'https://ftvapi.azurewebsites.net';

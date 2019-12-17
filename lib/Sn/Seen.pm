@@ -1,7 +1,7 @@
 package Sn::Seen {
     use Moo;
     use Algorithm::BloomFilter;
-    use Types::Standard qw(Str Bool InstanceOf);
+    use Types::Standard qw(Str InstanceOf);
 
     has store => ( is => 'ro', isa => Str, required => 1 );
 
