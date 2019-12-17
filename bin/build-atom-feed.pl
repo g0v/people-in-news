@@ -3,17 +3,9 @@ use v5.26;
 use utf8;
 use warnings;
 
-use File::Basename qw(basename);
 use Getopt::Long qw(GetOptions);
 use Text::Markdown::Discount qw(markdown);
-use Encode qw(decode_utf8 encode_utf8);
-use File::Slurp qw(read_file write_file);
-use JSON qw(decode_json);
-use List::Util qw(uniq shuffle);
-use URI;
-use URI::Escape qw(uri_escape_utf8);
-use Try::Tiny;
-use XML::FeedPP;
+use List::Util qw(uniq);
 use Time::Moment;
 
 use Sn;
