@@ -130,7 +130,6 @@ sub process {
         say "[$$] TODO: " . (0 + @links) . " discovered links from " . join(" ", @$urls);
     }
 
-    my @promises;
     my $error_count = 0;
     my $extracted_count = 0;
     my @processed_links;
