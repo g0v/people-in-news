@@ -6,7 +6,7 @@ use Sn::PhantomJSUA;
 use Sn::ChromeUA;
 use Sn::HTMLExtractor;
 use Sn::ArticleExtractor;
-use Encode qw(encode decode);
+use Encode qw( );
 use Mojo::UserAgent;
 use Getopt::Long qw< GetOptions >;
 

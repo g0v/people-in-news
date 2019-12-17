@@ -3,12 +3,11 @@ use v5.26;
 use warnings;
 
 use URI;
-use Try::Tiny;
 use MCE;
 use MCE::Queue;
 use Getopt::Long qw(GetOptions);
 
-use List::Util qw(any shuffle);
+use List::Util qw( shuffle);
 use JSON ();
 use FindBin '$Bin';
 

@@ -3,10 +3,10 @@ use v5.18;
 use strict;
 use warnings;
 
-use JSON qw(from_json);
+
 use JSON::SL;
 use List::Util qw(first);
-use Encode qw(encode_utf8);
+
 use Text::Util::Chinese qw( tokenize_by_script );
 use File::Glob ':bsd_blob';
 use FindBin '$Bin';

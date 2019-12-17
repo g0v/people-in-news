@@ -12,12 +12,12 @@ use MCE::Loop;
 
 use Mojo::UserAgent;
 use HTML::ExtractContent;
-use Encode qw(encode_utf8 decode);
+use Encode qw( decode);
 use Encode::Guess;
 use Getopt::Long qw(GetOptions);
 use Algorithm::BloomFilter;
 
-use List::Util qw(shuffle uniqstr max);
+use List::Util qw(shuffle max);
 use JSON::PP qw(encode_json);
 use FindBin '$Bin';
 

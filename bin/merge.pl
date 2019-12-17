@@ -4,9 +4,9 @@ use strict;
 use warnings;
 use Getopt::Long qw(GetOptions);
 
-use File::Basename qw(basename);
-use Encode qw(encode_utf8 decode_utf8);
-use JSON qw(decode_json);
+
+use Encode qw( );
+
 
 ## main
 my %opts;

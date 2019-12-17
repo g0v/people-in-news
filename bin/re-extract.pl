@@ -6,8 +6,7 @@ use warnings;
 use MCE;
 use MCE::Loop;
 use Getopt::Long qw(GetOptions);
-use JSON::PP qw(encode_json decode_json);
-use Try::Tiny;
+use JSON::PP qw(encode_json );
 
 use Sn;
 use Sn::Seen;

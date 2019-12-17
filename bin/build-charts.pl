@@ -6,7 +6,7 @@ use warnings;
 use Getopt::Long qw(GetOptions);
 use File::Next;
 use File::Slurp qw(read_file);
-use Data::Dumper qw(Dumper);
+
 use Encode qw(encode_utf8 decode_utf8);
 
 sub build_chart_csv {

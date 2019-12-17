@@ -8,7 +8,7 @@ use Mojo::Promise;
 use JSON qw(encode_json);
 use Getopt::Long qw(GetOptions);
 use FindBin '$Bin';
-use Encode qw(encode_utf8 decode);
+use Encode qw( decode);
 
 use Sn;
 use Sn::Seen;

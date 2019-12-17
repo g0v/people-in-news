@@ -4,9 +4,9 @@ use strict;
 use warnings;
 
 use Getopt::Long qw< GetOptions >;
-use Encode qw< decode_utf8 encode_utf8 >;
-use JSON qw< encode_json >;
-use Text::Util::Chinese qw< extract_presuf >; ;
+use Encode qw< decode_utf8 >;
+
+ ;
 
 use Sn;
 use Sn::ArticleIterator;

@@ -4,16 +4,15 @@ use strict;
 use warnings;
 
 use URI;
-use Try::Tiny;
 use Mojo::UserAgent;
 use Mojo::Promise;
 use HTML::ExtractContent;
-use Encode qw(encode_utf8 decode);
+use Encode qw( );
 use Encode::Guess;
 use Getopt::Long qw(GetOptions);
 use Algorithm::BloomFilter;
 
-use List::Util qw(uniqstr max shuffle);
+use List::Util qw(uniqstr shuffle);
 use JSON::PP qw(encode_json);
 use FindBin '$Bin';
 

@@ -4,13 +4,12 @@ use strict;
 use warnings;
 
 use Getopt::Long qw(GetOptions);
-use Try::Tiny;
-use File::Basename qw(basename);
-use Encode qw(encode_utf8 decode_utf8);
+
+use Encode qw(encode_utf8 );
 use Getopt::Long qw(GetOptions);
 
-use List::Util qw(maxstr);
-use Path::Tiny qw(path);
+
+
 
 use Sn;
 use Sn::Seen;

@@ -3,7 +3,7 @@ use v5.18;
 use strict;
 use warnings;
 
-use Encode qw(encode_utf8);
+
 use Getopt::Long qw(GetOptions);
 use Mojo::URL;
 use Mojo::Util qw(url_escape);

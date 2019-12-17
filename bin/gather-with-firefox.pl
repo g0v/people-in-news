@@ -4,14 +4,13 @@ use strict;
 use warnings;
 
 use URI;
-use Try::Tiny;
 use HTML::ExtractContent;
-use Encode qw(encode_utf8 decode);
+use Encode qw( decode);
 use Encode::Guess;
 use Getopt::Long qw(GetOptions);
 use Algorithm::BloomFilter;
 
-use List::Util qw(uniqstr max);
+use List::Util qw( max);
 use JSON::PP qw(encode_json);
 use FindBin '$Bin';
 
