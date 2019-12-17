@@ -6,13 +6,7 @@ use URI;
 use Try::Tiny;
 use MCE;
 use MCE::Queue;
-use Mojo::UserAgent;
-use Mojo::Promise;
-use HTML::ExtractContent;
-use Encode qw(encode_utf8 decode);
-use Encode::Guess;
 use Getopt::Long qw(GetOptions);
-use Algorithm::BloomFilter;
 
 use List::Util qw(any shuffle);
 use JSON ();
