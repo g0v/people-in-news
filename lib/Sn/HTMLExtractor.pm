@@ -4,7 +4,6 @@ package Sn::HTMLExtractor {
     use Moo;
 
     use List::Util qw(max);
-    use Encode qw(decode);
     use HTML::ExtractContent;
     use Mojo::DOM;
     use Types::Standard qw(Str InstanceOf Maybe);

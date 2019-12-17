@@ -3,7 +3,7 @@ use v5.26;
 use strict;
 use warnings;
 use File::Basename qw(basename);
-use Encode qw(encode_utf8 decode_utf8);
+use Encode qw(encode_utf8);
 use Getopt::Long qw(GetOptions);
 use JSON qw(decode_json);
 use List::Util qw(maxstr);
