@@ -33,10 +33,13 @@ my @query = map {
 binmode STDOUT;
 
 my $count = $opts{limit};
+my %seen;
 
 while (my $article = $articles->()) {
-    next if $opts{'without-dateline'}   && $article->{dateline};
-    next if $opts{'without-journalist'} && $article->{journalist};
+    next if $seen{$article->{url}};
+    $seen{$article->{url}} = 1;
+
+    next if ((! $article->{dateline} || $opts{'without-dateline'} && $article->{dateline}) or (! $article->{journalist} || $opts{'without-journalist'} && $article->{journalist}));
 
     my $matches = 0;
     for my $re (@query) {
@@ -54,5 +57,5 @@ while (my $article = $articles->()) {
         Sn::print_full_article(\*STDOUT, $article);
     }
 
-    last if defined($count) && $count-- < 0;
+    last if defined($count) && $count-- == 0;
 }
