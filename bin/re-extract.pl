@@ -10,7 +10,6 @@ use JSON::PP qw(encode_json );
 
 use Sn;
 use Sn::Seen;
-use Sn::Extractor;
 use Sn::ArticleIterator;
 
 sub process {

@@ -13,8 +13,6 @@ use FindBin '$Bin';
 
 use Sn;
 use Sn::Seen;
-use Sn::Extractor;
-use Sn::HTMLExtractor;
 use Sn::ArticleExtractor;
 use Sn::FTVScraper;
 

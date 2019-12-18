@@ -12,7 +12,6 @@ use Encode qw( decode);
 
 use Sn;
 use Sn::Seen;
-use Sn::Extractor;
 use Sn::HTMLExtractor;
 
 ## global

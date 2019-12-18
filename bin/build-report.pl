@@ -8,12 +8,8 @@ use Getopt::Long qw(GetOptions);
 use Encode qw(encode_utf8 );
 use Getopt::Long qw(GetOptions);
 
-
-
-
 use Sn;
 use Sn::Seen;
-use Sn::Extractor;
 use Sn::ArticleIterator;
 
 sub load_substrs {

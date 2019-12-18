@@ -21,7 +21,6 @@ use WWW::Mechanize::Chrome;
 
 use Sn;
 use Sn::Seen;
-use Sn::Extractor;
 use Sn::HTMLExtractor;
 
 use Importer 'Sn::TextUtil' => 'looks_like_similar_host';
