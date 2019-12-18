@@ -81,8 +81,14 @@ sub process_generic {
 
                     my @discovered_links = grep {
                         my $host_new = URI->new($_)->host;
-                        !( $seen{$_} || $url_seen->test("$_") || looks_like_xml($_) || !looks_like_similar_host($host_new, $host_old) )
-                    } @$links;
+                        not looks_like_similar_host($host_new, $host_old);
+                    } grep {
+                        not looks_like_xml($_)
+                    } grep {
+                        not $url_seen->test($_)
+                    } grep {
+                        not $seen{$_}
+                    } maps { "$_" } @$links;
 
                     if (@discovered_links) {
                         $queue_urls->enqueue(@discovered_links);
