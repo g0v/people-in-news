@@ -12,8 +12,12 @@ use Sn::ArticleIterator;
 my %opts;
 GetOptions(
     \%opts,
+    "mbox",
+    "limit=n",
     "db=s",
     "q=s@",
+    "without-journalist",
+    "without-dateline",
 );
 die "--db <DIR> is needed" unless $opts{db} && (-d $opts{db} || -f $opts{db});
 
@@ -26,27 +30,29 @@ my @query = map {
     join '|', map { "\Q$_\E" } split /\s+/, decode_utf8($_)
 } @{ $opts{q} //[]};
 
-my $count = 0;
 binmode STDOUT;
 
-if (@query) {
-    while (my $article = $articles->()) {
-        my $matches = 0;
-        for my $re (@query) {
-            last unless (
-                $article->{title}        =~ /$re/ ||
-                $article->{content_text} =~ /$re/
-            );
-            $matches++;
-        }
-        next if $matches != @query;
-        Sn::print_full_article(\*STDOUT, $article);
-        $count++;
+my $count = $opts{limit};
+
+while (my $article = $articles->()) {
+    next if $opts{'without-dateline'}   && $article->{dateline};
+    next if $opts{'without-journalist'} && $article->{journalist};
+
+    my $matches = 0;
+    for my $re (@query) {
+        last unless (
+            $article->{title}        =~ /$re/ ||
+            $article->{content_text} =~ /$re/
+        );
+        $matches++;
     }
-} else {
-    while (my $article = $articles->()) {
+    next if @query > 0 && $matches != @query;
+
+    if ($opts{mbox}) {
+        Sn::print_article_like_mail(\*STDOUT, $article);
+    } else {
         Sn::print_full_article(\*STDOUT, $article);
-        $count++;
     }
+
+    last if defined($count) && $count-- < 0;
 }
-say "Count: $count";

@@ -240,6 +240,30 @@ sub parse_dateline {
     return $tm;
 }
 
+sub print_article_like_mail {
+    my ($fh, $article) = @_;
+    my $out = "";
+
+     my ($sec,$min,$hour,$mday,$_mon,$year,$_wday,$yday,undef) = localtime(time);
+    my @mon = qw(Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec);
+    my @wday = qw(Sun Mon Tue Wed Thu Fri Sat);
+    $year+= 1900;
+
+    $out .= "From nobody $wday[$_wday] $mon[$_mon] $mday $hour:$min:$sec $year\n";
+    $out .= "From: " . ($article->{journalist} // "unknown") . "\n";
+    $out .= "Subject: $article->{title}\n";
+    $out .= "Content-Type: text/plain; charset=utf8\n";
+    $out .= "X-Dateline: " . ($article->{dateline} // "") . "\n";
+    $out .= "X-URL: $article->{url}\n";
+    for my $type (keys %{$article->{substrings}}) {
+        my @tokens = @{$article->{substrings}{$type}} or next;
+        $out .= "X-Token-${type}: " . join(" ", uniqstr(@tokens)) . "\n";
+    }
+    $out .= "\n$article->{content_text}\n\n";
+
+    say $fh encode_utf8($out);
+}
+
 sub print_full_article {
     my ($fh, $article) = @_;
     my $out = "";
@@ -251,7 +275,7 @@ sub print_full_article {
     $out .= "URL: $article->{url}\n";
     for my $type (keys %{$article->{substrings}}) {
         my @tokens = @{$article->{substrings}{$type}} or next;
-        $out .= "Token-${type}: " . join(" ", @tokens) . "\n";
+        $out .= "Token-${type}: " . join(" ", uniqstr(@tokens)) . "\n";
     }
     $out .= "\n$article->{content_text}\n\n";
 
