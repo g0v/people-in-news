@@ -1,12 +1,7 @@
 #!/usr/bin/env perl
 use v5.26;
-use strict;
 use warnings;
 use Getopt::Long qw(GetOptions);
-
-
-use Encode qw( );
-
 
 ## main
 my %opts;
@@ -15,7 +10,7 @@ GetOptions(
     "force|f",
     "db|d=s",
 );
-die "--db <DIR> is needed" unless -d $opts{db};
+die "--db <DIR> is needed" unless  $opts{db} && -d $opts{db};
 
 for my $table (qw(articles)) {
     my %buckets;
@@ -44,5 +39,4 @@ for my $table (qw(articles)) {
         link($output_temp, $output);
         unlink($output_temp);
     }
-
 }
