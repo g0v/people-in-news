@@ -6,8 +6,6 @@ use warnings;
 use Getopt::Long qw< GetOptions >;
 use Encode qw< decode_utf8 >;
 
- ;
-
 use Sn;
 use Sn::ArticleIterator;
 
