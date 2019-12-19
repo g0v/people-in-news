@@ -56,6 +56,7 @@ sub process_generic {
     while(my @batch = $queue_urls->dequeue(4)) {
         @batch = grep { not $seen{$_} } @batch;
         next unless @batch;
+        $seen{$_} = 1 for @batch;
 
         Sn::urls_get_all(
             \@batch,
@@ -71,26 +72,20 @@ sub process_generic {
                     push @processed_links, $url;
                 }
 
-                $seen{$url} = 1;
+                my $host_old = URI->new($url)->host;
+                my @discovered_links = grep {
+                    my $host_new = URI->new($_)->host;
+                    looks_like_similar_host($host_new, $host_old);
+                } grep {
+                    not looks_like_xml($_)
+                } grep {
+                    not $url_seen->test($_)
+                } grep {
+                    not $seen{$_}
+                } map { "$_" } @$links;
 
-                my $pending = $queue_urls->pending();
-                if (defined($pending) && $pending < 1000) {
-                    my $host_old = URI->new($url)->host;
-
-                    my @discovered_links = grep {
-                        my $host_new = URI->new($_)->host;
-                        not looks_like_similar_host($host_new, $host_old);
-                    } grep {
-                        not looks_like_xml($_)
-                    } grep {
-                        not $url_seen->test($_)
-                    } grep {
-                        not $seen{$_}
-                    } maps { "$_" } @$links;
-
-                    if (@discovered_links) {
-                        $queue_urls->enqueue(@discovered_links);
-                    }
+                if (@discovered_links) {
+                    $queue_urls->enqueue(@discovered_links);
                 }
 
                 return 1;
