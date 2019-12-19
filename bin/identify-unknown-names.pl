@@ -8,7 +8,7 @@ use Encode qw(encode_utf8 decode_utf8);
 use JSON qw(decode_json);
 use MCE::Loop;
 
-use Importer 'NewsExtractor::TextUtil' => qw(segmentation_by_script);
+use Importer 'Text::Util::Chinese' => qw( tokenize_by_script );
 
 sub sort_by(&@) {
     my ($cb, $things);
@@ -26,8 +26,12 @@ sub find_names {
 
     my %freq;
     my $data = decode_json($jsonline);
-    my @segments = segmentation_by_script($data->{content_text});
-    push @segments, segmentation_by_script($data->{title});
+
+    my @segments = (
+        tokenize_by_script( $data->{content_text} ),
+        tokenize_by_script( $data->{title} ),
+    );
+
     my $name_re = qr(\p{Letter}{2,6});
     my $title_re = '(?:' . join('|', map { quotemeta}  sort { length($b) <=> length($a) } @$titles) . ')';
     for my $seg (@segments) {
