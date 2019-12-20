@@ -26,9 +26,7 @@ my $articles = Sn::ArticleIterator->new(
     filter_file => sub { /\.jsonl.gz$/ },
 );
 
-my @query = map {
-    join '|', map { "\Q$_\E" } split /\s+/, decode_utf8($_)
-} @{ $opts{q} //[]};
+my @query = map { split /\s+/, decode_utf8($_) } @{ $opts{q} //[]};
 
 binmode STDOUT;
 
@@ -42,10 +40,10 @@ while (my $article = $articles->()) {
     next if ((! $article->{dateline} || $opts{'without-dateline'} && $article->{dateline}) or (! $article->{journalist} || $opts{'without-journalist'} && $article->{journalist}));
 
     my $matches = 0;
-    for my $re (@query) {
+    for my $tok (@query) {
         last unless (
-            $article->{title}        =~ /$re/ ||
-            $article->{content_text} =~ /$re/
+            (index($article->{title}, $tok) >= 0) ||
+            (index($article->{content_text}, $tok) >= 0)
         );
         $matches++;
     }
