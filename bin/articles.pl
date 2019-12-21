@@ -22,8 +22,7 @@ GetOptions(
 die "--db <DIR> is needed" unless $opts{db} && (-d $opts{db} || -f $opts{db});
 
 my $articles = Sn::ArticleIterator->new(
-    db_path => $opts{db},
-    filter_file => sub { /\.jsonl.gz$/ },
+    db_path => $opts{db}
 );
 
 my @query = map { split /\s+/, decode_utf8($_) } @{ $opts{q} //[]};
