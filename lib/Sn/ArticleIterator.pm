@@ -19,6 +19,10 @@ has current_file => (
     isa => Str,
 );
 
+has _current_fh => (
+    is => 'rw',
+);
+
 has filter_file => (
     is => 'ro',
     isa => CodeRef,
@@ -40,27 +44,44 @@ sub _build__file_iter {
     );
 }
 
+sub _next_file {
+    my ($self) = @_;
+    my $file = $self->_file_iter->();
+    $self->current_file($file);
+
+    my $fh;
+    if ($file =~ /\.gz$/) {
+        open $fh, '<:via(gzip)', $file;
+    } else {
+        open $fh, '<:', $file;
+    }
+    $self->_current_fh($fh);
+
+    return ($file, $fh);
+}
+
 sub reify {
     my ($self) = @_;
 
     my @objs;
 
+    my $fh = $self->_current_fh();
+    unless ($fh) {
+        $self->_next_file;
+        $fh = $self->_current_fh();
+        return unless $fh;
+    }
+
     while (@objs < 1000) {
-        my $fn = $self->_file_iter->() or last;
-        $self->current_file($fn);
-
-        my $fh;
-        if ($fn =~ /\.gz$/) {
-            open $fh, '<:via(gzip)', $fn;
-        } else {
-            open $fh, '<', $fn;
-        }
-
-        while(<$fh>) {
-            chomp;
+        if (defined( my $line = <$fh>)) {
+            chomp($line);
             try {
-                push @objs, decode_json($_);
+                push @objs, decode_json($line);
             };
+        }
+        else {
+            (undef, $fh) = $self->_next_file;
+            last unless $fh;
         }
     }
 
