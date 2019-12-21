@@ -42,7 +42,6 @@ sub _build__file_iter {
 
 sub reify {
     my ($self) = @_;
-    my $files = $self->_file_iter();
 
     my @objs;
 
