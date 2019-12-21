@@ -47,6 +47,8 @@ sub _build__file_iter {
 sub _next_file {
     my ($self) = @_;
     my $file = $self->_file_iter->();
+    return (undef, undef) unless defined($file);
+
     $self->current_file($file);
 
     my $fh;
@@ -67,8 +69,7 @@ sub reify {
 
     my $fh = $self->_current_fh();
     unless ($fh) {
-        $self->_next_file;
-        $fh = $self->_current_fh();
+        (undef, $fh) = $self->_next_file;
         return unless $fh;
     }
 
