@@ -61,7 +61,7 @@ sub reify {
             chomp;
             try {
                 push @objs, decode_json($_);
-            };                  # Ignore Errors
+            };
         }
     }
 
