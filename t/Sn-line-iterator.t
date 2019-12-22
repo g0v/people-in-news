@@ -37,5 +37,20 @@ subtest 'Take lines from somes files', sub {
     is $count, 4;
 };
 
+subtest 'Take lines from gzip files', sub {
+    my $iter = Sn::LineIterator->new(
+        files => Sn::FileIterator->new(
+            dir => $Bin . '/db/Sn-article-iterator/'
+        )
+    );
+
+    my $count = 0;
+    while (defined(my $line = $iter->())) {
+        $count++;
+    }
+
+    is $count, 9;
+};
+
 
 done_testing;
