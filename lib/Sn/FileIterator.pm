@@ -16,9 +16,20 @@ has _files => (
     builder => 1,
 );
 
+has filter => (
+    is => 'ro',
+    isa => CodeRef,
+    required => 1,
+    default => sub { return sub { 1 } },
+);
+
 sub _build__files {
     my $self = $_[0];
-    File::Next::files( $self->dir );
+    File::Next::files(+{
+        file_filter => sub {
+            return $self->filter->($_)
+        },
+    }, $self->dir );
 }
 
 sub reify {
