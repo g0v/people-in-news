@@ -1,26 +1,18 @@
 package Sn::ArticleIterator;
 use Moo;
-use Types::Standard qw(Str CodeRef);
-use File::Next;
+with 'Sn::Iterator';
+
+use Types::Standard qw(InstanceOf Str CodeRef);
 use JSON qw(decode_json);
 use Try::Tiny;
-use PerlIO::via::gzip;
 
-with 'Sn::Iterator';
+use Sn::FileIterator;
+use Sn::LineIterator;
 
 has db_path => (
     is => 'ro',
     isa => Str,
     required => 1,
-);
-
-has current_file => (
-    is => 'rw',
-    isa => Str,
-);
-
-has _current_fh => (
-    is => 'rw',
 );
 
 has filter_file => (
@@ -30,60 +22,32 @@ has filter_file => (
     default => sub { return sub { 1 } },
 );
 
-has _file_iter => (
+has line_iter => (
     is => 'lazy',
+    isa => InstanceOf['Sn::LineIterator'],
 );
 
-sub _build__file_iter {
+sub _build_line_iter {
     my ($self) = @_;
-    return File::Next::files(
-        +{ file_filter => sub {
-               /\.jsonl(\.gz)?$/ && $self->filter_file->($_)
-           } },
-        $self->db_path,
-    );
-}
-
-sub _next_file {
-    my ($self) = @_;
-    my $file = $self->_file_iter->();
-    return (undef, undef) unless defined($file);
-
-    $self->current_file($file);
-
-    my $fh;
-    if ($file =~ /\.gz$/) {
-        open $fh, '<:via(gzip)', $file;
-    } else {
-        open $fh, '<:', $file;
-    }
-    $self->_current_fh($fh);
-
-    return ($file, $fh);
+    return Sn::LineIterator->new(
+        files => Sn::FileIterator->new(
+            dir => $self->db_path,
+            filter => $self->filter_file,
+        ),
+    )
 }
 
 sub reify {
     my ($self) = @_;
 
-    my @objs;
-
-    my $fh = $self->_current_fh();
-    unless ($fh) {
-        (undef, $fh) = $self->_next_file;
-        return unless $fh;
-    }
-
+    my $lines = $self->line_iter;
+    my (@objs, $line);
     while (@objs < 1000) {
-        if (defined( my $line = <$fh>)) {
-            chomp($line);
-            try {
-                push @objs, decode_json($line);
-            };
-        }
-        else {
-            (undef, $fh) = $self->_next_file;
-            last unless $fh;
-        }
+        $line = $lines->();
+        last unless defined($line);
+        try {
+            push @objs, decode_json($line);
+        };
     }
 
     return \@objs;
