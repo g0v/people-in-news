@@ -1,0 +1,18 @@
+kind: pipeline
+name: default
+
+steps:
+  - name: Critic
+    depends_on:
+      - clone
+    image: gugod/perlcritic-reviewdog:latest
+    commands:
+      - perlcritic --quiet lib t dev-bin
+
+  - name: Test
+    depends_on:
+      - clone
+    image: perl:5.28.0
+    commands:
+      - cpanm -q --notest --no-man-pages --installdeps .
+      - yath --qvf
