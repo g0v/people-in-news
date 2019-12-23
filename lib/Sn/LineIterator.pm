@@ -1,7 +1,7 @@
 package Sn::LineIterator;
 use Moo;
 with 'Sn::Iterator';
-use Types::Standard qw(Str InstanceOf);
+use Types::Standard qw(InstanceOf);
 use PerlIO::via::gzip;
 use Sn::FileIterator;
 

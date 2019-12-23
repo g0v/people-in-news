@@ -5,7 +5,6 @@ use warnings;
 use List::Util qw< uniqstr >;
 use File::Basename qw< basename >;
 use Getopt::Long qw< GetOptions >;
-use Encode qw< decode_utf8 >;
 use JSON ();
 use PerlIO::via::gzip;
 use URI;

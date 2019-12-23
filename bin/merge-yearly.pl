@@ -2,7 +2,6 @@
 use v5.26;
 use warnings;
 use Getopt::Long qw(GetOptions);
-use Data::Dumper qw(Dumper);
 use PerlIO::via::gzip;
 
 ## main

@@ -68,7 +68,7 @@ sub harvest_links {
     for my $e ($tx->res->dom->find('a[href]')->each) {
         my $href = $e->attr("href") or next;
         my $u = URI->new_abs("$href", $uri);
-        if (!$seen{$u}  && $u->scheme =~ /^http/ && $u->host !~ /(youtube|google|facebook|twitter)\.com\z/ ) {
+        if (!$seen{$u}  && $u->scheme =~ /^http/ && $u->host !~ /(?: youtube|google|facebook|twitter )\.com\z/x ) {
             harvest_links("$u", $_level+1);
         }
     }
