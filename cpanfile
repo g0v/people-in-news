@@ -30,6 +30,10 @@ requires 'WWW::Mechanize::PhantomJS';
 requires 'XML::FeedPP';
 requires 'Importer';
 
+on test => sub {
+   requires 'Test2::Harness';
+};
+
 on development => sub {
     requires 'Firefox::Marionette'    => '0.66';
 };
