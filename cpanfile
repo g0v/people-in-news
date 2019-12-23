@@ -3,7 +3,6 @@ requires 'Chart::Plotly';
 requires 'Elastijk';
 requires 'File::Next';
 requires 'File::Slurp';
-requires 'Firefox::Marionette'    => '0.66';
 requires 'HTML::ExtractContent';
 requires 'HTTP::Date';
 requires 'IO::Socket::SSL'        => '2.060';
@@ -30,3 +29,7 @@ requires 'WWW::Mechanize::Chrome';
 requires 'WWW::Mechanize::PhantomJS';
 requires 'XML::FeedPP';
 requires 'Importer';
+
+on development => sub {
+    requires 'Firefox::Marionette'    => '0.66';
+};
