@@ -7,12 +7,12 @@ steps:
       - clone
     image: gugod/perlcritic-reviewdog:latest
     commands:
-      - perlcritic --quiet lib t dev-bin
+      - perlcritic --quiet lib t bin
 
   - name: Test
     depends_on:
       - clone
-    image: perl:5.28.0
+    image: perl:5.28
     commands:
       - cpanm -q --notest --no-man-pages --installdeps .
       - yath --qvf
