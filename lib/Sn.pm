@@ -37,9 +37,9 @@ sub ua {
 
 sub urls_get_all {
     my ($urls, $on_success_cb, $on_error_cb) = @_;
+    state @promises;
 
     my $ua = ua();
-    my @promises;
     my $should_stop = 0;
     for my $url (@$urls) {
         last if $should_stop;
