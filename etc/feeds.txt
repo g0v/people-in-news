@@ -74,6 +74,7 @@ https://magazine.chinatimes.com/rss/news.xml
 https://magazine.chinatimes.com/rss/science.xml
 https://msntw.com/comments/feed/
 https://msntw.com/feed/
+https://news.ltn.com.tw/rss/all.xml
 https://news.ltn.com.tw/rss/business.xml
 https://news.ltn.com.tw/rss/consumer.xml
 https://news.ltn.com.tw/rss/entertainment.xml
@@ -81,7 +82,9 @@ https://news.ltn.com.tw/rss/focus.xml
 https://news.ltn.com.tw/rss/life.xml
 https://news.ltn.com.tw/rss/local.xml
 https://news.ltn.com.tw/rss/northern.xml
+https://news.ltn.com.tw/rss/novelty.xml
 https://news.ltn.com.tw/rss/opinion.xml
+https://news.ltn.com.tw/rss/people.xml
 https://news.ltn.com.tw/rss/politics.xml
 https://news.ltn.com.tw/rss/society.xml
 https://news.ltn.com.tw/rss/southern.xml
