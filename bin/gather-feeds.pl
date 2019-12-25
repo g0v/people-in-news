@@ -9,6 +9,7 @@ use JSON qw(encode_json);
 use Getopt::Long qw(GetOptions);
 use FindBin '$Bin';
 use Encode qw( decode);
+use List::Util qw( shuffle );
 
 use Sn;
 use Sn::Seen;
@@ -83,9 +84,7 @@ sub gather_feed_links {
         sub {
             my ($tx, $url) = @_;
             my $articles = extract_feed_entries($tx);
-
             $cb->($articles);
-
             return $STOP ? 0 : 1;
         },
         sub {
@@ -160,25 +159,27 @@ my $url_seen = Sn::Seen->new( store => ($opts{db} . "/url-seen.bloomfilter") );
 my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
 open my $fh_articles_jsonl, '>', $output;
 
-gather_feed_links(
-    \@initial_urls,
-    sub {
-        my $articles = $_[0];
-        @$articles = grep { ! $url_seen->test($_->{url}) } @$articles;
-        return unless @$articles;
+for my $url (shuffle(@initial_urls)) {
+    gather_feed_links(
+        [$url],
+        sub {
+            my $articles = $_[0];
+            @$articles = grep { ! $url_seen->test($_->{url}) } @$articles;
+            return unless @$articles;
 
-        fetch_and_extract_full_text(
-            $articles,
-            sub {
-                my ($article, $url) = @_;
+            fetch_and_extract_full_text(
+                $articles,
+                sub {
+                    my ($article, $url) = @_;
 
-                print $fh_articles_jsonl encode_json($article) . "\n";
-                $url_seen->add($article->{url});
-                $url_seen->add($url);
-            }
-        );
-    }
-);
+                    print $fh_articles_jsonl encode_json($article) . "\n";
+                    $url_seen->add($article->{url});
+                    $url_seen->add($url);
+                }
+            );
+        }
+    );
+}
 
 $url_seen->save;
 close($fh_articles_jsonl);
