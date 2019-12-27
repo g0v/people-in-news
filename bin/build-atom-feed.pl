@@ -7,7 +7,7 @@ use Getopt::Long qw(GetOptions);
 use Text::Markdown::Discount qw(markdown);
 use List::Util qw(uniq);
 use Time::Moment;
-use XML::FeedPP::Atom::Atom10;
+use XML::FeedPP;
 
 use Sn;
 use Sn::ArticleIterator;
