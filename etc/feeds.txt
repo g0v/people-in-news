@@ -1,5 +1,5 @@
-http://feeds.feedburner.com/cnaFirstNews
-http://feeds.feedburner.com/techbang/daily
+https://feeds.feedburner.com/cnaFirstNews
+https://feeds.feedburner.com/techbang/daily
 http://mol.mcu.edu.tw/%e9%a6%96%e9%a0%81/feed/
 http://mol.mcu.edu.tw/comments/feed/
 http://mol.mcu.edu.tw/feed/
@@ -21,7 +21,7 @@ http://www.insight-post.tw/comments/feed
 http://www.insight-post.tw/feed
 http://www.taipeitimes.com/xml/index.rss
 http://www.thinkingtaiwan.com/rss/new
-http://zh.cn.nikkei.com/rss.html
+https://zh.cn.nikkei.com/rss.html
 https://cn.nytimes.com/rss/zh-hant/
 https://feeds.bbci.co.uk/zhongwen/trad/rss.xml
 https://feeds.feedburner.com/Niusnews
