@@ -5,10 +5,11 @@ use warnings;
 
 use Encode qw(encode_utf8);
 use Getopt::Long qw(GetOptions);
-use JSON qw(decode_json);
 use List::Util qw(maxstr);
 use String::Trim qw(trim);
-use Try::Tiny;
+use File::Basename qw(basename);
+
+use Sn::ArticleIterator;
 
 sub squeeze {
     my ($str) = @_;
@@ -69,8 +70,8 @@ die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
 die "-o <DIR> is needed" unless $opts{o} && -d $opts{o};
 
 my %buckets;
-for my $file (glob "$opts{db}/articles-*.jsonl") {
-    my ($k) = $file =~ m/ - ([0-9]{8}) ([0-9]{6})? \.jsonl \z/x;
+for my $file (glob "$opts{db}/articles-*.jsonl.gz") {
+    my ($k) = $file =~ m/ - ([0-9]{8}) ([0-9]{6})? \.jsonl\.gz \z/x;
     next unless $k;
     push @{$buckets{$k}}, $file;
 }
@@ -90,23 +91,23 @@ for my $yyyymmdd (keys %buckets) {
 
     my @articles;
     for my $file (@input) {
-        open my $fh, '<', $file;
+        my $iter = Sn::ArticleIterator->new(
+            db_path => $opts{db},
+            filter_file => sub { $_ eq basename($file) },
+        );
 
-        while (<$fh>) {
-            chomp;
-            next unless /\A\{/ && /\}\z/;
-            my $d = try { decode_json($_) } or next;
-            next unless $d->{url};
-            next if $url_seen{$d->{url}};
-            $url_seen{$d->{url}} = 1;
+        while(defined(my $article = $iter->())) {
+            next unless $article->{url};
+            next if $url_seen{$article->{url}};
 
+            $url_seen{$article->{url}} = 1;
             next unless (
-                $freq{title}{$d->{title}}++ == 0
-                && $freq{content_text}{$d->{content_text}}++ == 0
+                $freq{title}{$article->{title}}++ == 0
+                && $freq{content_text}{$article->{content_text}}++ == 0
             );
-            push @articles, $d;
+
+            push @articles, $article;
         }
-        close($fh);
     }
 
     @articles = grep { $freq{title}{$_->{title}} == 1 && $freq{content_text}{$_->{content_text}} == 1 } @articles;
