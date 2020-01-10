@@ -129,5 +129,7 @@ for my $yyyymmdd (keys %buckets) {
 }
 
 my $new_index = maxstr( glob "$opts{o}/daily-*.md" );
-unlink("$opts{o}/Home.md");
-link($new_index, "$opts{o}/Home.md");
+if ($new_index) {
+    unlink("$opts{o}/Home.md");
+    link($new_index, "$opts{o}/Home.md");
+}
