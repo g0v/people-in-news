@@ -159,19 +159,20 @@ for my $score (0..8) {
         }
     );
 }
-produce_atom_feed(
-    +[ grep { looks_good($_) } @articles ],
-    $opts{o} . "/articles-good.atom",
-    +{
-        title => "Articles (Good)",
-    }
-);
 
 produce_atom_feed(
     +[ grep { ! looks_good($_) } @articles ],
     $opts{o} . "/articles-ng.atom",
     +{
         title => "Articles (NG)",
+    }
+);
+
+produce_atom_feed(
+    +[ grep { looks_good($_) && (! looks_perfect($_)) } @articles ],
+    $opts{o} . "/articles-good.atom",
+    +{
+        title => "Articles (Good)",
     }
 );
 
