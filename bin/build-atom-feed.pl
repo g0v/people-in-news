@@ -183,11 +183,3 @@ produce_atom_feed(
         title => "Articles (Subjectively Perfect)",
     }
 );
-
-produce_atom_feed(
-    +[ grep { ! $_->{journalist} } @articles ],
-    $opts{o} . "/articles-noauthor.atom",
-    +{
-        title => "Articles (No Author)",
-    }
-);
