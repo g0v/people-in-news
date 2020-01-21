@@ -54,10 +54,6 @@ sub process_generic {
     my @processed_links;
 
     while(my @batch = $queue_urls->dequeue(4)) {
-        @batch = grep { not $seen{$_} } @batch;
-        next unless @batch;
-        $seen{$_} = 1 for @batch;
-
         Sn::urls_get_all(
             \@batch,
             sub {
@@ -92,8 +88,8 @@ sub process_generic {
 
                 if (@discovered_links) {
                     $queue_urls->enqueue(@discovered_links);
+                    $seen{$_} = 1 for @discovered_links;
                 }
-
                 return 1;
             },
             sub {
