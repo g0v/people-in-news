@@ -75,7 +75,7 @@ sub process_generic {
                     my $host_new = $_->host;
                     looks_like_similar_host($host_new, $host_old);
                 } grep {
-                    ($_->path eq '/') or ($_->path eq '')
+                    not (($_->path eq '/') or ($_->path eq ''))
                 } map {
                     URI->new($_)
                 } grep {
