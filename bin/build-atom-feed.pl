@@ -146,21 +146,6 @@ while ( my $article = $iter->() ) {
 } @articles;
 
 produce_atom_feed(
-    [ map { my %a = %$_; delete $a{content_text}; \%a } @articles ],
-    $opts{o} . "/articles-links.atom",
-);
-
-produce_atom_feed(
-    [ map { my %a = %$_; $a{content_text} = summarize($a{content_text}); \%a } @articles ],
-    $opts{o} . "/articles-summarized.atom",
-);
-
-produce_atom_feed(
-    \@articles,
-    $opts{o} . "/articles-full.atom",
-);
-
-produce_atom_feed(
     +[ grep { ! looks_good($_) } @articles ],
     $opts{o} . "/articles-ng.atom",
     +{
