@@ -75,6 +75,21 @@ sub looks_good {
     length($article->{title}) > 4
 }
 
+sub contains_keywords {
+    my ($article) = @_;
+    my $substrs = $article->{substrings};
+
+    my $has_keywords = 0;
+    for my $k (keys %$substrs) {
+        if (@{ $substrs->{$k} }) {
+            $has_keywords++;
+            last;
+        }
+    }
+
+    return $has_keywords;
+}
+
 sub looks_perfect {
     my ($article) = @_;
     return 0 unless looks_good($article);
@@ -156,6 +171,14 @@ produce_atom_feed(
 produce_atom_feed(
     +[ grep { looks_good($_) && (! looks_perfect($_)) } @articles ],
     $opts{o} . "/articles-good.atom",
+    +{
+        title => "Articles (Good)",
+    }
+);
+
+produce_atom_feed(
+    [ grep { looks_good($_) and (! contains_keywords($_)) } @articles ],
+    $opts{o} . "/articles-good-nokeywords.atom",
     +{
         title => "Articles (Good)",
     }
