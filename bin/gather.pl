@@ -73,9 +73,15 @@ sub process_generic {
                 }
 
                 my $host_old = URI->new($url)->host;
-                my @discovered_links = grep {
-                    my $host_new = URI->new($_)->host;
+                my @discovered_links = map {
+                    "$_"
+                } grep {
+                    my $host_new = $_->host;
                     looks_like_similar_host($host_new, $host_old);
+                } grep {
+                    ($_->path eq '/') or ($_->path eq '')
+                } map {
+                    URI->new($_)
                 } grep {
                     not looks_like_xml($_)
                 } grep {
