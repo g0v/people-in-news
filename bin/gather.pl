@@ -16,7 +16,7 @@ use Sn::Seen;
 use Sn::ArticleExtractor;
 use Sn::FTVScraper;
 
-use Importer 'Sn::TextUtil' => qw(looks_like_similar_host);
+use Importer 'Sn::TextUtil' => qw(looks_like_similar_host looks_like_sns_url);
 
 ## global
 my $queue_urls = MCE::Queue->new();
@@ -79,11 +79,10 @@ sub process_generic {
                 } map {
                     URI->new($_)
                 } grep {
-                    not looks_like_xml($_)
-                } grep {
-                    not $url_seen->test($_)
-                } grep {
-                    not $seen{$_}
+                    (not looks_like_sns_url($_))
+                    and (not looks_like_xml($_))
+                    and (not $url_seen->test($_))
+                    and (not $seen{$_})
                 } map { "$_" } @$links;
 
                 if (@discovered_links) {
