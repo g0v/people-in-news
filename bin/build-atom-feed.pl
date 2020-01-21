@@ -145,21 +145,6 @@ produce_atom_feed(
     $opts{o} . "/articles-full.atom",
 );
 
-# The maximum is 8, because we have 8 files named "etc/substr-*.txt"
-for my $score (0..8) {
-    produce_atom_feed(
-        +[
-            grep {
-                $score == keys(%{ $_->{substrings} })
-            } @articles,
-        ],
-        $opts{o} . "/articles-score-${score}.atom",
-        +{
-            title => "Articles scored ${score}",
-        }
-    );
-}
-
 produce_atom_feed(
     +[ grep { ! looks_good($_) } @articles ],
     $opts{o} . "/articles-ng.atom",
