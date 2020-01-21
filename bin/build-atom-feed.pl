@@ -172,7 +172,7 @@ produce_atom_feed(
     +[ grep { looks_good($_) && (! looks_perfect($_)) } @articles ],
     $opts{o} . "/articles-good.atom",
     +{
-        title => "Articles (Good)",
+        title => "Articles",
     }
 );
 
@@ -180,7 +180,7 @@ produce_atom_feed(
     [ grep { looks_good($_) and (! contains_keywords($_)) } @articles ],
     $opts{o} . "/articles-good-nokeywords.atom",
     +{
-        title => "Articles (Good)",
+        title => "Articles (No Keywords)",
     }
 );
 
