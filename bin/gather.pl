@@ -207,7 +207,7 @@ my $mce = MCE->new(
             while (defined( $pending = $queue_urls->pending() ))  {
                 MCE->say('[Monitor] queue_urls /pending: ' . $pending );
 
-                if ( time() - $PROCESS_START > $opts{'time-limit'} ) {
+                if ( ($pending == 0) or (time() - $PROCESS_START > $opts{'time-limit'}) ) {
                     $queue_urls->end;
                     $queue_urls->clear;
                 }
