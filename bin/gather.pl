@@ -188,7 +188,6 @@ if (@ARGV) {
 } else {
     @initial_urls = shuffle(
         @{ Sn::read_string_list('etc/news-sites.txt') },
-        @{ Sn::read_string_list('etc/news-aggregation-sites.txt') },
     );
 }
 
