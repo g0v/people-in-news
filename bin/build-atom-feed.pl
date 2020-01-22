@@ -41,12 +41,8 @@ sub produce_atom_feed {
             $item->pubDate( $now );
         }
 
-        my @categories;
-        for (keys %{$article->{substrings}}) {
-            for (@{$article->{substrings}{$_}}) {
-                push @categories, $_;
-            }
-        }
+        my @categories = map { @{$article->{substrings}{$_}} } (keys %{$article->{substrings}});
+
         if (@categories) {
             @categories = uniq(@categories);
             $item->category(\@categories);
