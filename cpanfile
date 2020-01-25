@@ -13,7 +13,7 @@ requires 'Module::Functions';
 requires 'Mojo::UserAgent';
 requires 'Moo';
 requires 'Net::Graphite';
-requires 'NewsExtractor', 'v0.2.0';
+requires 'NewsExtractor', 'v0.3.0';
 requires 'PerlIO::via::gzip';
 requires 'Regexp::Trie';
 requires 'String::Trim';
