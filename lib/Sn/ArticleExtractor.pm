@@ -51,7 +51,8 @@ package Sn::ArticleExtractor {
             $dom->at('body.archive.tag div.post_list') or
             $dom->at('body.node-type-writer .breadcrumb .last a[href^=/author]') or
             $dom->at('h1._uUSu') or
-            ( $url->host() eq "www.greatnews.com.tw" and $dom->at("div.container div#focus_are") )
+            ( $url->host() eq "www.greatnews.com.tw" and $dom->at("div.container div#focus_are") ) or
+            ( $url->host() eq "www.hccg.gov.tw" and $dom->at("img#main_img0") )
         } and return 0;
 
         if ($_ = $dom->at('h1.entry-title > span')) {
