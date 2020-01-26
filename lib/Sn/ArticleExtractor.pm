@@ -13,7 +13,8 @@ package Sn::ArticleExtractor {
         my $res = $self->tx->res;
         return 0 unless $res->body;
 
-        return 0 if $self->tx->req->url->path() eq '/';
+        my Mojo::URL $url = $self->tx->req->url;
+        return 0 if $url->path() eq '/';
 
         my $dom = $res->dom;
         my $it;
@@ -49,7 +50,8 @@ package Sn::ArticleExtractor {
             ($dom->find('div.posts-holder article.post')->size > 1) or
             $dom->at('body.archive.tag div.post_list') or
             $dom->at('body.node-type-writer .breadcrumb .last a[href^=/author]') or
-            $dom->at('h1._uUSu')
+            $dom->at('h1._uUSu') or
+            ( $url->host() eq "www.greatnews.com.tw" and $dom->at("div.container div#focus_are") )
         } and return 0;
 
         if ($_ = $dom->at('h1.entry-title > span')) {
