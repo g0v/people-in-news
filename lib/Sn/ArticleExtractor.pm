@@ -14,7 +14,7 @@ package Sn::ArticleExtractor {
         return 0 unless $res->body;
 
         my Mojo::URL $url = $self->tx->req->url;
-        return 0 if $url->path() eq '/';
+        return 0 if $url->path() eq '/' || $url->path() eq '';
 
         my $dom = $res->dom;
         my $it;
