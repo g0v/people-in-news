@@ -150,18 +150,18 @@ produce_atom_feed(
 );
 
 produce_atom_feed(
-    +[ grep { looks_good($_) and contains_keywords($_) and (! looks_perfect($_)) } @articles ],
-    $opts{o} . "/articles.atom",
-    +{
-        title => "Articles",
-    }
-);
-
-produce_atom_feed(
     [ grep { looks_good($_) and (! contains_keywords($_)) } @articles ],
     $opts{o} . "/articles-nokeywords.atom",
     +{
         title => "Articles (No Keywords)",
+    }
+);
+
+produce_atom_feed(
+    +[ grep { looks_good($_) and contains_keywords($_) and (! looks_perfect($_)) } @articles ],
+    $opts{o} . "/articles.atom",
+    +{
+        title => "Articles",
     }
 );
 
