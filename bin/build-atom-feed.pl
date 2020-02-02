@@ -12,6 +12,19 @@ use XML::FeedPP;
 use Sn;
 use Sn::ArticleIterator;
 
+sub remove_if(&$) {
+    my ($condition, $arr) = @_;
+    my $goner = [];
+    for (my $i = 0; $i < @$arr; $i++) {
+        local $_ = $arr->[$i];
+        if (defined($_) && $condition->()) {
+            push @$goner, $arr->[$i];
+            $arr->[$i] = undef;
+        }
+    }
+    return $goner;
+}
+
 sub produce_atom_feed {
     my ($articles, $output, $feed_opts) = @_;
 
@@ -86,7 +99,7 @@ sub contains_keywords {
     return $has_keywords;
 }
 
-sub looks_perfect {
+sub looks_haibulai {
     my ($article) = @_;
     return 0 unless looks_good($article);
 
@@ -142,7 +155,7 @@ while ( my $article = $iter->() ) {
 } @articles;
 
 produce_atom_feed(
-    +[ grep { ! looks_good($_) } @articles ],
+    (remove_if { ! looks_good($_) } \@articles),
     $opts{o} . "/articles-ng.atom",
     +{
         title => "Articles (NG)",
@@ -150,7 +163,7 @@ produce_atom_feed(
 );
 
 produce_atom_feed(
-    [ grep { looks_good($_) and (! contains_keywords($_)) } @articles ],
+    (remove_if { ! contains_keywords($_) } \@articles),
     $opts{o} . "/articles-nokeywords.atom",
     +{
         title => "Articles (No Keywords)",
@@ -158,17 +171,17 @@ produce_atom_feed(
 );
 
 produce_atom_feed(
-    +[ grep { looks_good($_) and contains_keywords($_) and (! looks_perfect($_)) } @articles ],
-    $opts{o} . "/articles.atom",
+    (remove_if { looks_haibulai($_) } \@articles),
+    $opts{o} . "/articles-haibulai.atom",
     +{
-        title => "Articles",
+        title => "Articles (Haibulai)",
     }
 );
 
 produce_atom_feed(
-    +[ grep { looks_perfect($_) } @articles ],
-    $opts{o} . "/articles-subjectively-perfect.atom",
+    \@articles,
+    $opts{o} . "/articles.atom",
     +{
-        title => "Articles (Subjectively Perfect)",
+        title => "Articles",
     }
 );
