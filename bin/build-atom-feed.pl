@@ -118,7 +118,7 @@ my $iter = Sn::ArticleIterator->new(
     filter_file => sub { /\.jsonl$/ },
 );
 
-my $now = Time::Moment->now;
+my $epoch_zero = Time::Moment->from_epoch(0);
 my %seen;
 my @articles;
 while ( my $article = $iter->() ) {
@@ -128,7 +128,7 @@ while ( my $article = $iter->() ) {
     if ($article->{dateline} && (my $t = Sn::parse_dateline($article->{dateline}))) {
         $article->{dateline_parsed} = $t;
     } else {
-        $article->{dateline_parsed} = $now;
+        $article->{dateline_parsed} = $epoch_zero;
     }
 }
 %seen = ();
