@@ -81,7 +81,9 @@ sub looks_good {
     defined($article->{content_text})       &&
     defined($article->{title})              &&
     length($article->{content_text}) > 140  &&
-    length($article->{title}) > 4
+    length($article->{title}) > 4           &&
+    length($article->{journalist}) > 0      &&
+    length($article->{dateline}) > 0
 }
 
 sub contains_keywords {
