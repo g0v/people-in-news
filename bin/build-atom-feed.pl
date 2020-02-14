@@ -101,20 +101,18 @@ sub contains_keywords {
     return $has_keywords;
 }
 
-sub looks_haibulai {
+sub looks_buggy {
     my ($article) = @_;
-    return 0 unless looks_good($article);
 
     my $substrs = $article->{substrings};
 
-    # people + {event|things} + {taiwan-subdivisions|countries},
-    return 0 unless $substrs->{people} && @{ $substrs->{people} } > 0;
-    return 0 unless @{$substrs->{event} ||[]} > 0 || @{$substrs->{things} ||[]} > 0 ;
-    return 0 unless @{$substrs->{countries} ||[]} > 0 || @{$substrs->{'taiwan-subdivisions'} ||[]} > 0 ;
-    return 0 if $article->{title} =~ /網友/;
-    return 0 if $article->{content_text} =~ /網友/;
+    return 1 if @{ $substrs->{"common-typos"} //[] };
 
-    return 1;
+    my @buggy_keywords = qw( 網友 臉書社團 靈異公社 爆廢公社 爆料公社 爆怨公社 PTT );
+    my $re = '(?:' . join('|', map { "\Q$_\E" } @buggy_keywords) . ')';
+    return 1 if ($article->{title} =~ /$re/io || $article->{content_text} =~ /$re/io);
+
+    return 0;
 }
 
 ## main
@@ -165,18 +163,18 @@ produce_atom_feed(
 );
 
 produce_atom_feed(
-    (remove_if { ! contains_keywords($_) } \@articles),
-    $opts{o} . "/articles-nokeywords.atom",
+    (remove_if { looks_buggy($_) } \@articles),
+    $opts{o} . "/articles-buggy.atom",
     +{
-        title => "Articles (No Keywords)",
+        title => "Articles (Buggy)",
     }
 );
 
 produce_atom_feed(
-    (remove_if { looks_haibulai($_) } \@articles),
-    $opts{o} . "/articles-haibulai.atom",
+    (remove_if { ! contains_keywords($_) } \@articles),
+    $opts{o} . "/articles-nokeywords.atom",
     +{
-        title => "Articles (Haibulai)",
+        title => "Articles (No Keywords)",
     }
 );
 
