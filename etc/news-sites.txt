@@ -6,6 +6,7 @@ http://healthmedia.com.tw/
 http://news.tnn.tw/
 http://news.tvb.com/
 http://nexttv.com.tw/news
+http://www.nexttv.com.tw/NextTV/News/
 http://pnn.pts.org.tw/
 http://trad.cn.rfi.fr/
 http://www.5ch.com.tw/
