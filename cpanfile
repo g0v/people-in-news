@@ -19,7 +19,7 @@ requires 'Regexp::Trie';
 requires 'String::Trim';
 requires 'Text::Markdown';
 requires 'Text::Markdown::Discount';
-requires 'Text::Util::Chinese', '0.04';
+requires 'Text::Util::Chinese', '0.07';
 requires 'Time::Moment';
 requires 'Try::Tiny';
 requires 'Type::Tiny';

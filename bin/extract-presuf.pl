@@ -5,7 +5,7 @@ use warnings;
 
 use Getopt::Long qw< GetOptions >;
 use Encode qw< encode_utf8 >;
-use Text::Util::Chinese qw< extract_presuf >; ;
+use Text::Util::Chinese qw< presuf_iterator >; ;
 
 use Sn::ArticleIterator;
 
@@ -25,19 +25,18 @@ my $articles = Sn::ArticleIterator->new(
 my $threshold = $opts{threshold} || 42;      # an arbitrary choice.
 
 open my $fh_out, '>', $opts{db} . "/presuf.txt";
-extract_presuf(
+my $iter = presuf_iterator(
     sub {
         if (my $article = $articles->next) {
             return $article->{content_text};
         }
         return undef;
     },
-    sub {
-        my ($tok) = @_;
-        say $fh_out encode_utf8("$tok");
-    },
     +{
         threshold => $threshold,
     }
 );
 
+while(defined(my $tok = $iter->())) {
+    say $fh_out encode_utf8("$tok");
+}
