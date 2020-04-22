@@ -54,7 +54,7 @@ for my $file (@ARGV) {
         }
 
         for (@deduped) {
-            my $line = JSON->new->encode($buckets{$len}[0]);
+            my $line = JSON->new->canonical->encode($buckets{$len}[0]);
             say $fh $line;
         }
     }
