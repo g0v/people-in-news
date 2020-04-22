@@ -11,6 +11,8 @@ perl -Ilib bin/gather-feeds.pl --db var/db
 perl -Ilib bin/gather.pl --db var/db --time-limit=2400
 perl -Ilib bin/merge.pl --db var/db
 
+perl -Ilib bin/deduplicate.pl --yes var/db/*.jsonl
+
 perl -Ilib bin/build-atom-feed.pl --db var/db -o var/www
 perl -Ilib bin/atom2rss.pl var/www/articles-full.atom var/www/articles-full.rss
 perl -Ilib bin/atom2rss.pl var/www/articles-links.atom var/www/articles-links.rss
