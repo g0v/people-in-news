@@ -1,6 +1,5 @@
 https://www.cw.com.tw/
 http://0media.tw/
-http://citytimes.tw/
 http://focustaiwan.tw/
 http://healthmedia.com.tw/
 http://news.tnn.tw/
@@ -19,7 +18,6 @@ http://www.ctv.com.tw/
 https://www.epochtimes.com/
 http://www.fingermedia.tw/
 http://www.freedomnews.com.tw/index.php
-http://www.ganlangroup.com/
 http://www.herald-today.com/
 http://www.idn.com.tw/
 http://www.insight-post.tw/
@@ -38,7 +36,6 @@ http://yam.taiwanhot.net/
 http://zh.cn.nikkei.com/
 https://asahichinese-f.com/
 https://msntw.com/
-https://musou.tw/
 https://newcongress.tw/
 https://news.cnyes.com/
 https://news.ebc.net.tw/
@@ -186,3 +183,5 @@ https://www.worldjournal.com
 https://news.rthk.hk/rthk/ch/
 https://www.rvn.com.tw/
 https://turnnewsapp.com/
+https://www.ctwant.com/
+https://ctee.com.tw/
