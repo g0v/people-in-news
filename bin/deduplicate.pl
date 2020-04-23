@@ -2,6 +2,7 @@
 use v5.26;
 use warnings;
 use JSON;
+use File::Copy qw(copy);
 use Getopt::Long qw(GetOptions);
 
 ## main
@@ -16,7 +17,7 @@ for my $file (@ARGV) {
     my $yyyymmdd = $1;
 
     my %buckets;
-    open my $fh, '<:utf8', $file;
+    open my $fh, '<', $file;
     while(<$fh>) {
         chomp;
         my $line = $_;
@@ -37,7 +38,7 @@ for my $file (@ARGV) {
     close($fh);
 
     my $wip_file = "/tmp/deduplicated-articles-$yyyymmdd.jsonl";
-    open $fh, '>:utf8', $wip_file;
+    open $fh, '>', $wip_file;
 
     for my $len (keys %buckets) {
         my @deduped;
@@ -63,7 +64,7 @@ for my $file (@ARGV) {
 
     if ($opts{yes}) {
         unlink $file;
-        rename $wip_file, $file;
+        copy $wip_file, $file;
     } else {
         say "DONE: $file => $wip_file";
     }
