@@ -14,9 +14,6 @@ perl -Ilib bin/merge.pl --db var/db
 perl -Ilib bin/deduplicate.pl --yes var/db/*.jsonl
 
 perl -Ilib bin/build-atom-feed.pl --db var/db -o var/www
-perl -Ilib bin/atom2rss.pl var/www/articles-full.atom var/www/articles-full.rss
-perl -Ilib bin/atom2rss.pl var/www/articles-links.atom var/www/articles-links.rss
-perl -Ilib bin/atom2rss.pl var/www/articles-summarized.atom var/www/articles-summarized.rss
 
 perl -Ilib bin/build-dailystats.pl --db var/db -o var/db
 perl -Ilib bin/emit-hourly-stats.pl --db var/db
