@@ -19,6 +19,7 @@ use Sn::FTVScraper;
 use Importer 'Sn::TextUtil' => qw(looks_like_similar_host looks_like_sns_url);
 
 ## global
+my %is_initial_url;
 my $queue_urls = MCE::Queue->new();
 my $queue_ftv  = MCE::Queue->new();
 
@@ -60,7 +61,7 @@ sub process_generic {
                 my ($tx, $url) = @_;
                 my ($article, $links) = Sn::ArticleExtractor->new( tx => $tx )->extract;
 
-                if ($article) {
+                if ($article and (! $is_initial_url{$url})) {
                     MCE->say("ARTICLE $url");
 
                     my $line = encode_article_as_json($article) . "\n";
@@ -191,6 +192,7 @@ if (@ARGV) {
 }
 
 for my $it (@initial_urls) {
+    $is_initial_url{$it} = 1;
     if ( $it =~ m/ftv/ ) {
         $queue_ftv->enqueue($it);
     } else {
