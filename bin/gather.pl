@@ -20,12 +20,15 @@ use Importer 'Sn::TextUtil' => qw(looks_like_similar_host looks_like_sns_url);
 
 ## global
 my %is_initial_url;
+my $queue_unique_urls = MCE::Queue->new();
 my $queue_urls = MCE::Queue->new();
 my $queue_ftv  = MCE::Queue->new();
 
 my $PROCESS_START = time();
 my $STOP = 0;
 local $SIG{INT} = sub {
+    $queue_unique_urls->clear;
+    $queue_unique_urls->end;
     $queue_urls->clear;
     $queue_urls->end;
 
@@ -50,8 +53,6 @@ sub process_generic {
 
     my $extracted_count = 0;
 
-    my %seen;
-
     my @processed_links;
 
     while(my @batch = $queue_urls->dequeue(4)) {
@@ -70,25 +71,19 @@ sub process_generic {
                 }
 
                 my $host_old = URI->new($url)->host;
-                my @discovered_links = map {
-                    "$_"
-                } grep {
-                    my $host_new = $_->host;
-                    looks_like_similar_host($host_new, $host_old);
-                } grep {
-                    not (($_->path eq '/') or ($_->path eq ''))
-                } map {
-                    URI->new($_)
-                } grep {
-                    (not looks_like_sns_url($_))
-                    and (not looks_like_xml($_))
-                    and (not $url_seen->test($_))
-                    and (not $seen{$_})
-                } map { "$_" } @$links;
+                my @discovered_links = grep {
+                    my $u = "$_";
+                    my $uri = URI->new($u);
+
+                    (not looks_like_sns_url($u))
+                    and (not looks_like_xml($u))
+                    and (not $url_seen->test($u))
+                    and (not (($uri->path eq '/') or ($uri->path eq '')))
+                    and looks_like_similar_host($uri->host, $host_old)
+                } @$links;
 
                 if (@discovered_links) {
                     $queue_urls->enqueue(@discovered_links);
-                    $seen{$_} = 1 for @discovered_links;
                 }
                 return 1;
             },
@@ -191,6 +186,8 @@ if (@ARGV) {
     );
 }
 
+@initial_urls = grep { !/ftv/ } @initial_urls;
+
 for my $it (@initial_urls) {
     $is_initial_url{$it} = 1;
     if ( $it =~ m/ftv/ ) {
@@ -206,15 +203,27 @@ my $mce = MCE->new(
         user_func => sub {
             sleep 2;
             my $pending;
-            while (defined( $pending = $queue_urls->pending() ))  {
-                MCE->say('[Monitor] queue_urls /pending: ' . $pending );
+            while (defined( $pending = $queue_unique_urls->pending() ))  {
+                MCE->say('[Monitor] queue_unique_urls /pending: ' . $pending );
 
                 if ( ($pending == 0) or (time() - $PROCESS_START > $opts{'time-limit'}) ) {
-                    $queue_urls->end;
-                    $queue_urls->clear;
+                    $queue_unique_urls->clear;
+                    $queue_unique_urls->end;
                 }
 
                 sleep 2;
+            }
+        }
+    }, {
+        max_workers => '1',
+        task_name => "deduper",
+        user_func => sub {
+            my %seen;
+            while(my $url = $queue_urls->dequeue(1)) {
+                unless ($seen{$url}) {
+                    $queue_unique_urls->enqueue($url);
+                    $seen{$url} = 1;
+                }
             }
         }
     }, {
