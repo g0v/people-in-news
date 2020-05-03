@@ -45,17 +45,6 @@ sub looks_like_xml {
     return $url =~ m{ \com/tag/(?:.+)\.xml \z};
 }
 
-sub looks_like_article_page {
-    my ($url) = @_;
-
-    return $url !~ m{(
-        | /Content_List\.aspx
-        | /Pages/List\.aspx
-        | \.(net|com|tw)/(list|tags?|sitemap|search|about|categor(y|ies))
-        | worldjournal\.com/page-
-    )}xi;
-}
-
 sub process_generic {
     my ($url_seen, $out) = @_;
 
@@ -73,7 +62,7 @@ sub process_generic {
                 my ($tx, $url) = @_;
                 my ($article, $links) = Sn::ArticleExtractor->new( tx => $tx )->extract;
 
-                if ($article and (! $is_initial_url{$url}) and ( looks_like_article_page($url) )) {
+                if ($article and (! $is_initial_url{$url})) {
                     MCE->say("[generic] ARTICLE $url");
 
                     my $line = encode_article_as_json($article) . "\n";

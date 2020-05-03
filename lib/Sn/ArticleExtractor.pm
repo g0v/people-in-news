@@ -15,7 +15,13 @@ package Sn::ArticleExtractor {
 
         my Mojo::URL $url = $self->tx->req->url;
         return 0 if $url->path() eq '/' || $url->path() eq '';
-        return 0 if $url->path() =~ '/index\.(html|php|jsp)';
+        return 0 if $url->path() =~ m{(
+            /index\.(html|php|jsp)
+            | /Content_List\.aspx
+            | /Pages/List\.aspx
+            | \.(net|com|tw)/(list|tags?|sitemap|search|about|categor(y|ies))
+            | worldjournal\.com/page-
+        )}xi;
 
         my $dom = $res->dom;
         my $it;
