@@ -45,6 +45,18 @@ sub looks_like_xml {
     return $url =~ m{ \com/tag/(?:.+)\.xml \z};
 }
 
+sub looks_like_article_page {
+    my ($url) = @_;
+
+    return $url !~ m{(
+        \.(net|com|tw)/(sub_)?category
+        | \.com/about
+        | thenewslens\.com/tag/
+        | worldjournal\.com/page-
+        | tvb\.com/list/
+    )}xi;
+}
+
 sub process_generic {
     my ($url_seen, $out) = @_;
 
@@ -63,7 +75,7 @@ sub process_generic {
                 my ($article, $links) = Sn::ArticleExtractor->new( tx => $tx )->extract;
 
                 if ($article and (! $is_initial_url{$url})) {
-                    MCE->say("[$$] ARTICLE $url");
+                    MCE->say("[generic] ARTICLE $url");
 
                     my $line = encode_article_as_json($article) . "\n";
                     print $fh $line;
@@ -79,6 +91,7 @@ sub process_generic {
                     and (not looks_like_xml($u))
                     and (not $url_seen->test($u))
                     and (not (($uri->path eq '/') or ($uri->path eq '')))
+                    and looks_like_article_page($u)
                     and looks_like_similar_host($uri->host, $host_old)
                 } @$links;
 
@@ -123,7 +136,7 @@ sub process_ftv {
 
         my $article = Sn::FTVScraper->scrape($url) or next;
         if ($article->{title}) {
-            MCE->say("[$$] ARTICLE $url");
+            MCE->say("[ftv] ARTICLE $url");
 
             my $line = encode_article_as_json($article) . "\n";
             print $fh $line;
@@ -142,7 +155,7 @@ my $url_seen;
 sub add_to_url_seen {
     my ($urls) = @_;
     $url_seen->add(@$urls);
-    MCE->say( "Seen " . (0+ @$urls) . " more urls" );
+    MCE->say("[$$] Seen " . (0+ @$urls) . " more urls");
 
     if ($dirtiness++ > 100) {
         $url_seen->save;
@@ -217,7 +230,7 @@ my $mce = MCE->new(
         task_name => "deduper",
         user_func => sub {
             my %seen;
-            while(my $url = $queue_urls->dequeue(1)) {
+            while(my $url = $queue_urls->dequeue()) {
                 unless ($seen{$url}) {
                     $queue_unique_urls->enqueue($url);
                     $seen{$url} = 1;
