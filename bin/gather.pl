@@ -50,6 +50,8 @@ sub looks_like_article_page {
 
     return $url !~ m{(
         \.(net|com|tw)/(sub_)?category
+        | /Content_List\.aspx
+        | /sitemap
         | \.com/about
         | thenewslens\.com/tag/
         | worldjournal\.com/page-
