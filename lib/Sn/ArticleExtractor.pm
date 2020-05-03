@@ -2,6 +2,7 @@ package Sn::ArticleExtractor {
     use utf8;
     use Sn;
     use URI;
+    use Try::Tiny;
     use Encode qw(decode);
     use NewsExtractor::Extractor;
 
@@ -102,19 +103,30 @@ package Sn::ArticleExtractor {
         my $charset = Sn::tx_guess_charset($tx) or return(undef, \@links);
         my $html = decode($charset, $res->body);
 
-        my $extractor = NewsExtractor::Extractor->new( tx => $tx );
+        my $err;
+        try {
+            my $extractor = NewsExtractor::Extractor->new( tx => $tx );
 
-        my $title = $extractor->headline;
-        my $text = $extractor->content_text;
+            my $title = $extractor->headline;
+            my $text = $extractor->content_text;
 
-        return (undef, \@links) unless $title && $text;
+            if ($title && $text) {
+                $article{title}        = "". $title;
+                $article{content_text} = "". $text;
+                $article{substrings}   = Sn::extract_substrings([ $title, $text ]);
+                $article{t_extracted}  = (0+ time());
+                $article{dateline}     = $extractor->dateline;
+                $article{journalist}   = $extractor->journalist;
+            } else {
+                $err = "Lack of title or text";
+            }
+        } catch {
+            $err = $_;
+        };
 
-        $article{title}        = "". $title;
-        $article{content_text} = "". $text;
-        $article{substrings}   = Sn::extract_substrings([ $title, $text ]);
-        $article{t_extracted}  = (0+ time());
-        $article{dateline}     = $extractor->dateline;
-        $article{journalist}   = $extractor->journalist;
+        if ($err) {
+            return (undef, \@links);
+        }
 
         return (\%article, \@links);
     }
