@@ -216,17 +216,12 @@ my $mce = MCE->new(
         max_workers => '1',
         task_name => "deduper",
         user_func => sub {
-            my $enough = 0;
             my %seen;
             while(my $url = $queue_urls->dequeue()) {
-                next if $enough;
-
                 unless ($seen{$url}) {
                     $queue_unique_urls->enqueue($url);
                     $seen{$url} = 1;
                 }
-
-                $enough = 1 if keys %seen > 4 * $opts{'time-limit'};
             }
         }
     }, {
