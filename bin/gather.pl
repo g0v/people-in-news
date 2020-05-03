@@ -55,7 +55,7 @@ sub process_generic {
 
     my @processed_links;
 
-    while(my @batch = $queue_unique_urls->dequeue(4)) {
+    while(my @batch = $queue_unique_urls->dequeue(1)) {
         Sn::urls_get_all(
             \@batch,
             sub {
