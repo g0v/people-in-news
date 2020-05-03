@@ -63,7 +63,7 @@ sub process_generic {
                 my ($article, $links) = Sn::ArticleExtractor->new( tx => $tx )->extract;
 
                 if ($article and (! $is_initial_url{$url})) {
-                    MCE->say("ARTICLE $url");
+                    MCE->say("[$$] ARTICLE $url");
 
                     my $line = encode_article_as_json($article) . "\n";
                     print $fh $line;
@@ -123,7 +123,7 @@ sub process_ftv {
 
         my $article = Sn::FTVScraper->scrape($url) or next;
         if ($article->{title}) {
-            MCE->say("ARTICLE $url");
+            MCE->say("[$$] ARTICLE $url");
 
             my $line = encode_article_as_json($article) . "\n";
             print $fh $line;
@@ -185,8 +185,6 @@ if (@ARGV) {
         @{ Sn::read_string_list('etc/news-sites.txt') },
     );
 }
-
-@initial_urls = grep { !/ftv/ } @initial_urls;
 
 for my $it (@initial_urls) {
     $is_initial_url{$it} = 1;
