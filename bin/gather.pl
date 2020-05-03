@@ -49,13 +49,10 @@ sub looks_like_article_page {
     my ($url) = @_;
 
     return $url !~ m{(
-        \.(net|com|tw)/(sub_)?category
         | /Content_List\.aspx
-        | /sitemap
-        | \.com/about
-        | thenewslens\.com/tag/
+        | /Pages/List\.aspx
+        | \.(net|com|tw)/(list|tags?|sitemap|search|about|categor(y|ies))
         | worldjournal\.com/page-
-        | tvb\.com/list/
     )}xi;
 }
 
@@ -76,7 +73,7 @@ sub process_generic {
                 my ($tx, $url) = @_;
                 my ($article, $links) = Sn::ArticleExtractor->new( tx => $tx )->extract;
 
-                if ($article and (! $is_initial_url{$url})) {
+                if ($article and (! $is_initial_url{$url}) and ( looks_like_article_page($url) )) {
                     MCE->say("[generic] ARTICLE $url");
 
                     my $line = encode_article_as_json($article) . "\n";
@@ -93,7 +90,6 @@ sub process_generic {
                     and (not looks_like_xml($u))
                     and (not $url_seen->test($u))
                     and (not (($uri->path eq '/') or ($uri->path eq '')))
-                    and looks_like_article_page($u)
                     and looks_like_similar_host($uri->host, $host_old)
                 } @$links;
 
