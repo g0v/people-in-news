@@ -17,8 +17,6 @@ http://www.eventsinfocus.org/rss.xml
 http://www.fingermedia.tw/?feed=comments-rss2
 http://www.fingermedia.tw/?feed=rss2
 http://www.freedomnews.com.tw/backend.php
-http://www.insight-post.tw/comments/feed
-http://www.insight-post.tw/feed
 http://www.taipeitimes.com/xml/index.rss
 http://www.thinkingtaiwan.com/rss/new
 https://zh.cn.nikkei.com/rss.html
