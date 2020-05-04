@@ -9,11 +9,10 @@ use JSON qw(encode_json);
 use Getopt::Long qw(GetOptions);
 use FindBin '$Bin';
 use Encode qw( decode);
-use List::Util qw( shuffle );
+use NewsExtractor;
 
 use Sn;
 use Sn::Seen;
-use Sn::HTMLExtractor;
 
 ## global
 my $STOP = 0;
@@ -102,38 +101,21 @@ sub fetch_and_extract_full_text {
     my @urls = map { $_->{url} } @$articles;
     my %u2a  = map { $_->{url} => $_ } @$articles;
 
-    Sn::urls_get_all(
-        \@urls,
-        sub {
-            my ($tx, $url) = @_;
-            my $article = $u2a{$url};
-
-            my $charset = Sn::tx_guess_charset($tx);
-            if ($charset) {
-                my $html = decode($charset, $tx->res->body);
-                my $ex = Sn::HTMLExtractor->new(html => $html);
-                my $text = $ex->content_text;
-                if ($text && length($text) > length($article->{content_text})) {
-                    # $article->{feed_content_text} = $article->{content_text};
-                    $article->{content_text} = "" . $text;
-                    # say "Extracted: " . encode_utf8(substr($text, 0, 40)) . "...";
-                    $article->{dateline} = $ex->dateline;
-                }
-            }
-
+    for my $article (@$articles) {
+        last if $STOP;
+        my $url = $article->{url};
+        my ($error, $extracted) = NewsExtractor->new( url => $url )->download->parse;
+        if ($error) {
+            say STDERR "Errored at: $url\n\t" . $error->message;
+        } else {
+            $article->{content_text} = $extracted->article_body;
+            $article->{dateline} = $extracted->dateline;
             $article->{substrings} = Sn::extract_substrings([ $article->{title}, $article->{content_text} ]);
             $article->{t_extracted} = (0+ time());
 
-            $cb->($article, $tx->req->url);
-
-            return $STOP ? 0 : 1;
-        },
-        sub {
-            my ($error, $url) = @_;
-            say STDERR "ERROR: $url $error";
-            return $STOP ? 0 : 1;
+            $cb->($article, $url);
         }
-    );
+    }
 
     return;
  }
@@ -159,7 +141,8 @@ my $url_seen = Sn::Seen->new( store => ($opts{db} . "/url-seen.bloomfilter") );
 my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
 open my $fh_articles_jsonl, '>', $output;
 
-for my $url (shuffle(@initial_urls)) {
+for my $url (@initial_urls) {
+    last if $STOP;
     gather_feed_links(
         [$url],
         sub {
@@ -175,6 +158,7 @@ for my $url (shuffle(@initial_urls)) {
                     print $fh_articles_jsonl encode_json($article) . "\n";
                     $url_seen->add($article->{url});
                     $url_seen->add($url);
+                    say "Extracted: $url";
                 }
             );
         }
