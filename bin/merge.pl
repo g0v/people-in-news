@@ -15,7 +15,7 @@ die "--db <DIR> is needed" unless  $opts{db} && -d $opts{db};
 for my $table (qw(articles)) {
     my %buckets;
     for my $file (glob "$opts{db}/${table}-*.jsonl") {
-        my ($k) = $file =~ m/ - ([0-9]{8}) ([0-9]{6})? \.jsonl \z/x;
+        my ($k) = $file =~ m/ - ([0-9]{8}) ([0-9]{6})? (-[0-9]+)? \.jsonl \z/x;
         next unless $k;
         push @{$buckets{$k}}, $file;
     }

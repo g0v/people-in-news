@@ -10,6 +10,7 @@ use Getopt::Long qw(GetOptions);
 use FindBin '$Bin';
 use Encode qw( decode);
 use NewsExtractor;
+use MCE::Loop;
 
 use Sn;
 use Sn::Seen;
@@ -104,7 +105,9 @@ sub fetch_and_extract_full_text {
     for my $article (@$articles) {
         last if $STOP;
         my $url = $article->{url};
-        my ($error, $extracted) = NewsExtractor->new( url => $url )->download->parse;
+        my $download = NewsExtractor->new( url => $url )->download() or next;
+
+        my ($error, $extracted) = $download->parse;
         if ($error) {
             say STDERR "Errored at: $url\n\t" . $error->message;
         } else {
@@ -118,7 +121,20 @@ sub fetch_and_extract_full_text {
     }
 
     return;
- }
+}
+
+my $url_seen;
+sub add_to_url_seen {
+    my ($urls) = @_;
+    $url_seen->add(@$urls);
+    MCE->say("[$$] Seen " . (0+ @$urls) . " more urls");
+
+    state $dirtiness = 0;
+    if ($dirtiness++ > 100) {
+        $url_seen->save;
+        $dirtiness = 0;
+    }
+}
 
 ## main
 my %opts;
@@ -136,34 +152,40 @@ if (@ARGV) {
     @initial_urls = @{ Sn::read_string_list('etc/feeds.txt') };
 }
 
-my $url_seen = Sn::Seen->new( store => ($opts{db} . "/url-seen.bloomfilter") );
+$url_seen = Sn::Seen->new( store => ($opts{db} . "/url-seen.bloomfilter") );
 
-my $output = $opts{db} . "/articles-". Sn::ts_now() .".jsonl";
-open my $fh_articles_jsonl, '>', $output;
+mce_loop {
+    my ($mce, $chunk_ref, $chunk_id) = @_;
 
-for my $url (@initial_urls) {
-    last if $STOP;
-    gather_feed_links(
-        [$url],
-        sub {
-            my $articles = $_[0];
-            @$articles = grep { ! $url_seen->test($_->{url}) } @$articles;
-            return unless @$articles;
+    my $id = Sn::ts_now() + $chunk_id;
+    my $output = $opts{db} . "/articles-" . Sn::ts_now() . "-" . $chunk_id .".jsonl";
 
-            fetch_and_extract_full_text(
-                $articles,
-                sub {
-                    my ($article, $url) = @_;
+    open my $fh_articles_jsonl, '>', $output;
 
-                    print $fh_articles_jsonl encode_json($article) . "\n";
-                    $url_seen->add($article->{url});
-                    $url_seen->add($url);
-                    say "Extracted: $url";
-                }
-            );
-        }
-    );
-}
+    for my $url (@{ $chunk_ref }) {
+        last if $STOP;
+        gather_feed_links(
+            [$url],
+            sub {
+                my $articles = $_[0];
+                @$articles = grep { ! $url_seen->test($_->{url}) } @$articles;
+                return unless @$articles;
+
+                fetch_and_extract_full_text(
+                    $articles,
+                    sub {
+                        my ($article, $url) = @_;
+
+                        print $fh_articles_jsonl encode_json($article) . "\n";
+                        MCE->do('add_to_url_seen', [$article->{url}, $url]);
+                        say "Extracted: $url";
+                    }
+                );
+            }
+        );
+    }
+
+    close $fh_articles_jsonl;
+} @initial_urls;
 
 $url_seen->save;
-close($fh_articles_jsonl);
