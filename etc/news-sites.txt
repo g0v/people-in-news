@@ -4,7 +4,6 @@ http://focustaiwan.tw/
 http://healthmedia.com.tw/
 http://news.tnn.tw/
 http://news.tvb.com/
-http://nexttv.com.tw/news
 http://www.nexttv.com.tw/NextTV/News/
 http://pnn.pts.org.tw/
 http://trad.cn.rfi.fr/
@@ -55,14 +54,12 @@ https://www.101newsmedia.com/
 https://www.agriharvest.tw/
 https://www.bbc.com/zhongwen/trad
 https://www.cet-taiwan.org/
-https://www.chinapost.com.tw/
 https://www.chinatimes.com/
 https://www.cmmedia.com.tw/
 https://www.cna.com.tw/
 https://www.cts.com.tw/
 https://www.digitimes.com.tw/
 https://www.ettoday.net/
-https://www.fairmedia.com.tw/
 https://www.fountmedia.io/
 https://www.ltn.com.tw/
 https://www.mdnkids.com/
