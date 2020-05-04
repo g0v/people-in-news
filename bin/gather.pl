@@ -207,6 +207,8 @@ my $mce = MCE->new(
                 if ( ($pending == 0) or (time() - $PROCESS_START > $opts{'time-limit'}) ) {
                     $queue_unique_urls->clear;
                     $queue_unique_urls->end;
+                    $queue_urls->clear;
+                    $queue_urls->end;
                 }
 
                 sleep 10;
