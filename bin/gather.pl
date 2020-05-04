@@ -150,17 +150,6 @@ sub add_to_url_seen {
     }
 }
 
-sub accquire_output_filename {
-    my $db_path = $_[0];
-    my $t = Sn::ts_now();
-    my $output = $db_path . "/articles-" . $t . ".jsonl";
-    while (-f $output) {
-        $t += 1;
-        $output = $db_path . "/articles-" . $t . ".jsonl";
-    }
-    return $output;
-}
-
 ## main
 
 my %opts;
@@ -171,6 +160,7 @@ GetOptions(
 );
 die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
 
+$opts{db} =~ s{/$}{};
 $opts{'time-limit'} //= 1200;
 
 chdir($Bin . '/../');
@@ -202,9 +192,11 @@ my $mce = MCE->new(
             sleep 2;
             my $pending;
             while (defined( $pending = $queue_unique_urls->pending() ))  {
-                MCE->say('[Monitor] queue_unique_urls /pending: ' . $pending );
+                my $duration = time() - $PROCESS_START;
 
-                if ( ($pending == 0) or (time() - $PROCESS_START > $opts{'time-limit'}) ) {
+                MCE->say("[Monitor] duration=${duration}, pending=${pending}");
+
+                if ( ($pending == 0) or ($duration > $opts{'time-limit'}) ) {
                     $queue_unique_urls->clear;
                     $queue_unique_urls->end;
                     $queue_urls->clear;
@@ -230,8 +222,10 @@ my $mce = MCE->new(
         max_workers => 'auto',
         task_name => "generic",
         user_func => sub {
-            my $depth = 0;
-            my $output = accquire_output_filename($opts{db});
+            my ($mce) = @_;
+            my $wid = $mce->wid;
+            my $ts  = Sn::ts_now();
+            my $output = $opts{db} . "/articles-${ts}-${wid}.jsonl";
             process_generic($url_seen, $output);
             MCE->say("OUTPUT $output");
         }
@@ -239,8 +233,12 @@ my $mce = MCE->new(
         task_name => "ftv",
         user_func => sub {
             while (my $url = $queue_ftv->dequeue_nb) {
-                my $output = accquire_output_filename($opts{db});
+                my ($mce) = @_;
+                my $wid = $mce->wid;
+                my $ts  = Sn::ts_now();
+                my $output = $opts{db} . "/articles-${ts}-${wid}.jsonl";
                 process_ftv($url_seen, $output);
+                MCE->say("OUTPUT $output");
             }
         }
     }],
