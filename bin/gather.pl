@@ -209,7 +209,7 @@ my $mce = MCE->new(
                     $queue_unique_urls->end;
                 }
 
-                sleep 2;
+                sleep 10;
             }
         }
     }, {
