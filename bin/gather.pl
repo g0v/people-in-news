@@ -49,7 +49,6 @@ sub process_generic {
     my ($url_seen, $out) = @_;
 
     open my $fh, '>', $out;
-    # $fh->autoflush(1);
 
     my $extracted_count = 0;
 
@@ -61,14 +60,6 @@ sub process_generic {
             sub {
                 my ($tx, $url) = @_;
                 my ($article, $links) = Sn::ArticleExtractor->new( tx => $tx )->extract;
-
-                if ($article and (! $is_initial_url{$url})) {
-                    MCE->say("[generic] ARTICLE $url");
-
-                    my $line = encode_article_as_json($article) . "\n";
-                    print $fh $line;
-                    push @processed_links, $url;
-                }
 
                 my $host_old = URI->new($url)->host;
                 my @discovered_links = grep {
@@ -82,9 +73,20 @@ sub process_generic {
                     and looks_like_similar_host($uri->host, $host_old)
                 } @$links;
 
+                if ($article and (! $is_initial_url{$url})) {
+                    MCE->say("[generic] ARTICLE $url");
+
+                    my $line = encode_article_as_json($article) . "\n";
+                    print $fh $line;
+                    push @processed_links, $url;
+                } else {
+                    MCE->say("[generic] NOARTICLE $url, discovered_links=" . (0+ @discovered_links));
+                }
+
                 if (@discovered_links) {
                     $queue_urls->enqueue(@discovered_links);
                 }
+
                 return 1;
             },
             sub {
@@ -189,7 +191,7 @@ my $mce = MCE->new(
     user_tasks => [{
         task_name => "supervisor",
         user_func => sub {
-            sleep 2;
+            sleep 60;
             my $pending;
             while (defined( $pending = $queue_unique_urls->pending() ))  {
                 my $duration = time() - $PROCESS_START;
