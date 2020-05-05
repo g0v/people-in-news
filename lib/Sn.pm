@@ -76,6 +76,11 @@ sub urls_get_all {
     }
 }
 
+sub current_year {
+    my @t = localtime();
+    return $t[5]+1900;
+}
+
 sub ts_now {
     my @t = localtime();
     return sprintf('%04d%02d%02d%02d%02d%02d', $t[5]+1900, $t[4]+1, $t[3], $t[2], $t[1], $t[0]);
@@ -182,48 +187,6 @@ sub extract_substrings {
     }
 
     return \%extracts;
-}
-
-sub tx_guess_charset {
-    my ($tx) = @_;
-    my $charset;
-    my $content_type = $tx->res->headers->content_type;
-
-    if ( $content_type && $content_type !~ /html/) {
-        # err "[$$] Non HTML";
-        return;
-    }
-
-    if ( $content_type && $content_type =~ m!charset=(.+)[;\s]?!) {
-        $charset = $1;
-    }
-
-    my $dom;
-    if (!$charset) {
-        $dom = $tx->res->dom;
-        if (my $meta_el = $dom->at("meta[http-equiv=Content-Type]")) {
-            ($charset) = $meta_el->attr('content') =~ m{charset=([^\s;]+)};
-            $charset = lc($charset) if defined($charset);
-        }
-    }
-    $charset = 'utf-8-strict' if $charset && $charset =~ /utf-?8/i;
-
-    my $resbody = $tx->res->body;
-    if (!$charset) {
-        if (!defined($resbody) || $resbody eq '') {
-            return;
-        }
-
-        my $enc = guess_encoding($resbody, qw/big5 utf8/);
-        $charset = $enc->name if $enc;
-    }
-
-    unless ($charset) {
-        # err "[$$] Unknown charset";
-        return;
-    }
-
-    return $charset;
 }
 
 sub parse_dateline {

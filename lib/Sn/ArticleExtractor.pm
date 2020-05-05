@@ -71,6 +71,52 @@ package Sn::ArticleExtractor {
         return 1;
     }
 
+    sub guessed_charset {
+        my ($self) = @_;
+        my $tx = $self->tx;
+
+        my $charset;
+        my $content_type = $tx->res->headers->content_type;
+
+        if ( $content_type && $content_type !~ /html/) {
+            # err "[$$] Non HTML";
+            return;
+        }
+
+        if ( $content_type && $content_type =~ m!charset=(.+)[;\s]?!) {
+            $charset = $1;
+        }
+
+        my $dom;
+        if (!$charset) {
+            $dom = $tx->res->dom;
+            if (my $meta_el = $dom->at("meta[http-equiv=Content-Type]")) {
+                ($charset) = $meta_el->attr('content') =~ m{charset=([^\s;]+)};
+                $charset = lc($charset) if defined($charset);
+            }
+        }
+        $charset = 'utf-8-strict' if $charset && $charset =~ /utf-?8/i;
+
+        my $resbody = $tx->res->body;
+        if (!$charset) {
+            if (!defined($resbody) || $resbody eq '') {
+                return;
+            }
+
+            my $enc = guess_encoding($resbody, qw/big5 utf8/);
+            $charset = $enc->name if $enc;
+        }
+
+        unless ($charset) {
+            # err "[$$] Unknown charset";
+            return;
+        }
+
+        return $charset;
+    }
+
+
+
     sub extract {
         my ($self) = @_;
 
@@ -101,7 +147,7 @@ package Sn::ArticleExtractor {
 
         return (undef, \@links) unless $self->looks_like_article_page;
 
-        my $charset = Sn::tx_guess_charset($tx) or return(undef, \@links);
+        my $charset = $self->guessed_charset() or return(undef, \@links);
         my $html = decode($charset, $res->body);
 
         my $err;
