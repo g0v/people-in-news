@@ -35,6 +35,7 @@ sub produce_atom_feed {
 
     my $now = time();
     for my $article (@$articles) {
+        next unless $article->{url} && $article->{title};
         my $item = $feed->add_item(
             link => $article->{url},
             title => $article->{title},
