@@ -8,7 +8,7 @@ export TZ=Asia/Taipei
 ts_begin=$(date +%s)
 
 perl -Ilib bin/gather-feeds.pl --db var/db
-perl -Ilib bin/gather.pl --db var/db --time-limit=2400
+perl -Ilib bin/gather.pl --db var/db --time-limit=3000
 perl -Ilib bin/merge.pl --db var/db
 perl -Ilib bin/deduplicate.pl --yes var/db/*.jsonl
 perl -Ilib bin/build-atom-feed.pl --db var/db -o var/www
