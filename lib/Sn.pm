@@ -195,7 +195,7 @@ sub parse_dateline {
     if (!$tm) {
         if (my $ts = HTTP::Date::str2time($dateline, '+0800')) {
             $tm = try {
-                Time::Moment->from_epoch($ts);
+                Time::Moment->from_epoch($ts)->with_offset(480);
             }
         }
     }
