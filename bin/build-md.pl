@@ -1,5 +1,6 @@
 #!/usr/bin/env perl
 use Sn;
+use Importer 'Sn::Util' => qw( nsort_by sort_by uniq_by );
 
 use File::Basename qw(basename);
 use Encode qw(encode_utf8);
@@ -7,36 +8,26 @@ use Getopt::Long qw(GetOptions);
 use JSON qw(decode_json);
 use List::Util qw(maxstr);
 
-sub sort_by(&@) {
-    my $cb = shift;
-    return map { $_->[1] } sort { $a->[0] cmp $b->[0] } map {[ $cb->($_), $_ ]} @_;
-}
-
-sub uniq_by(&@) {
-    my $cb = shift;
-    my %seen;
-    my @items;
-    for my $item (@_) {
-        local $_ = $item;
-        my $k = $cb->($item);
-        unless ($seen{$k}) {
-            $seen{$k} = 1;
-            push @items, $item;
-        }
-    }
-    return @items;
-}
-
 sub build_md {
     my ($page, $output) = @_;
 
     my $md = "";
-    for my $h (sort { length($a) <=> length($b) || $a cmp $b } keys %$page) {
+    for my $h (nsort_by { -1 * @{$page->{$_}} } keys %$page) {
         $md .= "## $h\n\n";
         for my $d (sort_by { -1 * length($_->{title}) } uniq_by { $_->{content_text} } sort_by { length($_->{url}) } @{$page->{$h}}) {
+
+            my $hashtags = join(
+                " ",
+                map { "#" . $_ }
+                sort { $a cmp $b }
+                map { @{$d->{substrings}{$_}} }
+                grep { $_ ne "people" }
+                (keys %{$d->{substrings}})
+            );
+
             $d->{title} =~ s/\A\s+//;
             $d->{title} =~ s/\s+\z//;
-            $md .= "- [$d->{title}]($d->{url})\n";
+            $md .= "- [$d->{title}]($d->{url}) $hashtags\n";
         }
         $md .= "\n";
     }
@@ -67,15 +58,11 @@ for my $file (@input) {
     while (<$fh>) {
         chomp;
         my $d = decode_json($_);
-        next unless @{$d->{names}};
-        my $header = join ',', sort { $a cmp $b } @{$d->{names}};
-        push @{$page{$header}}, $d;
+        for my $name (@{$d->{substrings}{people} //[]}) {
+            push @{$page{$name}}, $d;
+        }
     }
     close($fh);
 
     build_md(\%page, $output);
 }
-
-my $new_index = maxstr( glob "$opts{o}/people-in-news-*.md" );
-unlink("$opts{o}/Home.md");
-link($new_index, "$opts{o}/Home.md");

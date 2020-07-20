@@ -25,6 +25,11 @@ sub import {
     feature->import(':5.26');
 }
 
+sub sort_by :prototype(&@) {
+    my $cb = shift;
+    return map { $_->[1] } sort { $a->[0] cmp $b->[0] } map {[ $cb->($_), $_ ]} @_;
+}
+
 sub promise_loop {
     my ($works, $promiser, $thener, $catcher) = @_;
 
