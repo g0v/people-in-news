@@ -1,8 +1,9 @@
 package Sn;
 use v5.18;
-
 use strict;
 use warnings;
+use utf8;
+
 use Encode::Guess;
 use Encode qw(encode_utf8 decode_utf8);
 use List::Util qw(uniqstr);
@@ -16,6 +17,13 @@ use Path::Tiny qw(path);
 use Sn::TX;
 
 use constant app_root => path(__FILE__)->parent->parent;
+
+sub import {
+    strict->import;
+    warnings->import;
+    utf8->import;
+    feature->import(':5.26');
+}
 
 sub promise_loop {
     my ($works, $promiser, $thener, $catcher) = @_;
