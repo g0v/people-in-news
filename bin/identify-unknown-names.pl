@@ -1,9 +1,7 @@
 #!/usr/bin/env perl
-use v5.26;
-use strict;
-use warnings;
-use Getopt::Long qw(GetOptions);
+use Sn;
 
+use Getopt::Long qw(GetOptions);
 use Encode qw(encode_utf8 decode_utf8);
 use JSON qw(decode_json);
 use MCE::Loop;

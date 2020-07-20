@@ -1,6 +1,10 @@
 #!/usr/bin/env perl
-use v5.26;
-use warnings;
+use Sn;
+use Sn::Seen;
+use Sn::ArticleExtractor;
+use Sn::FTVScraper;
+
+use Importer 'Sn::TextUtil' => qw(looks_like_similar_host looks_like_sns_url);
 
 use URI;
 use MCE;
@@ -10,13 +14,6 @@ use Getopt::Long qw(GetOptions);
 use List::Util qw( shuffle);
 use JSON ();
 use FindBin '$Bin';
-
-use Sn;
-use Sn::Seen;
-use Sn::ArticleExtractor;
-use Sn::FTVScraper;
-
-use Importer 'Sn::TextUtil' => qw(looks_like_similar_host looks_like_sns_url);
 
 ## global
 my %is_initial_url;

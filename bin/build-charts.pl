@@ -1,7 +1,5 @@
 #!/usr/bin/env perl
-use v5.18;
-use strict;
-use warnings;
+use Sn;
 
 use Getopt::Long qw(GetOptions);
 use File::Next;

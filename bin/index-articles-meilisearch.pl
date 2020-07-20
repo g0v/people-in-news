@@ -1,12 +1,13 @@
 #!/usr/bin/env perl
-use v5.26;
-use warnings;
+use Sn;
+use Sn::ArticleIterator;
+
 use Hijk;
 use Mojo::JSON qw(encode_json);
 use Getopt::Long qw(GetOptions);
 # use Encode qw(encode_utf8);
 # use UUID::Tiny qw(create_uuid_as_string);
-use Sn::ArticleIterator;
+
 use Path::Tiny;
 exit main();
 
@@ -22,7 +23,7 @@ sub main {
     my $id   = 10000;
     my $iter = Sn::ArticleIterator->new(db_path => $opts{db});
     while ( my $article = $iter->() ) {
-        my %doc = %$article;{
+        my %doc = %$article;
         $doc{id} = "".($id++);
         delete($doc{substrings});
         push @docs, \%doc;
@@ -38,7 +39,6 @@ sub main {
 
     return 0;
 }
-
 
 sub meilisearch_add_documents {
     my $docs = shift;

@@ -1,16 +1,12 @@
 #!/usr/bin/env perl
-use v5.18;
-use strict;
-use warnings;
-
+use Sn;
+use Sn::ArticleIterator;
 
 use JSON::SL;
 use List::Util qw(first);
-
 use Text::Util::Chinese qw( tokenize_by_script );
-use File::Glob ':bsd_blob';
+use File::Glob ':bsd_glob';
 use FindBin '$Bin';
-use Sn::ArticleIterator;
 
 sub load_lexiconns {
     bsd_glob("$Bin/../etc/dict-*.txt"), bsd_glob("$Bin/../etc/lexiconn-*.txt"),

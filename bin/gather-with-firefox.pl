@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
-use v5.26;
-use strict;
-use warnings;
+use Sn;
+use Sn::FFUA;
 
 use URI;
 use HTML::ExtractContent;
@@ -9,13 +8,9 @@ use Encode qw( decode);
 use Encode::Guess;
 use Getopt::Long qw(GetOptions);
 use Algorithm::BloomFilter;
-
 use List::Util qw( max);
 use JSON::PP qw(encode_json);
 use FindBin '$Bin';
-
-use Sn;
-use Sn::FFUA;
 
 sub err {
     say STDERR @_;

@@ -1,13 +1,11 @@
 #!/usr/bin/env perl
-use v5.26;
-use strict;
-use warnings;
+use Sn;
+use Sn::ArticleIterator;
+
 use List::Util qw(uniq);
 use Encode qw(encode_utf8);
 use Getopt::Long qw(GetOptions);
 use Text::Util::Chinese qw< phrase_iterator >; ;
-
-use Sn::ArticleIterator;
 
 sub looks_ok {
     my ($phrase) = @_;

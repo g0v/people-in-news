@@ -1,7 +1,7 @@
 #!/usr/bin/env perl
-use v5.26;
-use strict;
-use warnings;
+use Sn;
+use Sn::Seen;
+use Sn::HTMLExtractor;
 
 use URI;
 use Mojo::UserAgent;
@@ -18,10 +18,6 @@ use FindBin '$Bin';
 
 use Log::Log4perl qw(:easy);
 use WWW::Mechanize::Chrome;
-
-use Sn;
-use Sn::Seen;
-use Sn::HTMLExtractor;
 
 use Importer 'Sn::TextUtil' => 'looks_like_similar_host';
 

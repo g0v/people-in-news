@@ -1,13 +1,10 @@
 #!/usr/bin/env perl
-use v5.18;
-use strict;
-use warnings;
+use Sn;
+use Sn::ArticleIterator;
+
 use Getopt::Long qw(GetOptions);
 # use File::Glob ':bsd_glob';
 use Mojo::URL;
-
-use Sn;
-use Sn::ArticleIterator;
 
 ## main
 my %opts;

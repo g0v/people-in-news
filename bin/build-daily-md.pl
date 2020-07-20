@@ -1,15 +1,12 @@
 #!/usr/bin/env perl
-use v5.26;
-use strict;
-use warnings;
+use Sn;
+use Sn::ArticleIterator;
 
 use Encode qw(encode_utf8);
 use Getopt::Long qw(GetOptions);
 use List::Util qw(maxstr);
 use String::Trim qw(trim);
 use File::Basename qw(basename);
-
-use Sn::ArticleIterator;
 
 sub squeeze {
     my ($str) = @_;
@@ -125,7 +122,7 @@ for my $yyyymmdd (keys %buckets) {
             push @{$page{"(No Category)"}{"(No Keyword)"}}, $d;
         }
     }
-    
+
     build_md(\%page, $output);
 }
 

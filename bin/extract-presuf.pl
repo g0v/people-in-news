@@ -1,13 +1,10 @@
 #!/usr/bin/env perl
-use v5.26;
-use strict;
-use warnings;
+use Sn;
+use Sn::ArticleIterator;
 
 use Getopt::Long qw< GetOptions >;
 use Encode qw< encode_utf8 >;
 use Text::Util::Chinese qw< presuf_iterator >; ;
-
-use Sn::ArticleIterator;
 
 my %opts;
 GetOptions(

@@ -1,11 +1,9 @@
 #!/usr/bin/env perl
-use v5.26;
-use strict;
-use warnings;
+use Sn;
+use Sn::WaybackMachinePoster;
+
 use XML::FeedPP;
 use Getopt::Long qw(GetOptions);
-
-use Sn::WaybackMachinePoster;
 
 ## main
 my %opts;

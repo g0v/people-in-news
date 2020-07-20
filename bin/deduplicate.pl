@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
-use v5.26;
-use warnings;
+use Sn;
+
 use JSON;
 use File::Copy qw(copy);
 use Getopt::Long qw(GetOptions);

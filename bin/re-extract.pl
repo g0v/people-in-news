@@ -1,16 +1,12 @@
 #!/usr/bin/env perl
-use v5.26;
-use strict;
-use warnings;
+use Sn;
+use Sn::Seen;
+use Sn::ArticleIterator;
 
 use MCE;
 use MCE::Loop;
 use Getopt::Long qw(GetOptions);
 use JSON::PP qw(encode_json );
-
-use Sn;
-use Sn::Seen;
-use Sn::ArticleIterator;
 
 sub process {
     my ($f_input, $f_output) = @_;
@@ -22,7 +18,7 @@ sub process {
         next unless $article->{title} && $article->{content_text};
 
         $article->{substrings} = Sn::extract_substrings([ $article->{title}, $article->{content_text} ]);
-        $artiqcle->{t_extracted} = 0+ time();
+        $article->{t_extracted} = 0+ time();
 
         my $x = encode_json($article) . "\n";
         print $fh_out $x;

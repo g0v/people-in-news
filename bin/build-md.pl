@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
-use v5.26;
-use strict;
-use warnings;
+use Sn;
+
 use File::Basename qw(basename);
 use Encode qw(encode_utf8);
 use Getopt::Long qw(GetOptions);

@@ -1,7 +1,5 @@
 #!/usr/bin/env perl
-use v5.26;
-use strict;
-use warnings;
+use Sn;
 
 use URI;
 use Try::Tiny;

@@ -1,17 +1,11 @@
 #!/usr/bin/env perl
-use v5.18;
-use strict;
-use warnings;
-
+use Sn;
+use Sn::ArticleIterator;
 
 use Getopt::Long qw(GetOptions);
 use Mojo::URL;
 use Mojo::Util qw(url_escape);
 use Net::Graphite;
-
-use Sn;
-use Sn::ArticleIterator;
-
 
 sub graphite_metric_escape {
     my $s = $_[0];

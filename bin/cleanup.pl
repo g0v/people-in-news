@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
-use v5.26;
-use warnings;
+use Sn;
+use Sn::ArticleIterator;
 
 use List::Util qw< uniqstr >;
 use File::Basename qw< basename >;
@@ -8,8 +8,6 @@ use Getopt::Long qw< GetOptions >;
 use JSON ();
 use PerlIO::via::gzip;
 use URI;
-use Sn;
-use Sn::ArticleIterator;
 
 ## helpers
 sub looks_empty {

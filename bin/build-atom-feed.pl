@@ -1,16 +1,12 @@
 #!/usr/bin/env perl
-use v5.26;
-use utf8;
-use warnings;
+use Sn;
+use Sn::ArticleIterator;
 
 use Getopt::Long qw(GetOptions);
 use Text::Markdown::Discount qw(markdown);
 use List::Util qw(uniq);
 use Time::Moment;
 use XML::FeedPP;
-
-use Sn;
-use Sn::ArticleIterator;
 
 sub remove_if(&$) {
     my ($condition, $arr) = @_;

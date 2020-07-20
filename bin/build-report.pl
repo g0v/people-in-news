@@ -1,16 +1,12 @@
 #!/usr/bin/env perl
-use v5.26;
-use strict;
-use warnings;
+use Sn;
+use Sn::Seen;
+use Sn::ArticleIterator;
 
 use Getopt::Long qw(GetOptions);
 
 use Encode qw(encode_utf8 );
 use Getopt::Long qw(GetOptions);
-
-use Sn;
-use Sn::Seen;
-use Sn::ArticleIterator;
 
 sub load_substrs {
     my %substrs;

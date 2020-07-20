@@ -1,12 +1,13 @@
 #!/usr/bin/env perl
-use v5.26;
-use warnings;
+use Sn;
+use Sn::ArticleIterator;
+
 use Elastijk;
 use Mojo::JSON qw(encode_json);
 use Getopt::Long qw(GetOptions);
 use Encode qw(encode_utf8);
 use UUID::Tiny qw(create_uuid_as_string);
-use Sn::ArticleIterator;
+
 exit main();
 
 sub main {

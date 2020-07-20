@@ -1,6 +1,6 @@
 #!/usr/bin/env perl
-use v5.26;
-use warnings;
+use Sn;
+
 use Getopt::Long qw(GetOptions);
 use PerlIO::via::gzip;
 

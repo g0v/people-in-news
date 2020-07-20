@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
-use v5.26;
-use strict;
-use warnings;
+use Sn;
+use Sn::Seen;
 
 use URI;
 use Mojo::Promise;
@@ -11,9 +10,6 @@ use FindBin '$Bin';
 use Encode qw( decode);
 use NewsExtractor;
 use MCE::Loop;
-
-use Sn;
-use Sn::Seen;
 
 ## global
 my $STOP = 0;

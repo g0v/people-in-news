@@ -1,10 +1,8 @@
 #!/usr/bin/env perl
-use v5.26;
-use warnings;
-use JSON qw(encode_json);
-
 use Sn;
 use Sn::ArticleExtractor;
+
+use JSON qw(encode_json);
 
 my $url = $ARGV[0];
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env perl
-use v5.18;
-use utf8;
-use strict;
+use Sn;
+
 use Getopt::Long qw(GetOptions);
 use JSON::SL;
 use Encode qw(encode_utf8);
