@@ -1,5 +1,4 @@
 package Sn::ArticleExtractor {
-    use utf8;
     use Sn;
     use URI;
     use Try::Tiny;
