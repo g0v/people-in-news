@@ -29,13 +29,13 @@ sub produce_atom_feed {
         %$feed_opts,
     );
 
-    my $now = time();
     for my $article (@$articles) {
         next unless $article->{url} && $article->{title};
         my $item = $feed->add_item(
-            link => $article->{url},
+            link  => $article->{url},
             title => $article->{title},
         );
+        $item->pubDate( $article->{dateline_parsed}->epoch );
 
         if ($article->{journalist}) {
             $item->author( $article->{journalist} );
@@ -43,12 +43,6 @@ sub produce_atom_feed {
 
         if (defined $article->{content_text}) {
             $item->set_value(content => markdown($article->{content_text}), type => "html");
-        }
-
-        if (my $t = $article->{dateline_parsed}) {
-            $item->pubDate( $t->epoch );
-        } else {
-            $item->pubDate( $now );
         }
 
         my @categories = map { @{$article->{substrings}{$_}} } (keys %{$article->{substrings}});
@@ -141,14 +135,11 @@ while ( my $article = $iter->() ) {
         $article->{dateline_parsed} = $epoch_zero;
     }
 }
-%seen = ();
 
+%seen = ();
 @articles = grep {
     my $digest = $_->{title} . "\n" . $_->{content_text};
-
     ! $seen{$digest}++;
-} sort {
-    $b->{dateline_parsed}->compare( $a->{dateline_parsed} ) ||  length($a->{url}) <=> length($b->{url})
 } @articles;
 
 produce_atom_feed(
