@@ -143,6 +143,14 @@ while ( my $article = $iter->() ) {
 } @articles;
 
 produce_atom_feed(
+    (remove_if { (! defined($_->{dateline})) } \@articles),
+    $opts{o} . "/articles-ng-dateline.atom",
+    +{
+        title => "Articles (NG: No dateline)",
+    }
+);
+
+produce_atom_feed(
     (remove_if { ! looks_good($_) } \@articles),
     $opts{o} . "/articles-ng.atom",
     +{
