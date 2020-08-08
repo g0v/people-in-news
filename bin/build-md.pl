@@ -11,26 +11,47 @@ use List::Util qw(maxstr);
 sub build_md {
     my ($page, $output) = @_;
 
+    my $next_link_id = 1;
+    my %link_id;
+    my @link_url;
+
     my $md = "";
-    for my $h (nsort_by { -1 * @{$page->{$_}} } keys %$page) {
-        $md .= "## $h\n\n";
-        for my $d (sort_by { -1 * length($_->{title}) } uniq_by { $_->{content_text} } sort_by { length($_->{url}) } @{$page->{$h}}) {
+    for my $obj (nsort_by { -1 * (keys %{$page->{$_}} ) } keys %$page) {
+        my %articles;
 
-            my $hashtags = join(
-                " ",
-                map { "#" . $_ }
-                sort { $a cmp $b }
-                map { @{$d->{substrings}{$_}} }
-                grep { $_ ne "people" }
-                (keys %{$d->{substrings}})
-            );
+        for my $name (nsort_by { -1 * @{$page->{$obj}{$_}} } keys %{$page->{$obj}}) {
+            @{$articles{$name}} = sort_by { $_->{title} } map {
+                $_->{title} =~ s/\A\s+//;
+                $_->{title} =~ s/\s+\z//;
+                $_;
+            } uniq_by { $_->{content_text} } grep { not exists $link_id{$_->{url}} } @{ $page->{$obj}{$name} };
 
-            $d->{title} =~ s/\A\s+//;
-            $d->{title} =~ s/\s+\z//;
-            $md .= "- [$d->{title}]($d->{url}) $hashtags\n";
+            for my $d (@{$articles{$name}}) {
+                my $link_id = $link_id{ $d->{url} } //= $next_link_id++;
+                $link_url[$link_id] //= $d->{url};
+            }
+        }
+
+        next if 0 == keys %articles;
+
+        for my $name (nsort_by { -1 * @{$articles{$_}}} keys %articles) {
+            next unless @{$articles{$name}} > 0;
+
+            $md .= "### $obj :: $name\n\n";
+            for my $d (@{$articles{$name}}) {
+                my $link_id = $link_id{ $d->{url} };
+                $md .= "- [$d->{title}][$link_id]\n";
+            }
+            $md .= "\n";
         }
         $md .= "\n";
     }
+
+    $md .= "\n";
+    for my $id (1..$next_link_id-1) {
+        $md .= "[$id]: " . $link_url[$id] . "\n";
+    };
+    $md .= "\n";
 
     open my $fh, '>', $output;
     say $fh encode_utf8($md);
@@ -58,8 +79,10 @@ for my $file (@input) {
     while (<$fh>) {
         chomp;
         my $d = decode_json($_);
-        for my $name (@{$d->{substrings}{people} //[]}) {
-            push @{$page{$name}}, $d;
+        for my $obj (@{$d->{substrings}{events} //[]}, @{$d->{substrings}{things} //[]}) {
+            for my $name (@{$d->{substrings}{people} //[]}) {
+                push @{$page{$obj}{$name}}, $d;
+            }
         }
     }
     close($fh);
