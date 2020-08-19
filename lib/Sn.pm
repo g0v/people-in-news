@@ -204,13 +204,28 @@ sub extract_substrings {
 
 sub parse_dateline {
     my ($dateline) = @_;
+
     my $tm = try { Time::Moment->from_string($dateline, lenient => 1) };
-    if (!$tm) {
-        if (my $ts = HTTP::Date::str2time($dateline, '+0800')) {
-            $tm = try {
-                Time::Moment->from_epoch($ts)->with_offset(480);
-            }
+    return $tm if $tm;
+
+    if (my $ts = HTTP::Date::str2time($dateline, '+0800')) {
+        $tm = try {
+            Time::Moment->from_epoch($ts)->with_offset(480);
         }
+    }
+    return $tm if $tm;
+
+    my @nums = split /[^0-9]+/, $dateline;
+    if ($nums[0] > 999 && @nums == 3) {
+        $tm = Time::Moment->new(
+            year => $nums[0],
+            month => $nums[1],
+            day => $nums[2],
+            hour   => 23,
+            minute => 59,
+            second => 59,
+            offset => 480,
+        )
     }
 
     return $tm;
