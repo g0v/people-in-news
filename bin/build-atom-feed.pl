@@ -181,3 +181,11 @@ produce_atom_feed(
         title => "Articles",
     }
 );
+
+produce_atom_feed(
+    [map { $_->{content_text} = "" ; $_ } @articles],
+    $opts{o} . "/articles-link-only.atom",
+    +{
+        title => "Articles",
+    }
+);
