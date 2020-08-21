@@ -106,6 +106,15 @@ sub looks_buggy {
     return 0;
 }
 
+sub article_iter_latest {
+    my $opts = $_[0];
+
+    return Sn::ArticleIterator->new(
+        db_path => $opts->{db},
+        filter_file => sub { /\.jsonl$/ },
+    );
+}
+
 ## main
 my %opts;
 GetOptions(
@@ -117,10 +126,7 @@ GetOptions(
 die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
 die "-o <DIR> is needed" unless $opts{o} && -d $opts{o};
 
-my $iter = Sn::ArticleIterator->new(
-    db_path => $opts{db},
-    filter_file => sub { /\.jsonl$/ },
-);
+my $iter = article_iter_latest(\%opts);
 
 my $epoch_zero = Time::Moment->from_epoch(0);
 my %seen;
