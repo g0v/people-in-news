@@ -32,4 +32,13 @@ sub next {
     return $self->reified->[$i];
 }
 
+sub exhaust {
+    my ($self) = @_;
+    my ($o, @ret);
+    while(defined($o = $self->next())) {
+        push @ret, $o;
+    }
+    return \@ret;
+}
+
 1;
