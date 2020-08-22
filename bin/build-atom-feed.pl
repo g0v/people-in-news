@@ -115,6 +115,88 @@ sub article_iter_latest {
     );
 }
 
+sub article_iter_yesterday {
+    my $opts = $_[0];
+    my $yesterday = Time::Moment->now->minus_days(1)->strftime('%Y%m%d');
+    return Sn::ArticleIterator->new(
+        db_path => $opts->{db},
+        filter_file => sub { /${yesterday}\.jsonl$/ },
+    );
+}
+
+sub build_atom_latest {
+    my $opts = $_[0];
+    my $iter = article_iter_latest($opts);
+
+    my $epoch_zero = Time::Moment->from_epoch(0);
+    my %seen;
+    my @articles;
+    while ( my $article = $iter->() ) {
+        next unless defined($article->{t_fetched}) && !( $seen{$article->{url}}++ );
+        push @articles, $article;
+
+        if ($article->{dateline} && (my $t = Sn::parse_dateline($article->{dateline}))) {
+            $article->{dateline_parsed} = $t;
+        } else {
+            $article->{dateline_parsed} = $epoch_zero;
+        }
+    }
+
+    %seen = ();
+    @articles = grep {
+        my $digest = $_->{title} . "\n" . $_->{content_text};
+        ! $seen{$digest}++;
+    } @articles;
+
+    produce_atom_feed(
+        (remove_if { (! defined($_->{dateline})) } \@articles),
+        $opts->{o} . "/articles-ng-dateline.atom",
+        +{
+            title => "Articles (NG: No dateline)",
+        }
+    );
+
+    produce_atom_feed(
+        (remove_if { ! looks_good($_) } \@articles),
+        $opts->{o} . "/articles-ng.atom",
+        +{
+            title => "Articles (NG)",
+        }
+    );
+
+    produce_atom_feed(
+        (remove_if { looks_buggy($_) } \@articles),
+        $opts->{o} . "/articles-buggy.atom",
+        +{
+            title => "Articles (Buggy)",
+        }
+    );
+
+    produce_atom_feed(
+        (remove_if { ! contains_keywords($_) } \@articles),
+        $opts->{o} . "/articles-nokeywords.atom",
+        +{
+            title => "Articles (No Keywords)",
+        }
+    );
+
+    produce_atom_feed(
+        \@articles,
+        $opts->{o} . "/articles.atom",
+        +{
+            title => "Articles",
+        }
+    );
+
+    produce_atom_feed(
+        [map { $_->{content_text} = "" ; $_ } @articles],
+        $opts->{o} . "/articles-link-only.atom",
+        +{
+            title => "Articles",
+        }
+    );
+}
+
 ## main
 my %opts;
 GetOptions(
@@ -126,72 +208,4 @@ GetOptions(
 die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
 die "-o <DIR> is needed" unless $opts{o} && -d $opts{o};
 
-my $iter = article_iter_latest(\%opts);
-
-my $epoch_zero = Time::Moment->from_epoch(0);
-my %seen;
-my @articles;
-while ( my $article = $iter->() ) {
-    next unless defined($article->{t_fetched}) && !( $seen{$article->{url}}++ );
-    push @articles, $article;
-
-    if ($article->{dateline} && (my $t = Sn::parse_dateline($article->{dateline}))) {
-        $article->{dateline_parsed} = $t;
-    } else {
-        $article->{dateline_parsed} = $epoch_zero;
-    }
-}
-
-%seen = ();
-@articles = grep {
-    my $digest = $_->{title} . "\n" . $_->{content_text};
-    ! $seen{$digest}++;
-} @articles;
-
-produce_atom_feed(
-    (remove_if { (! defined($_->{dateline})) } \@articles),
-    $opts{o} . "/articles-ng-dateline.atom",
-    +{
-        title => "Articles (NG: No dateline)",
-    }
-);
-
-produce_atom_feed(
-    (remove_if { ! looks_good($_) } \@articles),
-    $opts{o} . "/articles-ng.atom",
-    +{
-        title => "Articles (NG)",
-    }
-);
-
-produce_atom_feed(
-    (remove_if { looks_buggy($_) } \@articles),
-    $opts{o} . "/articles-buggy.atom",
-    +{
-        title => "Articles (Buggy)",
-    }
-);
-
-produce_atom_feed(
-    (remove_if { ! contains_keywords($_) } \@articles),
-    $opts{o} . "/articles-nokeywords.atom",
-    +{
-        title => "Articles (No Keywords)",
-    }
-);
-
-produce_atom_feed(
-    \@articles,
-    $opts{o} . "/articles.atom",
-    +{
-        title => "Articles",
-    }
-);
-
-produce_atom_feed(
-    [map { $_->{content_text} = "" ; $_ } @articles],
-    $opts{o} . "/articles-link-only.atom",
-    +{
-        title => "Articles",
-    }
-);
+build_atom_latest(\%opts);
