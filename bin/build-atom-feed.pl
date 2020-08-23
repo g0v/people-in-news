@@ -218,7 +218,7 @@ sub build_atom_yesterday {
         \@articles,
         $opts->{o} . "/articles-yesterday.atom",
         +{
-            title => "Articles",
+            title => "Articles from Yestardy",
         }
     );
 }
