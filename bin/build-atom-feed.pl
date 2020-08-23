@@ -120,7 +120,7 @@ sub article_iter_yesterday {
     my $yesterday = Time::Moment->now->minus_days(1)->strftime('%Y%m%d');
     return Sn::ArticleIterator->new(
         db_path => $opts->{db},
-        filter_file => sub { /${yesterday}\.jsonl$/ },
+        filter_file => sub { /\.jsonl$/ or /${yesterday}\.jsonl.gz$/ },
     );
 }
 
@@ -197,6 +197,32 @@ sub build_atom_latest {
     );
 }
 
+sub build_atom_yesterday {
+    my $opts = $_[0];
+    my $iter = article_iter_yesterday($opts);
+
+    my $tm_now = Time::Moment->now;
+    my %seen;
+    my @articles;
+    while ( my $article = $iter->() ) {
+        next unless defined($article->{t_fetched}) && !( $seen{$article->{url}}++ );
+        next unless looks_good($article);
+        next if $seen{$article->{title} . "\n" . $article->{content_text}}++;
+        next unless defined($article->{dateline_parsed} = Sn::parse_dateline($article->{dateline}));
+        next unless $article->{dateline_parsed}->delta_days($tm_now) == 1;
+        push @articles, $article;
+    }
+    %seen = ();
+
+    produce_atom_feed(
+        \@articles,
+        $opts->{o} . "/articles-yesterday.atom",
+        +{
+            title => "Articles",
+        }
+    );
+}
+
 ## main
 my %opts;
 GetOptions(
@@ -208,4 +234,5 @@ GetOptions(
 die "--db <DIR> is needed" unless $opts{db} && -d $opts{db};
 die "-o <DIR> is needed" unless $opts{o} && -d $opts{o};
 
+build_atom_yesterday(\%opts);
 build_atom_latest(\%opts);
