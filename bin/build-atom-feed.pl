@@ -133,20 +133,13 @@ sub build_atom_latest {
     my @articles;
     while ( my $article = $iter->() ) {
         next unless defined($article->{t_fetched}) && !( $seen{$article->{url}}++ );
-        push @articles, $article;
-
-        if ($article->{dateline} && (my $t = Sn::parse_dateline($article->{dateline}))) {
-            $article->{dateline_parsed} = $t;
-        } else {
-            $article->{dateline_parsed} = $epoch_zero;
+        next if $seen{$article->{title} . "\n" . $article->{content_text}}++;
+        if ($article->{dateline}) {
+            $article->{dateline_parsed} = Sn::parse_dateline($article->{dateline}) // $epoch_zero;
         }
+        push @articles, $article;
     }
-
     %seen = ();
-    @articles = grep {
-        my $digest = $_->{title} . "\n" . $_->{content_text};
-        ! $seen{$digest}++;
-    } @articles;
 
     produce_atom_feed(
         (remove_if { (! defined($_->{dateline})) } \@articles),
