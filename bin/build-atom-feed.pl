@@ -35,7 +35,9 @@ sub produce_atom_feed {
             link  => $article->{url},
             title => $article->{title},
         );
-        $item->pubDate( $article->{dateline_parsed}->epoch );
+        if ($article->{dateline_parsed}) {
+            $item->pubDate( $article->{dateline_parsed}->epoch );
+        }
 
         if ($article->{journalist}) {
             $item->author( $article->{journalist} );
