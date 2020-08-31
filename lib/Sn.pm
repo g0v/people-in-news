@@ -1,5 +1,5 @@
 package Sn;
-use v5.18;
+use v5.26;
 use strict;
 use warnings;
 use utf8;
