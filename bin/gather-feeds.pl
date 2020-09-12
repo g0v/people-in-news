@@ -7,7 +7,6 @@ use Mojo::Promise;
 use JSON qw(encode_json);
 use Getopt::Long qw(GetOptions);
 use FindBin '$Bin';
-use Encode qw( decode);
 use NewsExtractor;
 use MCE::Loop;
 

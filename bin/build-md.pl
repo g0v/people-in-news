@@ -6,7 +6,6 @@ use File::Basename qw(basename);
 use Encode qw(encode_utf8);
 use Getopt::Long qw(GetOptions);
 use JSON qw(decode_json);
-use List::Util qw(maxstr);
 
 sub build_md {
     my ($page, $output) = @_;
