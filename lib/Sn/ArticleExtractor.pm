@@ -20,7 +20,7 @@ package Sn::ArticleExtractor {
             | /Content_List\.aspx
             | /Pages/List\.aspx
             | \.(net|com|tw)/(list|tags?|sitemap|search|about|categor(y|ies))
-            | ltn\.com\.tw/(m/)?list/
+            | ltn\.com\.tw/(m/)?(list|keywords)/
             | worldjournal\.com/page-
         )}xi;
 
