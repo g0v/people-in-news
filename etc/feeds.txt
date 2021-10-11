@@ -282,3 +282,5 @@ https://www.101newsmedia.com/rss.xml
 https://www.epochtimes.com.tw/Rss/latest
 https://yimedia.com.tw/feed/
 https://news.taiwannet.com.tw/rss.aspx
+https://www.peopo.org/rss-news
+https://www.peopo.org/rss-top10
