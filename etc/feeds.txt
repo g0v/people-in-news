@@ -53,17 +53,6 @@ https://feeds.feedburner.com/ettoday/success
 https://feeds.feedburner.com/ettoday/teck3c
 https://feeds.feedburner.com/ettoday/travel
 https://feeds.feedburner.com/techbang/daily
-https://ivoting.chinatimes.com/rss/analytics.xml
-https://ivoting.chinatimes.com/rss/poll.xml
-https://magazine.chinatimes.com/rss/arts.xml
-https://magazine.chinatimes.com/rss/baby.xml
-https://magazine.chinatimes.com/rss/books.xml
-https://magazine.chinatimes.com/rss/fashion.xml
-https://magazine.chinatimes.com/rss/financial.xml
-https://magazine.chinatimes.com/rss/house.xml
-https://magazine.chinatimes.com/rss/magazine.xml
-https://magazine.chinatimes.com/rss/news.xml
-https://magazine.chinatimes.com/rss/science.xml
 https://msntw.com/feed/
 https://news.ltn.com.tw/rss/all.xml
 https://news.ltn.com.tw/rss/business.xml
