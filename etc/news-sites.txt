@@ -120,7 +120,7 @@ https://www.kcg.gov.tw/
 https://tpctax.gov.taipei/
 https://www.pthg.gov.tw/Default.aspx
 https://www.hccg.gov.tw/ch/index.jsp
-http://www.hakkatv.org.tw
+https://www.hakkatv.org.tw
 https://tnntoday.com/
 http://newnet.tw/
 https://cn.wsj.com/zh-hant
