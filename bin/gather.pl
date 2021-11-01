@@ -141,8 +141,7 @@ my $url_seen;
 sub add_to_url_seen {
     my ($urls) = @_;
     $url_seen->add(@$urls);
-    MCE->say("[$$] Seen " . (0+ @$urls) . " more urls");
-
+    # MCE->say("[$$] Seen " . (0+ @$urls) . " more urls");
     if ($dirtiness++ > 100) {
         $url_seen->save;
         $dirtiness = 0;
