@@ -19,7 +19,7 @@ do
     pigz -11 $f
 done
 
-for yyyy in 2020 2021
+for yyyy in $(($(date +%Y)-1)) $(date +%Y)
 do
     mkdir -p var/db/$yyyy/
     mv var/db/*$yyyy*.jsonl.gz var/db/$yyyy/
