@@ -4,7 +4,8 @@ http://mol.mcu.edu.tw/%e9%a6%96%e9%a0%81/feed/
 http://mol.mcu.edu.tw/feed/
 http://pingtungtimes.com.tw/?feed=rss2
 http://tbnews.com.tw/rss.php
-http://titv.ipcf.org.tw/inews/getRSS
+https://www.ipcf.org.tw/zh-tw/RSS/LatestNews
+https://www.ipcf.org.tw/zh-TW/RSS/AnnouncementMessage
 http://twlugang.com/feed
 http://www.aborigine.tw/?feed=rss2
 http://www.allnews.tw/?feed=rss2
