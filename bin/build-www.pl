@@ -3,7 +3,7 @@ use Sn;
 
 use File::Basename qw(basename);
 use Getopt::Long qw(GetOptions);
-use Text::Markdown::Discount qw(markdown);
+use Text::Markdown qw(markdown);
 use Encode qw(decode_utf8 encode_utf8);
 use File::Slurp qw(read_file write_file);
 use MCE::Loop;
@@ -18,8 +18,6 @@ GetOptions(
 );
 die "-i <DIR> is needed" unless -d $opts{i};
 die "-o <DIR> is needed" unless -d $opts{o};
-
-Text::Markdown::Discount::with_html5_tags();
 
 my @things = sort {
     $b->{mtime} <=> $a->{mtime}

@@ -3,7 +3,7 @@ use Sn;
 use Sn::ArticleIterator;
 
 use Getopt::Long qw(GetOptions);
-use Text::Markdown::Discount qw(markdown);
+use Text::Markdown qw(markdown);
 use List::Util qw(uniq);
 use Time::Moment;
 use XML::FeedPP;
