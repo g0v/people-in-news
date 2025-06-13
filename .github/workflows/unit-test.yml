@@ -11,7 +11,7 @@ jobs:
     steps:
     - run: |
         apt-get update -y
-        apt-get install -y zsh curl build-essential perl cpanminus libio-socket-ssl-perl
+        apt-get install -y zsh curl build-essential perl cpanminus libio-socket-ssl-perl libpng-dev
     - uses: actions/checkout@v4
     - run: cpanm App::cpm
     - run: cpm install -g --show-build-log-on-failure
@@ -24,7 +24,7 @@ jobs:
     - run: |
         yes | unminimize
         apt-get update -y
-        apt-get install -y zsh curl build-essential man-db perl cpanminus libio-socket-ssl-perl
+        apt-get install -y zsh curl build-essential man-db perl cpanminus libio-socket-ssl-perl libpng-dev
     - uses: actions/checkout@v4
     - run: cpanm App::cpm
     - run: cpm install -g --show-build-log-on-failure
