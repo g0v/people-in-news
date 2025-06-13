@@ -13,7 +13,7 @@ jobs:
         apt-get update -y
         apt-get install -y zsh curl build-essential perl cpanminus
     - uses: actions/checkout@v4
-    - run: cpanm --installdeps .
+    - run: cpanm --quiet --installdeps .
     - run: yath test --qvf
   ubuntu:
     runs-on: ubuntu-latest
@@ -25,5 +25,5 @@ jobs:
         apt-get update -y
         apt-get install -y zsh curl build-essential man-db perl cpanminus
     - uses: actions/checkout@v4
-    - run: cpanm --installdeps .
+    - run: cpanm --quiet --installdeps .
     - run: yath test --qvf
