@@ -1,5 +1,10 @@
 --- !yamlscript/v0
 
+test-steps =::
+  - uses: actions/checkout@v4
+  - run: cpanm --installdeps .
+  - run: yath test --qvf
+
 job-config =::
   debian:
     init: |
@@ -11,11 +16,6 @@ job-config =::
       yes | unminimize
       apt-get update -y
       apt-get install -y zsh curl build-essential man-db perl cpanminus
-
-test-steps =::
-  - uses: actions/checkout@v4
-  - run: cpanm --installdeps .
-  - run: yath test --qvf
 
 defn gen-container-job(config image=nil)::
   runs-on: ubuntu-latest
