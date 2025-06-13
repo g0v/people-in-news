@@ -1,0 +1,36 @@
+--- !yamlscript/v0
+
+job-config =::
+  debian:
+    init: |
+      apt-get update -y
+      apt-get install -y zsh curl build-essential perl cpanminus
+
+  ubuntu:
+    init: |
+      yes | unminimize
+      apt-get update -y
+      apt-get install -y zsh curl build-essential man-db perl cpanminus
+
+test-steps =::
+  - uses: actions/checkout@v4
+  - run: cpanm --installdeps .
+  - run: yath test --qvf
+
+defn gen-container-job(config image=nil)::
+  runs-on: ubuntu-latest
+  container:
+    image:: image
+  steps:
+    - run:: config.init
+    - :: test-steps
+
+--- !yamlscript/v0:
+name: Unit Test
+
+on:
+  push:
+
+jobs:
+  debian:: gen-container-job(job-config.debian, 'debian:latest')
+  ubuntu:: gen-container-job(job-config.ubuntu, 'ubuntu:latest')
