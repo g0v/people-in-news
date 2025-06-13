@@ -2,7 +2,8 @@
 
 test-steps =::
   - uses: actions/checkout@v4
-  - run: cpanm --quiet --installdeps .
+  - run: cpanm App::cpm
+  - run: cpm install -g --show-build-log-on-failure
   - run: yath test --qvf
 
 job-config =::
