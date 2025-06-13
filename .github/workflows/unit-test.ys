@@ -12,11 +12,6 @@ job-config =::
       apt-get update -y
       apt-get install -y zsh curl build-essential man-db perl cpanminus libssl-dev zlib1g-dev libio-socket-ssl-perl libpng-dev libexpat1-dev
 
-  ubuntu:
-    init: |
-      yes | unminimize
-      apt-get update -y
-      apt-get install -y zsh curl build-essential man-db perl cpanminus libssl-dev zlib1g-dev libio-socket-ssl-perl libpng-dev libexpat1-dev
 
 defn gen-container-job(config image=nil)::
   runs-on: ubuntu-latest
@@ -34,4 +29,4 @@ on:
 
 jobs:
   debian:: gen-container-job(job-config.debian, 'debian:latest')
-  ubuntu:: gen-container-job(job-config.ubuntu, 'ubuntu:latest')
+  ubuntu:: gen-container-job(job-config.debian, 'ubuntu:latest')
