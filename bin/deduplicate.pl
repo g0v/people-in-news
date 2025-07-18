@@ -65,6 +65,7 @@ for my $file (@ARGV) {
     if ($opts{yes}) {
         unlink $file;
         copy $wip_file, $file;
+        unlink $wip_file;
     } else {
         say "DONE: $file => $wip_file";
     }
