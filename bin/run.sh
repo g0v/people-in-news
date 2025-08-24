@@ -14,7 +14,7 @@ ts_begin=$(date +%s)
 perl -Ilib bin/gather-feeds.pl --db $PEOPLE_IN_NEWS_DB_DIR
 perl -Ilib bin/gather.pl --db $PEOPLE_IN_NEWS_DB_DIR --time-limit=$PEOPLE_IN_NEWS_GATHER_TIME_LIMIT
 perl -Ilib bin/merge.pl --db $PEOPLE_IN_NEWS_DB_DIR
-perl -Ilib bin/deduplicate.pl --yes $PEOPLE_IN_NEWS_DB_DIR/*.jsonl
+perl -Ilib bin/deduplicate.pl --yes --db $PEOPLE_IN_NEWS_DB_DIR $PEOPLE_IN_NEWS_DB_DIR/*.jsonl
 perl -Ilib bin/build-atom-feed.pl --db $PEOPLE_IN_NEWS_DB_DIR -o $PEOPLE_IN_NEWS_WWW_DIR
 perl -Ilib bin/emit-hourly-stats.pl --db $PEOPLE_IN_NEWS_DB_DIR
 

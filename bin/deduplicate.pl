@@ -10,7 +10,10 @@ my %opts;
 GetOptions(
     \%opts,
     "yes",
+    "db|d=s",
 );
+
+die "`--db <DIR>' is a required argument now." unless -d $opts{"db"};
 
 for my $file (@ARGV) {
     next unless $file =~ m/articles-([0-9]{8})\.jsonl\z/;
@@ -37,7 +40,7 @@ for my $file (@ARGV) {
     }
     close($fh);
 
-    my $wip_file = "/tmp/deduplicated-articles-$yyyymmdd.jsonl";
+    my $wip_file = $ops{db} . "/deduplicated-articles-$yyyymmdd.jsonl";
     open $fh, '>', $wip_file;
 
     for my $len (keys %buckets) {
